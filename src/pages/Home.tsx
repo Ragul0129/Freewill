@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import heroImage from "../assets/hero.png";
 
 function Home() {
   return (
@@ -7,7 +8,6 @@ function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 text-white">
         <div className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
-
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             <div>
@@ -45,8 +45,8 @@ function Home() {
 
             <div className="flex justify-center">
               <img
-                src="/src/assets/hero.png"
-                alt="Mental wellness"
+                src={heroImage}
+                alt="FREEWILL Mental Wellness"
                 className="w-full max-w-lg rounded-3xl shadow-2xl"
               />
             </div>
@@ -76,7 +76,6 @@ function Home() {
 
           <div className="grid md:grid-cols-3 gap-8">
 
-            {/* Assessment */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition">
               <div className="text-4xl mb-5">🧠</div>
 
@@ -97,7 +96,6 @@ function Home() {
               </Link>
             </div>
 
-            {/* Counselling */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition">
               <div className="text-4xl mb-5">💬</div>
 
@@ -118,7 +116,6 @@ function Home() {
               </Link>
             </div>
 
-            {/* Appointments */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition">
               <div className="text-4xl mb-5">📅</div>
 
@@ -143,7 +140,7 @@ function Home() {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* How It Works */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6">
 
@@ -226,6 +223,7 @@ function Home() {
       {/* Footer */}
       <footer className="bg-gray-950 text-gray-400 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center">
+
           <p className="text-white font-semibold text-lg">
             FREEWILL
           </p>
@@ -237,6 +235,7 @@ function Home() {
           <p className="mt-4 text-xs">
             © 2026 FREEWILL. All rights reserved.
           </p>
+
         </div>
       </footer>
 
