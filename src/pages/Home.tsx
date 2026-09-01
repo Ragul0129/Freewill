@@ -1,97 +1,180 @@
 import { Link } from "react-router-dom";
-import heroImage from "../assets/hero.png";
+import bossImage from "../assets/boss.png";
 
 function Home() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-[#f8f7ef] text-[#123d35]">
 
-      {/* Navbar */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-2xl md:text-3xl font-bold text-emerald-800"
-          >
-            FREEWILL
-          </Link>
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-[#063f35] text-white">
 
-          <Link
-            to="/register"
-            className="px-6 py-3 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800 transition"
-          >
-            Get Started
-          </Link>
-        </div>
-      </header>
+        {/* Background glow */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#d8ad38]/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-[#78b9c8]/10 blur-3xl" />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-sky-100">
+        {/* Navbar */}
+        <nav className="relative z-10">
+          <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
 
-        {/* Decorative background */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl" />
+            <Link
+              to="/"
+              className="text-2xl md:text-3xl font-bold tracking-wide"
+            >
+              FREEWILL
+            </Link>
 
-        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24">
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+              <Link to="/" className="hover:text-[#e5bd4d] transition">
+                Home
+              </Link>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <Link to="/assessment" className="hover:text-[#e5bd4d] transition">
+                Assessment
+              </Link>
 
-            {/* Hero Content */}
+              <Link to="/booking" className="hover:text-[#e5bd4d] transition">
+                Counselling
+              </Link>
+
+              <Link to="/login" className="hover:text-[#e5bd4d] transition">
+                Login
+              </Link>
+
+              <Link
+                to="/register"
+                className="bg-[#e5bd4d] text-[#123d35] px-6 py-3 rounded-full font-bold hover:bg-[#f0ce6c] transition"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Mobile button */}
+            <Link
+              to="/register"
+              className="md:hidden bg-[#e5bd4d] text-[#123d35] px-5 py-3 rounded-full font-bold"
+            >
+              Get Started
+            </Link>
+          </div>
+        </nav>
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-20 lg:pt-16 lg:pb-28">
+
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
+            {/* LEFT */}
             <div>
 
-              <p className="text-sm md:text-base font-semibold uppercase tracking-widest text-emerald-700 mb-5">
-                FREEWILL – HUMAN EMPOWERMENT
+              <p className="text-[#e5bd4d] font-semibold tracking-[0.2em] uppercase text-sm md:text-base mb-5">
+                FREEWILL – Human Empowerment
               </p>
 
-              <div className="w-16 h-1 bg-yellow-500 mb-6 rounded-full" />
-
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-emerald-950">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 World's First
                 <br />
-                Psycho-Spiritual and
+                <span className="text-[#e5bd4d]">
+                  Psycho-Spiritual
+                </span>
                 <br />
-                Quantum Philosophical
+                and Quantum
+                <br />
+                Philosophical
                 <br />
                 Training Firm
               </h1>
 
-              <p className="mt-7 text-lg md:text-xl text-gray-700 max-w-xl leading-relaxed">
-                Explore your wellbeing, understand yourself better and connect
-                with professional counselling support whenever you need it.
+              <p className="mt-7 text-lg md:text-xl text-white/80 max-w-xl leading-relaxed">
+                Discover yourself, understand your mind and take meaningful
+                steps towards a healthier and more empowered life.
               </p>
 
               {/* Buttons */}
-              <div className="mt-9 flex flex-wrap gap-4">
+              <div className="mt-8 flex flex-wrap gap-4">
 
                 <Link
                   to="/assessment"
-                  className="px-7 py-3.5 rounded-xl bg-emerald-700 text-white font-semibold shadow-lg hover:bg-emerald-800 hover:shadow-xl transition"
+                  className="px-7 py-4 rounded-full bg-[#e5bd4d] text-[#123d35] font-bold hover:bg-[#f0ce6c] transition shadow-lg"
                 >
-                  Take Assessment
+                  Take Assessment →
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="px-7 py-3.5 rounded-xl border-2 border-emerald-700 text-emerald-800 font-semibold hover:bg-emerald-50 transition"
+                  className="px-7 py-4 rounded-full border border-white/40 text-white font-semibold hover:bg-white/10 transition"
                 >
                   Book Counselling
                 </Link>
 
               </div>
 
+              {/* Small highlights */}
+              <div className="mt-10 grid grid-cols-3 gap-5 max-w-xl">
+
+                <div className="border-l border-[#e5bd4d]/60 pl-4">
+                  <p className="text-[#e5bd4d] text-xl font-bold">
+                    100%
+                  </p>
+                  <p className="text-xs text-white/70 mt-1">
+                    Confidential
+                  </p>
+                </div>
+
+                <div className="border-l border-[#e5bd4d]/60 pl-4">
+                  <p className="text-[#e5bd4d] text-xl font-bold">
+                    Expert
+                  </p>
+                  <p className="text-xs text-white/70 mt-1">
+                    Guidance
+                  </p>
+                </div>
+
+                <div className="border-l border-[#e5bd4d]/60 pl-4">
+                  <p className="text-[#e5bd4d] text-xl font-bold">
+                    Safe
+                  </p>
+                  <p className="text-xs text-white/70 mt-1">
+                    Support
+                  </p>
+                </div>
+
+              </div>
+
             </div>
 
-            {/* Hero Image */}
-            <div className="flex justify-center">
+            {/* RIGHT - BOSS IMAGE */}
+            <div className="relative flex justify-center lg:justify-end">
 
-              <div className="relative">
+              <div className="absolute inset-0 bg-[#e5bd4d]/20 blur-3xl rounded-full scale-75" />
 
-                <div className="absolute -inset-4 bg-gradient-to-r from-yellow-300/30 via-emerald-300/30 to-sky-300/30 rounded-[2rem] blur-xl" />
+              <div className="relative w-full max-w-xl">
+
+                {/* Decorative circle */}
+                <div className="absolute -top-5 -right-5 w-24 h-24 border-2 border-[#e5bd4d]/60 rounded-full" />
+
+                <div className="absolute bottom-10 -left-5 w-16 h-16 border border-[#78b9c8]/50 rounded-full" />
 
                 <img
-                  src={heroImage}
-                  alt="FREEWILL Human Empowerment"
-                  className="relative w-full max-w-lg rounded-3xl shadow-2xl"
+                  src={bossImage}
+                  alt="FREEWILL Founder"
+                  className="relative z-10 w-full object-contain drop-shadow-2xl"
                 />
+
+                {/* Quote card */}
+                <div className="absolute z-20 bottom-5 left-2 md:left-[-30px] bg-[#073d34]/95 backdrop-blur-md border border-[#e5bd4d]/70 rounded-2xl px-5 py-4 shadow-xl max-w-xs">
+
+                  <p className="text-[#e5bd4d] text-2xl font-serif">
+                    “
+                  </p>
+
+                  <p className="font-semibold text-white text-sm md:text-base">
+                    Your Mental Health
+                    <span className="text-[#e5bd4d]">
+                      {" "}is Our Priority
+                    </span>
+                  </p>
+
+                </div>
 
               </div>
 
@@ -99,235 +182,255 @@ function Home() {
 
           </div>
         </div>
+
+        {/* Curved bottom */}
+        <div className="absolute bottom-[-1px] left-0 right-0">
+          <svg
+            viewBox="0 0 1440 120"
+            className="w-full h-auto"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,80 C180,120 300,120 450,80 C600,40 700,40 820,80 C980,130 1110,120 1260,80 C1340,60 1390,65 1440,80 L1440,120 L0,120 Z"
+              fill="#f8f7ef"
+            />
+          </svg>
+        </div>
+
       </section>
 
-      {/* Gold Accent */}
-      <div className="h-1.5 bg-gradient-to-r from-emerald-700 via-yellow-500 to-sky-500" />
 
-      {/* Services */}
-      <section className="py-20 bg-gradient-to-b from-white to-emerald-50/50">
+      {/* WHY FREEWILL */}
+      <section className="py-20 bg-[#f8f7ef]">
 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
 
-          <div className="text-center mb-12">
+          <div className="text-center mb-14">
 
-            <p className="text-emerald-700 font-semibold tracking-widest">
-              OUR SERVICES
+            <p className="text-[#9b7a20] font-bold tracking-widest uppercase text-sm">
+              Why Choose FREEWILL
             </p>
 
-            <div className="w-12 h-1 bg-yellow-500 mx-auto mt-3 rounded-full" />
-
-            <h2 className="text-3xl md:text-4xl font-bold mt-5 text-emerald-950">
-              Support for Your Wellbeing
+            <h2 className="text-3xl md:text-5xl font-bold text-[#123d35] mt-3">
+              Understand Yourself.
+              <br />
+              Take Control. Live Better.
             </h2>
 
-            <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-              Explore your wellbeing, understand yourself better and get
-              professional support when you need it.
+            <p className="text-gray-600 max-w-2xl mx-auto mt-5">
+              A supportive approach designed to help you understand your
+              wellbeing and move towards meaningful personal growth.
             </p>
 
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
 
-            {/* Assessment */}
-            <div className="bg-white p-8 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition">
+          <div className="grid md:grid-cols-3 gap-7">
 
-              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-emerald-100 text-3xl mb-5">
+            {/* Card 1 */}
+            <div className="bg-white rounded-3xl p-8 border border-[#d8c98b]/40 shadow-sm hover:shadow-xl transition">
+
+              <div className="w-14 h-14 rounded-2xl bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-2xl mb-6">
                 🧠
               </div>
 
-              <h3 className="text-xl font-bold mb-3 text-emerald-950">
-                Mental Wellness Assessment
+              <h3 className="text-xl font-bold mb-3">
+                Self-Assessment
               </h3>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Answer simple questions and receive an instant wellbeing
-                assessment report.
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Confidential questionnaires to help you understand your
+                mental wellbeing.
               </p>
 
               <Link
                 to="/assessment"
-                className="text-emerald-700 font-semibold hover:text-emerald-900"
+                className="text-[#126052] font-bold"
               >
                 Start Assessment →
               </Link>
 
             </div>
 
-            {/* Counselling */}
-            <div className="bg-white p-8 rounded-2xl border border-sky-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition">
 
-              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-sky-100 text-3xl mb-5">
+            {/* Card 2 */}
+            <div className="bg-white rounded-3xl p-8 border border-[#d8c98b]/40 shadow-sm hover:shadow-xl transition">
+
+              <div className="w-14 h-14 rounded-2xl bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-2xl mb-6">
                 💬
               </div>
 
-              <h3 className="text-xl font-bold mb-3 text-emerald-950">
+              <h3 className="text-xl font-bold mb-3">
                 Professional Counselling
               </h3>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Connect with trained professionals and get personalised
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Connect with experienced professionals for personalised
                 guidance and support.
               </p>
 
               <Link
                 to="/booking"
-                className="text-emerald-700 font-semibold hover:text-emerald-900"
+                className="text-[#126052] font-bold"
               >
                 Book Appointment →
               </Link>
 
             </div>
 
-            {/* Appointments */}
-            <div className="bg-white p-8 rounded-2xl border border-yellow-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition">
 
-              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-yellow-100 text-3xl mb-5">
-                📅
+            {/* Card 3 */}
+            <div className="bg-white rounded-3xl p-8 border border-[#d8c98b]/40 shadow-sm hover:shadow-xl transition">
+
+              <div className="w-14 h-14 rounded-2xl bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-2xl mb-6">
+                🛡️
               </div>
 
-              <h3 className="text-xl font-bold mb-3 text-emerald-950">
-                Manage Appointments
+              <h3 className="text-xl font-bold mb-3">
+                Privacy & Care
               </h3>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Easily view and manage your counselling appointments from
-                your account.
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Your privacy matters. We aim to provide a safe and
+                confidential experience.
               </p>
 
               <Link
-                to="/my-appointment"
-                className="text-emerald-700 font-semibold hover:text-emerald-900"
+                to="/register"
+                className="text-[#126052] font-bold"
               >
-                My Appointments →
+                Get Started →
               </Link>
 
             </div>
 
           </div>
+
         </div>
+
       </section>
 
-      {/* How It Works */}
+
+      {/* HOW IT WORKS */}
       <section className="py-20 bg-white">
 
         <div className="max-w-6xl mx-auto px-6">
 
-          <div className="text-center mb-12">
+          <div className="text-center mb-14">
 
-            <p className="text-emerald-700 font-semibold tracking-widest">
-              SIMPLE PROCESS
+            <p className="text-[#9b7a20] font-bold uppercase tracking-widest text-sm">
+              Simple Process
             </p>
 
-            <h2 className="text-3xl md:text-4xl font-bold mt-3 text-emerald-950">
-              How FREEWILL Works
+            <h2 className="text-3xl md:text-5xl font-bold text-[#123d35] mt-3">
+              Your Journey Starts Here
             </h2>
 
           </div>
 
+
           <div className="grid md:grid-cols-3 gap-10 text-center">
 
-            {/* Step 1 */}
             <div>
 
-              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-700 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-                1
+              <div className="w-16 h-16 mx-auto rounded-full bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-xl font-bold">
+                01
               </div>
 
-              <h3 className="font-bold text-xl mt-5 text-emerald-950">
-                Take Assessment
+              <h3 className="text-xl font-bold mt-6">
+                Understand
               </h3>
 
-              <p className="text-gray-600 mt-2">
-                Complete our simple wellbeing questionnaire.
+              <p className="text-gray-600 mt-3">
+                Complete a simple self-assessment and explore your wellbeing.
               </p>
 
             </div>
 
-            {/* Step 2 */}
+
             <div>
 
-              <div className="w-16 h-16 mx-auto rounded-full bg-yellow-500 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-                2
+              <div className="w-16 h-16 mx-auto rounded-full bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-xl font-bold">
+                02
               </div>
 
-              <h3 className="font-bold text-xl mt-5 text-emerald-950">
-                Understand Your Result
+              <h3 className="text-xl font-bold mt-6">
+                Discover
               </h3>
 
-              <p className="text-gray-600 mt-2">
-                Get an easy-to-understand assessment result.
+              <p className="text-gray-600 mt-3">
+                Understand your results and gain useful insights about yourself.
               </p>
 
             </div>
 
-            {/* Step 3 */}
+
             <div>
 
-              <div className="w-16 h-16 mx-auto rounded-full bg-sky-500 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-                3
+              <div className="w-16 h-16 mx-auto rounded-full bg-[#063f35] text-[#e5bd4d] flex items-center justify-center text-xl font-bold">
+                03
               </div>
 
-              <h3 className="font-bold text-xl mt-5 text-emerald-950">
-                Get Support
+              <h3 className="text-xl font-bold mt-6">
+                Grow
               </h3>
 
-              <p className="text-gray-600 mt-2">
-                Book a counselling appointment if you need further support.
+              <p className="text-gray-600 mt-3">
+                Connect with professional support and take your next step.
               </p>
 
             </div>
 
           </div>
+
         </div>
+
       </section>
 
+
       {/* CTA */}
-      <section className="relative overflow-hidden py-20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-sky-700 text-white text-center">
+      <section className="py-20 bg-[#063f35] text-white">
 
-        <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-400/20 rounded-full blur-3xl" />
+        <div className="max-w-4xl mx-auto px-6 text-center">
 
-        <div className="relative max-w-3xl mx-auto px-6">
-
-          <p className="text-yellow-300 font-semibold tracking-widest uppercase">
-            Your Journey Starts Here
+          <p className="text-[#e5bd4d] font-semibold tracking-widest uppercase">
+            Begin Your Journey
           </p>
 
-          <h2 className="text-3xl md:text-4xl font-bold mt-4">
-            Your wellbeing matters.
+          <h2 className="text-3xl md:text-5xl font-bold mt-4">
+            Your Wellbeing Matters.
           </h2>
 
-          <p className="mt-4 text-emerald-50 text-lg">
+          <p className="mt-5 text-white/75 text-lg">
             Take the first step towards understanding yourself better.
           </p>
 
           <Link
             to="/assessment"
-            className="inline-block mt-8 px-8 py-4 bg-white text-emerald-800 rounded-xl font-bold shadow-lg hover:bg-yellow-50 transition"
+            className="inline-block mt-8 px-8 py-4 bg-[#e5bd4d] text-[#123d35] rounded-full font-bold hover:bg-[#f0ce6c] transition"
           >
-            Start Your Assessment
+            Start Your Assessment →
           </Link>
 
         </div>
+
       </section>
 
-      {/* Footer */}
-      <footer className="bg-emerald-950 text-emerald-100 py-10">
+
+      {/* FOOTER */}
+      <footer className="bg-[#022b25] text-white py-10">
 
         <div className="max-w-7xl mx-auto px-6 text-center">
 
-          <p className="text-white font-bold text-2xl">
+          <h3 className="text-2xl font-bold">
             FREEWILL
-          </p>
+          </h3>
 
-          <p className="mt-2 text-yellow-400 font-medium">
+          <p className="text-[#e5bd4d] mt-2 font-medium">
             Human Empowerment
           </p>
 
-          <div className="w-12 h-0.5 bg-yellow-500 mx-auto mt-4" />
-
-          <p className="mt-5 text-sm text-emerald-200">
+          <p className="text-white/50 text-sm mt-6">
             © 2026 FREEWILL. All rights reserved.
           </p>
 
