@@ -11,15 +11,15 @@ function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-purple-200 mb-4">
-                FREEWILL – Human Empowerment
-              </p>
+              <p className="text-sm md:text-base font-semibold uppercase tracking-widest text-purple-200 mb-6">
+  FREEWILL – Human Empowerment
+</p>
 
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                Understand Your Mind.
-                <br />
-                Improve Your Life.
-              </h1>
+<h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
+  World's First Psycho-Spiritual and
+  <br />
+  Quantum Philosophical Training Firm
+</h1>
 
               <p className="mt-6 text-lg md:text-xl text-purple-100 max-w-xl">
                 Take a simple self-assessment, understand your mental
