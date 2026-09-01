@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import bossImage from "../assets/boss.png";
+import jeevithaImage from "../assets/jeevitha.png";
+import rahulImage from "../assets/rahul.png";
 
 function Home() {
   return (
@@ -24,6 +26,10 @@ function Home() {
 
               <a href="#about" className="hover:text-[#e9ad3d] transition">
                 About
+              </a>
+
+              <a href="#experts" className="hover:text-[#e9ad3d] transition">
+                Experts
               </a>
 
               <a href="#services" className="hover:text-[#e9ad3d] transition">
@@ -57,7 +63,6 @@ function Home() {
       {/* ================= HERO ================= */}
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
 
-        {/* Decorative circles */}
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
@@ -66,7 +71,6 @@ function Home() {
 
           <div className="grid lg:grid-cols-[1.05fr_0.95fr] items-center gap-10">
 
-            {/* HERO CONTENT */}
             <div className="max-w-2xl">
 
               <div className="mb-6 flex items-center gap-3">
@@ -163,8 +167,8 @@ function Home() {
                 className="relative z-10 max-h-[570px] w-full max-w-[520px] object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.35)]"
               />
 
-              {/* Floating quote */}
               <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
+
                 <p className="text-3xl font-serif text-[#eab34a]">
                   “
                 </p>
@@ -176,6 +180,7 @@ function Home() {
                 <p className="mt-2 text-xs text-white/50">
                   FREEWILL Human Empowerment
                 </p>
+
               </div>
 
             </div>
@@ -184,7 +189,6 @@ function Home() {
         </div>
 
 
-        {/* Curved bottom */}
         <div className="absolute bottom-[-1px] left-0 right-0">
           <svg
             viewBox="0 0 1440 130"
@@ -244,7 +248,6 @@ function Home() {
             </div>
 
 
-            {/* Founder card */}
             <div className="relative">
 
               <div className="absolute -inset-5 rounded-[2rem] bg-[#e6d9bb]/50" />
@@ -474,6 +477,317 @@ function Home() {
       </section>
 
 
+      {/* ================= EXPERTS ================= */}
+      <section id="experts" className="bg-[#f7f4ed] py-20 md:py-28">
+
+        <div className="mx-auto max-w-7xl px-6">
+
+          <div className="mx-auto max-w-3xl text-center">
+
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
+              Meet Our Experts
+            </p>
+
+            <h2 className="mt-3 text-3xl md:text-5xl font-black text-[#173d3a]">
+              Guidance From Experienced Professionals
+            </h2>
+
+            <p className="mt-5 leading-7 text-gray-600">
+              Connect with experienced professionals who bring expertise,
+              compassion and practical guidance to your personal growth journey.
+            </p>
+
+          </div>
+
+
+          <div className="mt-14 grid lg:grid-cols-3 gap-8">
+
+
+            {/* SIMON */}
+            <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+
+              <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
+
+                <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-[#eab34a]/20" />
+
+                <img
+                  src={bossImage}
+                  alt="Simon Anandh Raj"
+                  className="h-full w-full object-contain transition duration-500 group-hover:scale-105"
+                />
+
+                <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
+                  26 YEARS EXPERIENCE
+                </div>
+
+              </div>
+
+              <div className="p-7">
+
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                  Founder / CEO
+                </p>
+
+                <h3 className="mt-2 text-2xl font-black text-[#173d3a]">
+                  Simon Anandh Raj
+                </h3>
+
+                <p className="mt-2 font-semibold text-gray-700">
+                  Emotional Intelligence Coach
+                </p>
+
+                <p className="mt-4 text-sm leading-6 text-gray-600">
+                  Training, Coaching & Mentoring
+                </p>
+
+                <p className="mt-5 text-sm leading-7 text-gray-600">
+                  Simon Anandh Raj is the Founder & CEO and an experienced
+                  Emotional Intelligence Coach with 26 years of professional
+                  experience in training, coaching, mentoring and human
+                  development. His work focuses on helping individuals and
+                  organisations develop emotional intelligence, improve
+                  self-awareness, strengthen relationships and unlock their
+                  potential.
+                </p>
+
+                <div className="mt-6 border-t border-gray-100 pt-5">
+
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Services
+                  </p>
+
+                  <div className="mt-3 space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>One Hour</span>
+                      <span className="font-bold text-[#173d3a]">₹1,500</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Psychometric Analysis</span>
+                      <span className="font-bold text-[#173d3a]">₹2,500</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>One-to-One Session</span>
+                      <span className="font-bold text-[#173d3a]">₹3,000</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Training Sessions</span>
+                      <span className="font-bold text-[#173d3a]">₹12,000</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Mentoring</span>
+                      <span className="font-bold text-[#173d3a]">₹25,000</span>
+                    </div>
+                  </div>
+
+                  <p className="mt-4 text-xs text-gray-400">
+                    Extended sessions and specialised programs may range from
+                    ₹5,000 to ₹50,000.
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/booking"
+                  className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white transition hover:bg-[#12554f]"
+                >
+                  Book a Session →
+                </Link>
+
+              </div>
+
+            </div>
+
+
+            {/* JEEVITHA */}
+            <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+
+              <div className="relative h-[360px] overflow-hidden bg-[#f0e7d4]">
+
+                <img
+                  src={jeevithaImage}
+                  alt="Jeevitha S"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+
+                <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
+                  5 YEARS EXPERIENCE
+                </div>
+
+              </div>
+
+              <div className="p-7">
+
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                  Clinical Psychologist / Project Head
+                </p>
+
+                <h3 className="mt-2 text-2xl font-black text-[#173d3a]">
+                  Jeevitha S
+                </h3>
+
+                <p className="mt-2 font-semibold text-gray-700">
+                  Clinical Psychologist & Project Head
+                </p>
+
+                <p className="mt-4 text-sm leading-6 text-gray-600">
+                  Training, Counselling & Coaching
+                </p>
+
+                <p className="mt-5 text-sm leading-7 text-gray-600">
+                  Jeevitha S is a Clinical Psychologist and Project Head with
+                  5 years of experience in counselling, coaching and professional
+                  training. She focuses on creating a supportive and structured
+                  environment where individuals can gain clarity, develop
+                  emotional awareness and work towards meaningful personal growth.
+                </p>
+
+                <div className="mt-6 border-t border-gray-100 pt-5">
+
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Services
+                  </p>
+
+                  <div className="mt-3 space-y-2 text-sm text-gray-600">
+
+                    <div className="flex justify-between">
+                      <span>One Hour</span>
+                      <span className="font-bold text-[#173d3a]">₹1,500</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Psychometric Analysis</span>
+                      <span className="font-bold text-[#173d3a]">₹2,500</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>One-to-One Session</span>
+                      <span className="font-bold text-[#173d3a]">₹3,000</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Training Sessions</span>
+                      <span className="font-bold text-[#173d3a]">₹12,000</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Mentoring</span>
+                      <span className="font-bold text-[#173d3a]">₹25,000</span>
+                    </div>
+
+                  </div>
+
+                  <p className="mt-4 text-xs text-gray-400">
+                    Session pricing may range from ₹1,000 to ₹10,000 depending
+                    on the service.
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/booking"
+                  className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white transition hover:bg-[#12554f]"
+                >
+                  Book a Session →
+                </Link>
+
+              </div>
+
+            </div>
+
+
+            {/* RAHUL */}
+            <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+
+              <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
+
+                <img
+                  src={rahulImage}
+                  alt="Rahul K.P"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+
+                <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
+                  7 YEARS EXPERIENCE
+                </div>
+
+              </div>
+
+              <div className="p-7">
+
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                  Life Coach / Content Head
+                </p>
+
+                <h3 className="mt-2 text-2xl font-black text-[#173d3a]">
+                  Rahul K.P
+                </h3>
+
+                <p className="mt-2 font-semibold text-gray-700">
+                  Life Coach & Content Head
+                </p>
+
+                <p className="mt-4 text-sm leading-6 text-gray-600">
+                  Training & Content Management
+                </p>
+
+                <p className="mt-5 text-sm leading-7 text-gray-600">
+                  Rahul K.P is a Life Coach and Content Head with 7 years of
+                  experience in training and content management. His work combines
+                  personal development, structured learning and effective
+                  communication to help individuals build confidence, develop
+                  practical skills and move towards their goals.
+                </p>
+
+                <div className="mt-6 border-t border-gray-100 pt-5">
+
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Focus Areas
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+
+                    <span className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold text-[#173d3a]">
+                      Life Coaching
+                    </span>
+
+                    <span className="rounded-full bg-[#f8f1e1] px-3 py-2 text-xs font-semibold text-[#173d3a]">
+                      Training
+                    </span>
+
+                    <span className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold text-[#173d3a]">
+                      Content Management
+                    </span>
+
+                  </div>
+
+                  <p className="mt-5 text-xs text-gray-400">
+                    Service pricing will be available based on the selected
+                    program.
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/booking"
+                  className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white transition hover:bg-[#12554f]"
+                >
+                  Explore & Book →
+                </Link>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+
       {/* ================= SERVICES ================= */}
       <section id="services" className="bg-white py-20 md:py-24">
 
@@ -663,6 +977,10 @@ function Home() {
 
                 <a href="#about" className="hover:text-[#eab34a]">
                   About
+                </a>
+
+                <a href="#experts" className="hover:text-[#eab34a]">
+                  Experts
                 </a>
 
                 <a href="#services" className="hover:text-[#eab34a]">
