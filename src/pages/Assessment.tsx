@@ -42,9 +42,12 @@ function Assessment() {
     if (selectedAnswer === -1) return;
 
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion((prev) => prev + 1);
     } else {
-      const totalScore = answers.reduce((total, score) => total + score, 0);
+      const totalScore = answers.reduce(
+        (total, score) => total + score,
+        0
+      );
 
       navigate("/result", {
         state: {
@@ -57,7 +60,7 @@ function Assessment() {
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+      setCurrentQuestion((prev) => prev - 1);
     }
   };
 
@@ -65,95 +68,140 @@ function Assessment() {
     ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-12">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-[#f7f4ed] px-5 py-28 text-[#173d3a]">
+
+      <div className="mx-auto max-w-4xl">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <p className="text-indigo-600 font-semibold uppercase tracking-wider">
-            FREEWILL Assessment
+        <div className="mb-10 text-center">
+
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
+            FREEWILL • Human Empowerment
           </p>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
-            Mental Wellness Self-Assessment
+          <h1 className="mt-4 text-3xl md:text-5xl font-black">
+            Mental Wellness
+            <span className="text-[#c88d22]"> Assessment</span>
           </h1>
 
-          <p className="text-gray-600 mt-3">
-            Answer each question honestly based on how you have been
-            feeling recently.
+          <p className="mx-auto mt-5 max-w-2xl leading-7 text-gray-600">
+            Take a few moments to reflect on how you have been feeling
+            recently. Answer honestly — there are no right or wrong answers.
           </p>
+
         </div>
 
-        {/* Progress */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <div className="flex justify-between text-sm font-semibold text-gray-600 mb-3">
-            <span>
-              Question {currentQuestion + 1} of {questions.length}
-            </span>
 
-            <span>
+        {/* Progress Card */}
+        <div className="mb-6 rounded-3xl bg-white p-6 shadow-sm">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-sm font-bold text-[#173d3a]">
+                Question {currentQuestion + 1} of {questions.length}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Your answers are used to calculate your wellbeing score.
+              </p>
+            </div>
+
+            <span className="font-bold text-[#c88d22]">
               {Math.round(progress)}%
             </span>
+
           </div>
 
-          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[#e7e4db]">
+
             <div
-              className="h-full bg-indigo-600 transition-all duration-300"
+              className="h-full rounded-full bg-[#0d4743] transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
+
           </div>
+
         </div>
 
+
         {/* Question Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+        <div className="rounded-[2rem] bg-white p-7 shadow-xl md:p-10">
 
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8">
-            Q{currentQuestion + 1}. {questions[currentQuestion]}
-          </h2>
+          <div className="mb-8">
 
-          <div className="space-y-4">
+            <span className="inline-flex rounded-full bg-[#f8f1e1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#b27a18]">
+              Question {currentQuestion + 1}
+            </span>
 
-            {options.map((option) => (
-              <button
-                key={option.score}
-                type="button"
-                onClick={() => handleAnswer(option.score)}
-                className={`w-full text-left px-5 py-4 rounded-xl border-2 transition font-medium ${
-                  selectedAnswer === option.score
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-indigo-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      selectedAnswer === option.score
-                        ? "border-indigo-600"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {selectedAnswer === option.score && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-                    )}
-                  </div>
-
-                  <span>{option.label}</span>
-
-                </div>
-              </button>
-            ))}
+            <h2 className="mt-5 text-2xl font-black leading-tight md:text-3xl">
+              {questions[currentQuestion]}
+            </h2>
 
           </div>
 
+
+          {/* Options */}
+          <div className="space-y-3">
+
+            {options.map((option) => {
+
+              const isSelected =
+                selectedAnswer === option.score;
+
+              return (
+                <button
+                  key={option.score}
+                  type="button"
+                  onClick={() => handleAnswer(option.score)}
+                  className={`w-full rounded-2xl border-2 p-5 text-left transition ${
+                    isSelected
+                      ? "border-[#c88d22] bg-[#f8f1e1]"
+                      : "border-[#e4e5df] bg-white hover:border-[#9db5b1] hover:bg-[#f7f9f8]"
+                  }`}
+                >
+
+                  <div className="flex items-center gap-4">
+
+                    <div
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                        isSelected
+                          ? "border-[#c88d22]"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="h-3 w-3 rounded-full bg-[#c88d22]" />
+                      )}
+                    </div>
+
+                    <span
+                      className={`font-semibold ${
+                        isSelected
+                          ? "text-[#173d3a]"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {option.label}
+                    </span>
+
+                  </div>
+
+                </button>
+              );
+            })}
+
+          </div>
+
+
           {/* Navigation */}
-          <div className="flex justify-between items-center mt-10">
+          <div className="mt-10 flex items-center justify-between gap-4 border-t border-gray-100 pt-7">
 
             <button
               type="button"
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
-              className="px-6 py-3 rounded-xl border border-gray-300 font-semibold text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="rounded-full border border-gray-300 px-6 py-3 font-bold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
             >
               ← Previous
             </button>
@@ -162,7 +210,7 @@ function Assessment() {
               type="button"
               onClick={handleNext}
               disabled={selectedAnswer === -1}
-              className="px-7 py-3 rounded-xl bg-indigo-600 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+              className="rounded-full bg-[#0d4743] px-7 py-3 font-bold text-white shadow-lg transition hover:bg-[#12554f] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {currentQuestion === questions.length - 1
                 ? "Finish Assessment"
@@ -173,13 +221,19 @@ function Assessment() {
 
         </div>
 
+
         {/* Disclaimer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          This self-assessment is for general wellbeing awareness and is
-          not a medical diagnosis or emergency service.
-        </p>
+        <div className="mt-6 text-center">
+
+          <p className="text-xs leading-5 text-gray-500">
+            This self-assessment is intended for general wellbeing
+            awareness and is not a medical diagnosis.
+          </p>
+
+        </div>
 
       </div>
+
     </div>
   );
 }
