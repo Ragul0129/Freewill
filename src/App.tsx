@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import ExpertDashboard from "./pages/ExpertDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -29,6 +30,11 @@ function App() {
       <Route
         path="/expert-dashboard"
         element={<ExpertDashboard />}
+      />
+
+      <Route
+        path="/admin-dashboard"
+        element={<AdminDashboard />}
       />
 
       <Route path="*" element={<Home />} />
