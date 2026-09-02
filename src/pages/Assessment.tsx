@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const questions = [
   "How often do you feel nervous, anxious, or on edge?",
@@ -26,41 +32,141 @@ function Assessment() {
   const navigate = useNavigate();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
+
   const [answers, setAnswers] = useState<number[]>(
     Array(questions.length).fill(-1)
   );
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const selectedAnswer = answers[currentQuestion];
 
   const handleAnswer = (score: number) => {
     const updatedAnswers = [...answers];
     updatedAnswers[currentQuestion] = score;
+
     setAnswers(updatedAnswers);
+    setError("");
   };
 
-  const handleNext = () => {
-    if (selectedAnswer === -1) return;
+  const getResultLevel = (score: number) => {
+    if (score <= 10) {
+      return {
+        level: "Low",
+        title: "Positive Wellbeing",
+        message:
+          "Your responses indicate a relatively positive wellbeing state. Continue maintaining healthy routines, meaningful connections and self-care.",
+      };
+    }
+
+    if (score <= 20) {
+      return {
+        level: "Moderate",
+        title: "Some Areas Need Attention",
+        message:
+          "Your responses suggest that you may be experiencing some areas of stress or emotional difficulty. Taking time for self-care and support may be helpful.",
+      };
+    }
+
+    if (score <= 30) {
+      return {
+        level: "High",
+        title: "Wellbeing Support Recommended",
+        message:
+          "Your responses suggest a higher level of emotional or daily-life difficulty. Consider speaking with a qualified professional for personalised support.",
+      };
+    }
+
+    return {
+      level: "Very High",
+      title: "Professional Support Recommended",
+      message:
+        "Your responses indicate significant difficulty across several areas. Consider reaching out to a qualified mental health professional for appropriate guidance and support.",
+    };
+  };
+
+  const handleNext = async () => {
+    if (selectedAnswer === -1) {
+      setError("Please select an answer before continuing.");
+      return;
+    }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((prev) => prev + 1);
-    } else {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
       const totalScore = answers.reduce(
         (total, score) => total + score,
         0
       );
 
+      const maxScore = questions.length * 4;
+
+      const result = getResultLevel(totalScore);
+
+      const { error: insertError } = await supabase
+        .from("assessment_results")
+        .insert({
+          user_id: user.id,
+          total_score: totalScore,
+          max_score: maxScore,
+          result_level: result.level,
+          result_title: result.title,
+          result_message: result.message,
+          answers: answers,
+        });
+
+      if (insertError) {
+        console.error("Assessment save error:", insertError);
+
+        setError(
+          "We couldn't save your assessment result. Please try again."
+        );
+
+        return;
+      }
+
       navigate("/result", {
         state: {
           score: totalScore,
           totalQuestions: questions.length,
+          maxScore,
+          resultLevel: result.level,
+          resultTitle: result.title,
+          resultMessage: result.message,
+          answers,
         },
       });
+    } catch (err) {
+      console.error("Assessment error:", err);
+
+      setError(
+        "Something went wrong while saving your assessment. Please try again."
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion((prev) => prev - 1);
+      setError("");
     }
   };
 
@@ -98,6 +204,7 @@ function Assessment() {
           <div className="flex items-center justify-between">
 
             <div>
+
               <p className="text-sm font-bold text-[#173d3a]">
                 Question {currentQuestion + 1} of {questions.length}
               </p>
@@ -105,6 +212,7 @@ function Assessment() {
               <p className="mt-1 text-xs text-gray-500">
                 Your answers are used to calculate your wellbeing score.
               </p>
+
             </div>
 
             <span className="font-bold text-[#c88d22]">
@@ -141,6 +249,14 @@ function Assessment() {
           </div>
 
 
+          {/* Error */}
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
+
           {/* Options */}
           <div className="space-y-3">
 
@@ -154,10 +270,15 @@ function Assessment() {
                   key={option.score}
                   type="button"
                   onClick={() => handleAnswer(option.score)}
+                  disabled={saving}
                   className={`w-full rounded-2xl border-2 p-5 text-left transition ${
                     isSelected
                       ? "border-[#c88d22] bg-[#f8f1e1]"
                       : "border-[#e4e5df] bg-white hover:border-[#9db5b1] hover:bg-[#f7f9f8]"
+                  } ${
+                    saving
+                      ? "cursor-not-allowed opacity-60"
+                      : ""
                   }`}
                 >
 
@@ -170,9 +291,11 @@ function Assessment() {
                           : "border-gray-300"
                       }`}
                     >
+
                       {isSelected && (
                         <div className="h-3 w-3 rounded-full bg-[#c88d22]" />
                       )}
+
                     </div>
 
                     <span
@@ -200,7 +323,7 @@ function Assessment() {
             <button
               type="button"
               onClick={handlePrevious}
-              disabled={currentQuestion === 0}
+              disabled={currentQuestion === 0 || saving}
               className="rounded-full border border-gray-300 px-6 py-3 font-bold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
             >
               ← Previous
@@ -209,10 +332,12 @@ function Assessment() {
             <button
               type="button"
               onClick={handleNext}
-              disabled={selectedAnswer === -1}
+              disabled={selectedAnswer === -1 || saving}
               className="rounded-full bg-[#0d4743] px-7 py-3 font-bold text-white shadow-lg transition hover:bg-[#12554f] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {currentQuestion === questions.length - 1
+              {saving
+                ? "Saving Result..."
+                : currentQuestion === questions.length - 1
                 ? "Finish Assessment"
                 : "Next →"}
             </button>
