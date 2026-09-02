@@ -9,118 +9,136 @@ const supabase = createClient(
 
 type ExpertProfile = {
   id: string;
-  profile_id: string;
   bio: string | null;
   specialization: string | null;
   experience_years: number | null;
   qualification: string | null;
   hourly_rate: number | null;
-};
-
-type Service = {
-  title: string;
-  description: string | null;
-  duration_minutes: number;
-  price: number;
+  is_verified: boolean;
+  is_active: boolean;
 };
 
 type Booking = {
   id: string;
-  user_id: string;
-  service_id: string;
   booking_date: string;
   start_time: string;
   status: string;
   notes: string | null;
   created_at: string;
-  service?: Service | null;
-};
-
-type SupabaseBooking = Omit<Booking, "service"> & {
-  service: Service | Service[] | null;
+  services:
+    | {
+        title: string;
+        price: number;
+        duration_minutes: number;
+      }
+    | null;
 };
 
 function ExpertDashboard() {
   const navigate = useNavigate();
 
-  const [expertProfile, setExpertProfile] =
-    useState<ExpertProfile | null>(null);
-
+  const [expert, setExpert] = useState<ExpertProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [email, setEmail] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(
+    null
+  );
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    loadExpertDashboard();
+    loadDashboard();
   }, []);
 
-  const loadExpertDashboard = async () => {
+  const loadDashboard = async () => {
     try {
       setLoading(true);
       setError("");
 
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) {
+      if (!user) {
         navigate("/login");
         return;
       }
 
-      // Check whether logged-in user is an expert
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, role")
-        .eq("id", user.id)
-        .maybeSingle();
+      setEmail(user.email || "");
 
-      if (profileError) {
-        console.error(profileError);
-        setError("Unable to verify your account.");
-        return;
-      }
-
-      if (!profileData || profileData.role !== "expert") {
-        setError(
-          "Access denied. Only registered experts can access this dashboard."
-        );
-        return;
-      }
-
-      // Get expert profile
-      const { data: expertData, error: expertError } = await supabase
-        .from("expert_profiles")
-        .select(
-          "id, profile_id, bio, specialization, experience_years, qualification, hourly_rate"
-        )
-        .eq("profile_id", user.id)
-        .maybeSingle();
+      // Load expert profile
+      const { data: expertData, error: expertError } =
+        await supabase
+          .from("expert_profiles")
+          .select(`
+            id,
+            bio,
+            specialization,
+            experience_years,
+            qualification,
+            hourly_rate,
+            is_verified,
+            is_active
+          `)
+          .eq("profile_id", user.id)
+          .maybeSingle();
 
       if (expertError) {
-        console.error(expertError);
+        console.error("Expert profile error:", expertError);
         setError("Unable to load expert profile.");
         return;
       }
 
       if (!expertData) {
-        setError("Expert profile not found.");
+        setError(
+          "Expert profile not found. Please create your expert profile first."
+        );
         return;
       }
 
-      setExpertProfile(expertData);
+      setExpert(expertData);
 
-      // Get bookings for this expert's services
-      const { data: serviceData, error: serviceError } = await supabase
-        .from("services")
-        .select("id")
-        .eq("expert_id", expertData.id);
+      // Load bookings for this expert
+      const { data: bookingData, error: bookingError } =
+        await supabase
+          .from("bookings")
+          .select(`
+            id,
+            booking_date,
+            start_time,
+            status,
+            notes,
+            created_at,
+            services (
+              title,
+              price,
+              duration_minutes
+            )
+          `)
+          .eq("service_id", expertData.id);
+
+      /*
+        The query above depends on service_id being the expert profile id,
+        which is not the actual database relationship.
+
+        So we fetch the expert's service IDs first below.
+      */
+
+      if (bookingError) {
+        console.error("Booking query error:", bookingError);
+      }
+
+      // Get expert services
+      const { data: serviceData, error: serviceError } =
+        await supabase
+          .from("services")
+          .select("id")
+          .eq("expert_id", expertData.id);
 
       if (serviceError) {
-        console.error(serviceError);
+        console.error("Services query error:", serviceError);
         setError("Unable to load your services.");
         return;
       }
@@ -134,53 +152,54 @@ function ExpertDashboard() {
         return;
       }
 
-      const { data: bookingData, error: bookingError } = await supabase
-        .from("bookings")
-        .select(
-          `
-          id,
-          user_id,
-          service_id,
-          booking_date,
-          start_time,
-          status,
-          notes,
-          created_at,
-          service:services (
-            title,
-            description,
-            duration_minutes,
-            price
-          )
-        `
-        )
-        .in("service_id", serviceIds)
-        .order("booking_date", { ascending: true })
-        .order("start_time", { ascending: true });
+      // Get bookings belonging to expert services
+      const { data: finalBookings, error: finalBookingError } =
+        await supabase
+          .from("bookings")
+          .select(`
+            id,
+            booking_date,
+            start_time,
+            status,
+            notes,
+            created_at,
+            services (
+              title,
+              price,
+              duration_minutes
+            )
+          `)
+          .in("service_id", serviceIds)
+          .order("booking_date", { ascending: true })
+          .order("start_time", { ascending: true });
 
-      if (bookingError) {
-        console.error(bookingError);
-        setError(
-          `Unable to load bookings: ${bookingError.message}`
+      if (finalBookingError) {
+        console.error(
+          "Final bookings error:",
+          finalBookingError
         );
+        setError("Unable to load bookings.");
         return;
       }
 
-      // Supabase can return the related service as an array.
-      // Convert it into the single service object our UI expects.
-      const normalizedBookings: Booking[] = (
-        (bookingData || []) as SupabaseBooking[]
-      ).map((booking) => ({
-        ...booking,
-        service: Array.isArray(booking.service)
-          ? booking.service[0] || null
-          : booking.service,
+      const formattedBookings: Booking[] = (
+        finalBookings || []
+      ).map((item: any) => ({
+        id: item.id,
+        booking_date: item.booking_date,
+        start_time: item.start_time,
+        status: item.status,
+        notes: item.notes,
+        created_at: item.created_at,
+        services: Array.isArray(item.services)
+          ? item.services[0] || null
+          : item.services || null,
       }));
 
-      setBookings(normalizedBookings);
-    } catch (error) {
-      console.error("Expert dashboard error:", error);
-      setError("Something went wrong while loading the dashboard.");
+      setBookings(formattedBookings);
+    } catch (err) {
+      console.error("Dashboard error:", err);
+      setError("Something went wrong while loading dashboard.");
     } finally {
       setLoading(false);
     }
@@ -188,10 +207,11 @@ function ExpertDashboard() {
 
   const updateBookingStatus = async (
     bookingId: string,
-    status: "confirmed" | "rejected"
+    status: string
   ) => {
     try {
       setActionLoading(bookingId);
+      setMessage("");
       setError("");
 
       const { error: updateError } = await supabase
@@ -202,98 +222,99 @@ function ExpertDashboard() {
         .eq("id", bookingId);
 
       if (updateError) {
-        console.error(updateError);
-        setError(`Unable to update booking: ${updateError.message}`);
+        console.error("Status update error:", updateError);
+        setError("Unable to update booking status.");
         return;
       }
 
-      setBookings((currentBookings) =>
-        currentBookings.map((booking) =>
-          booking.id === bookingId
-            ? {
-                ...booking,
-                status,
-              }
-            : booking
-        )
+      setMessage(
+        status === "confirmed"
+          ? "Appointment confirmed successfully."
+          : "Appointment cancelled successfully."
       );
-    } catch (error) {
-      console.error(error);
-      setError("Something went wrong while updating the booking.");
+
+      await loadDashboard();
+    } catch (err) {
+      console.error("Status error:", err);
+      setError("Something went wrong.");
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleLogout = async () => {
-    const { error: logoutError } = await supabase.auth.signOut();
-
-    if (logoutError) {
-      alert(logoutError.message);
-      return;
-    }
-
-    navigate("/login");
+  const formatDate = (date: string) => {
+    return new Date(`${date}T00:00:00`).toLocaleDateString(
+      "en-IN",
+      {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(`${dateString}T00:00:00`);
-
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(":").map(Number);
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":");
 
     const date = new Date();
-    date.setHours(hours);
-    date.setMinutes(minutes);
+    date.setHours(Number(hours), Number(minutes), 0, 0);
 
     return date.toLocaleTimeString("en-IN", {
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
+      hour12: true,
     });
   };
 
   const getStatusStyle = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "confirmed":
         return "bg-green-100 text-green-700";
 
-      case "rejected":
-        return "bg-red-100 text-red-700";
-
       case "completed":
         return "bg-blue-100 text-blue-700";
+
+      case "cancelled":
+      case "canceled":
+        return "bg-red-100 text-red-700";
 
       default:
         return "bg-yellow-100 text-yellow-700";
     }
   };
 
-  const pendingCount = bookings.filter(
-    (booking) => booking.status === "pending"
+  const pendingBookings = bookings.filter(
+    (booking) => booking.status.toLowerCase() === "pending"
   ).length;
 
-  const confirmedCount = bookings.filter(
-    (booking) => booking.status === "confirmed"
+  const confirmedBookings = bookings.filter(
+    (booking) => booking.status.toLowerCase() === "confirmed"
   ).length;
 
-  const rejectedCount = bookings.filter(
-    (booking) => booking.status === "rejected"
+  const completedBookings = bookings.filter(
+    (booking) => booking.status.toLowerCase() === "completed"
   ).length;
+
+  const totalRevenue = bookings
+    .filter(
+      (booking) =>
+        booking.status.toLowerCase() !== "cancelled" &&
+        booking.status.toLowerCase() !== "canceled"
+    )
+    .reduce(
+      (total, booking) =>
+        total + (booking.services?.price || 0),
+      0
+    );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-11 h-11 border-4 border-[#d8c9a8] border-t-[#173d3a] rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
 
-          <p className="text-[#173d3a] font-semibold">
+          <p className="text-gray-600">
             Loading expert dashboard...
           </p>
         </div>
@@ -301,51 +322,35 @@ function ExpertDashboard() {
     );
   }
 
-  if (error && !expertProfile) {
-    return (
-      <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center px-6">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center border border-[#e8dfcf]">
-          <div className="text-5xl mb-5">🔒</div>
-
-          <h1 className="text-2xl font-bold text-[#173d3a] mb-3">
-            Access Restricted
-          </h1>
-
-          <p className="text-gray-600 mb-6">
-            {error}
-          </p>
-
-          <Link
-            to="/"
-            className="inline-block px-6 py-3 rounded-xl bg-[#173d3a] text-white font-semibold"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-[#173d3a] text-white">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-          <Link
-            to="/"
-            className="text-xl font-bold tracking-[0.2em]"
-          >
-            FREEWILL
-          </Link>
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              FREEWILL
+            </h1>
 
-          <div className="flex items-center gap-3">
-            <span className="hidden md:block text-sm text-white/70">
+            <p className="text-xs text-gray-500">
               Expert Dashboard
-            </span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              to="/home"
+              className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            >
+              Home
+            </Link>
 
             <button
-              onClick={handleLogout}
-              className="px-5 py-2.5 rounded-xl border border-white/30 hover:bg-white/10 transition text-sm font-semibold"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/login");
+              }}
+              className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition"
             >
               Logout
             </button>
@@ -353,136 +358,255 @@ function ExpertDashboard() {
         </div>
       </header>
 
-      {/* Main */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Profile Header */}
-        <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold mb-2">
-                Expert Portal
-              </p>
-
-              <h1 className="text-3xl md:text-4xl font-bold">
-                Welcome, Expert 👋
-              </h1>
-
-              {expertProfile?.specialization && (
-                <p className="text-gray-600 mt-3">
-                  {expertProfile.specialization}
-                </p>
-              )}
-
-              {expertProfile?.experience_years !== null &&
-                expertProfile?.experience_years !== undefined && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    {expertProfile.experience_years} years of experience
-                  </p>
-                )}
-            </div>
-
-            <div className="bg-[#f7f4ed] rounded-2xl px-6 py-5 min-w-[180px]">
-              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
-                Total Requests
-              </p>
-
-              <p className="text-3xl font-black text-[#173d3a] mt-1">
-                {bookings.length}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Statistics */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-          <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
-            <p className="text-sm text-gray-500 font-semibold">
-              Pending
-            </p>
-
-            <p className="text-3xl font-black text-[#b58a3a] mt-2">
-              {pendingCount}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
-            <p className="text-sm text-gray-500 font-semibold">
-              Confirmed
-            </p>
-
-            <p className="text-3xl font-black text-green-600 mt-2">
-              {confirmedCount}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
-            <p className="text-sm text-gray-500 font-semibold">
-              Rejected
-            </p>
-
-            <p className="text-3xl font-black text-red-600 mt-2">
-              {rejectedCount}
-            </p>
-          </div>
-        </section>
-
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Error */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
             {error}
           </div>
         )}
 
-        {/* Bookings */}
-        <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
+        {/* Success */}
+        {message && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4">
+            {message}
+          </div>
+        )}
+
+        {/* Welcome */}
+        <section className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 md:p-8 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold">
-                Appointment Requests
+              <p className="text-sm text-gray-500">
+                Welcome back 👋
               </p>
 
-              <h2 className="text-2xl md:text-3xl font-bold mt-1">
-                Incoming Bookings
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
+                Expert Dashboard
               </h2>
+
+              <p className="text-gray-500 mt-2">
+                {email}
+              </p>
             </div>
 
-            <button
-              onClick={loadExpertDashboard}
-              className="px-5 py-2.5 rounded-xl border border-[#173d3a] text-[#173d3a] font-semibold hover:bg-[#173d3a] hover:text-white transition"
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/expert-profile"
+                className="px-5 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
+              >
+                ✏️ Edit Profile
+              </Link>
+
+              <Link
+                to="/expert-services"
+                className="px-5 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition"
+              >
+                🛠️ Manage Services
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Expert Status */}
+        {expert && (
+          <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {expert.specialization ||
+                    "Expert Profile"}
+                </h3>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  {expert.qualification || "Qualification not added"}
+                  {expert.experience_years !== null &&
+                    ` • ${expert.experience_years} years experience`}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <span
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                    expert.is_active
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {expert.is_active
+                    ? "● Active"
+                    : "● Inactive"}
+                </span>
+
+                <span
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                    expert.is_verified
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {expert.is_verified
+                    ? "✓ Verified"
+                    : "⏳ Pending Verification"}
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Stats */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="text-3xl mb-4">📅</div>
+
+            <p className="text-sm text-gray-500">
+              Total Bookings
+            </p>
+
+            <p className="text-3xl font-bold text-gray-900 mt-1">
+              {bookings.length}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="text-3xl mb-4">⏳</div>
+
+            <p className="text-sm text-gray-500">
+              Pending
+            </p>
+
+            <p className="text-3xl font-bold text-gray-900 mt-1">
+              {pendingBookings}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="text-3xl mb-4">✅</div>
+
+            <p className="text-sm text-gray-500">
+              Confirmed
+            </p>
+
+            <p className="text-3xl font-bold text-gray-900 mt-1">
+              {confirmedBookings}
+            </p>
+
+            <p className="text-xs text-gray-400 mt-2">
+              {completedBookings} completed
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="text-3xl mb-4">💰</div>
+
+            <p className="text-sm text-gray-500">
+              Booking Value
+            </p>
+
+            <p className="text-3xl font-bold text-gray-900 mt-1">
+              ₹{totalRevenue}
+            </p>
+          </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">
+            Quick Actions
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Link
+              to="/expert-profile"
+              className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition"
             >
-              Refresh
+              <div className="text-3xl mb-4">👤</div>
+
+              <h4 className="font-bold text-gray-900">
+                Edit Profile
+              </h4>
+
+              <p className="text-sm text-gray-500 mt-2">
+                Update your professional information.
+              </p>
+            </Link>
+
+            <Link
+              to="/expert-services"
+              className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition"
+            >
+              <div className="text-3xl mb-4">🛠️</div>
+
+              <h4 className="font-bold text-gray-900">
+                Manage Services
+              </h4>
+
+              <p className="text-sm text-gray-500 mt-2">
+                Create and manage your sessions.
+              </p>
+            </Link>
+
+            <button
+              onClick={loadDashboard}
+              className="text-left bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition"
+            >
+              <div className="text-3xl mb-4">🔄</div>
+
+              <h4 className="font-bold text-gray-900">
+                Refresh Bookings
+              </h4>
+
+              <p className="text-sm text-gray-500 mt-2">
+                Check for new appointment requests.
+              </p>
             </button>
+          </div>
+        </section>
+
+        {/* Bookings */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Appointment Requests
+              </h3>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Manage sessions booked by users.
+              </p>
+            </div>
           </div>
 
           {bookings.length === 0 ? (
-            <div className="text-center py-14 border-2 border-dashed border-[#e8dfcf] rounded-2xl">
-              <div className="text-5xl mb-4">📭</div>
+            <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
+              <div className="text-5xl mb-4">📅</div>
 
-              <h3 className="text-xl font-bold mb-2">
-                No booking requests yet
-              </h3>
+              <h4 className="text-xl font-bold text-gray-900">
+                No bookings yet
+              </h4>
 
-              <p className="text-gray-500">
-                New appointment requests from users will appear here.
+              <p className="text-gray-500 mt-2">
+                New appointment requests will appear here.
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="border border-[#e8dfcf] rounded-2xl p-6 hover:shadow-md transition"
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                    {/* Booking details */}
                     <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <h3 className="text-xl font-bold">
-                          {booking.service?.title ||
-                            "FREEWILL Session"}
-                        </h3>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h4 className="text-xl font-bold text-gray-900">
+                          {booking.services?.title ||
+                            "Counseling Session"}
+                        </h4>
 
                         <span
-                          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase ${getStatusStyle(
+                          className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusStyle(
                             booking.status
                           )}`}
                         >
@@ -490,47 +614,39 @@ function ExpertDashboard() {
                         </span>
                       </div>
 
-                      <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-600">
-                        <p>
-                          <span className="font-semibold text-[#173d3a]">
-                            Date:
-                          </span>{" "}
+                      <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-600">
+                        <span>
+                          📅{" "}
                           {formatDate(booking.booking_date)}
-                        </p>
+                        </span>
 
-                        <p>
-                          <span className="font-semibold text-[#173d3a]">
-                            Time:
-                          </span>{" "}
+                        <span>
+                          ⏰{" "}
                           {formatTime(booking.start_time)}
-                        </p>
+                        </span>
 
-                        {booking.service?.duration_minutes && (
-                          <p>
-                            <span className="font-semibold text-[#173d3a]">
-                              Duration:
-                            </span>{" "}
-                            {booking.service.duration_minutes} minutes
-                          </p>
+                        {booking.services && (
+                          <span>
+                            ⌛{" "}
+                            {booking.services.duration_minutes}{" "}
+                            min
+                          </span>
                         )}
 
-                        {booking.service?.price !== undefined && (
-                          <p>
-                            <span className="font-semibold text-[#173d3a]">
-                              Price:
-                            </span>{" "}
-                            ₹{booking.service.price}
-                          </p>
+                        {booking.services && (
+                          <span className="font-semibold text-gray-900">
+                            ₹{booking.services.price}
+                          </span>
                         )}
                       </div>
 
                       {booking.notes && (
-                        <div className="mt-5 bg-[#f7f4ed] rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">
-                            Client Details
+                        <div className="mt-4 bg-gray-50 rounded-xl p-4">
+                          <p className="text-xs text-gray-500 uppercase tracking-wide">
+                            User Notes
                           </p>
 
-                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                          <p className="text-sm text-gray-700 mt-1">
                             {booking.notes}
                           </p>
                         </div>
@@ -538,39 +654,64 @@ function ExpertDashboard() {
                     </div>
 
                     {/* Actions */}
-                    {booking.status === "pending" && (
-                      <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:min-w-[150px]">
-                        <button
-                          onClick={() =>
-                            updateBookingStatus(
-                              booking.id,
-                              "confirmed"
-                            )
-                          }
-                          disabled={actionLoading === booking.id}
-                          className="px-5 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition disabled:opacity-50"
-                        >
-                          {actionLoading === booking.id
-                            ? "Updating..."
-                            : "✓ Accept"}
-                        </button>
+                    <div className="flex flex-wrap gap-2 lg:w-auto">
+                      {booking.status.toLowerCase() ===
+                        "pending" && (
+                        <>
+                          <button
+                            disabled={
+                              actionLoading === booking.id
+                            }
+                            onClick={() =>
+                              updateBookingStatus(
+                                booking.id,
+                                "confirmed"
+                              )
+                            }
+                            className="px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition"
+                          >
+                            {actionLoading === booking.id
+                              ? "Updating..."
+                              : "✓ Confirm"}
+                          </button>
 
+                          <button
+                            disabled={
+                              actionLoading === booking.id
+                            }
+                            onClick={() =>
+                              updateBookingStatus(
+                                booking.id,
+                                "cancelled"
+                              )
+                            }
+                            className="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 disabled:opacity-50 transition"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+
+                      {booking.status.toLowerCase() ===
+                        "confirmed" && (
                         <button
+                          disabled={
+                            actionLoading === booking.id
+                          }
                           onClick={() =>
                             updateBookingStatus(
                               booking.id,
-                              "rejected"
+                              "completed"
                             )
                           }
-                          disabled={actionLoading === booking.id}
-                          className="px-5 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-50"
+                          className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition"
                         >
                           {actionLoading === booking.id
                             ? "Updating..."
-                            : "✕ Reject"}
+                            : "Mark Completed"}
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -578,10 +719,6 @@ function ExpertDashboard() {
           )}
         </section>
       </main>
-
-      <footer className="text-center py-8 text-sm text-gray-500">
-        © {new Date().getFullYear()} FREEWILL – Human Empowerment
-      </footer>
     </div>
   );
 }
