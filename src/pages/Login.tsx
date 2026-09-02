@@ -30,7 +30,7 @@ function Login() {
 
       const { data, error: loginError } =
         await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
 
@@ -44,9 +44,9 @@ function Login() {
         return;
       }
 
-      navigate("/booking");
+      navigate("/dashboard");
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -103,6 +103,7 @@ function Login() {
                 autoComplete="email"
                 className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 outline-none transition focus:border-[#0d4743]"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -119,6 +120,7 @@ function Login() {
                 autoComplete="current-password"
                 className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 outline-none transition focus:border-[#0d4743]"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -139,6 +141,7 @@ function Login() {
           <div className="mt-7 border-t border-gray-100 pt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{" "}
+
               <Link
                 to="/register"
                 className="font-bold text-[#0d4743] hover:text-[#c88d22] hover:underline"
