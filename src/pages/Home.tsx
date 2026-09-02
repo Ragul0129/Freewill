@@ -1,9 +1,56 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createClient } from "@supabase/supabase-js";
+
 import bossImage from "../assets/boss.png";
 import jeevithaImage from "../assets/jeevitha.png";
 import rahulImage from "../assets/rahul.png";
 
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
 function Home() {
+  const navigate = useNavigate();
+
+  const [userEmail, setUserEmail] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        setUserEmail(user.email || "");
+      }
+    };
+
+    getUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserEmail(session.user.email || "");
+      } else {
+        setUserEmail("");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setMenuOpen(false);
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
 
@@ -12,31 +59,49 @@ function Home() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
 
+            {/* LOGO */}
             <Link
-              to="/"
+              to="/home"
               className="text-2xl md:text-3xl font-black tracking-wide text-white"
             >
               FREEWILL
             </Link>
 
+            {/* DESKTOP NAVIGATION */}
             <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
-              <Link to="/" className="hover:text-[#e9ad3d] transition">
+
+              <Link
+                to="/home"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Home
               </Link>
 
-              <a href="#about" className="hover:text-[#e9ad3d] transition">
+              <a
+                href="#about"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 About
               </a>
 
-              <a href="#experts" className="hover:text-[#e9ad3d] transition">
+              <a
+                href="#experts"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Experts
               </a>
 
-              <a href="#services" className="hover:text-[#e9ad3d] transition">
+              <a
+                href="#services"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Services
               </a>
 
-              <a href="#process" className="hover:text-[#e9ad3d] transition">
+              <a
+                href="#process"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 How It Works
               </a>
 
@@ -46,14 +111,96 @@ function Home() {
               >
                 Appointment
               </Link>
+
             </nav>
 
-            <Link
-              to="/assessment"
-              className="rounded-full bg-[#e8a83b] px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
-            >
-              Get Started
-            </Link>
+            {/* RIGHT SIDE */}
+            <div className="flex items-center gap-3">
+
+              {/* GET STARTED */}
+              <Link
+                to="/assessment"
+                className="hidden sm:block rounded-full bg-[#e8a83b] px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
+              >
+                Get Started
+              </Link>
+
+              {/* THREE LINE MENU */}
+              <div className="relative">
+
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition"
+                  aria-label="Open menu"
+                  aria-expanded={menuOpen}
+                >
+                  <div className="space-y-1.5">
+                    <span className="block h-0.5 w-6 bg-white"></span>
+                    <span className="block h-0.5 w-6 bg-white"></span>
+                    <span className="block h-0.5 w-6 bg-white"></span>
+                  </div>
+                </button>
+
+                {/* DROPDOWN MENU */}
+                {menuOpen && (
+                  <div className="absolute right-0 top-14 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
+
+                    {/* USER INFORMATION */}
+                    <div className="border-b border-gray-100 bg-[#f7f4ed] px-5 py-4">
+
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                        Logged In
+                      </p>
+
+                      <p className="mt-1 truncate text-sm font-bold text-[#173d3a]">
+                        {userEmail || "FREEWILL User"}
+                      </p>
+
+                    </div>
+
+                    {/* DASHBOARD */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate("/dashboard");
+                      }}
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
+                    >
+                      <span className="text-xl">📊</span>
+                      <span>Dashboard</span>
+                    </button>
+
+                    {/* MY APPOINTMENTS */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate("/dashboard");
+                      }}
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
+                    >
+                      <span className="text-xl">📅</span>
+                      <span>My Appointments</span>
+                    </button>
+
+                    {/* LOGOUT */}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                    >
+                      <span className="text-xl">🚪</span>
+                      <span>Logout</span>
+                    </button>
+
+                  </div>
+                )}
+
+              </div>
+
+            </div>
 
           </div>
         </div>
@@ -64,7 +211,9 @@ function Home() {
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
 
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
+
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
+
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 md:pt-40">
@@ -74,6 +223,7 @@ function Home() {
             <div className="max-w-2xl">
 
               <div className="mb-6 flex items-center gap-3">
+
                 <span className="text-[#eab34a] text-lg tracking-widest">
                   ★★★★★
                 </span>
@@ -81,6 +231,7 @@ function Home() {
                 <span className="text-sm text-white/70">
                   Human Empowerment
                 </span>
+
               </div>
 
               <p className="mb-5 text-sm md:text-base font-bold uppercase tracking-[0.2em] text-[#eab34a]">
@@ -88,11 +239,15 @@ function Home() {
               </p>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black leading-[1.04]">
+
                 Understand Your Mind.
+
                 <br />
+
                 <span className="text-[#eab34a]">
                   Transform Your Life.
                 </span>
+
               </h1>
 
               <p className="mt-7 max-w-xl text-base md:text-lg leading-8 text-white/75">
@@ -126,27 +281,34 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     100%
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Confidential
                   </p>
                 </div>
 
                 <div className="border-l border-white/20 pl-8">
+
                   <p className="text-2xl font-black text-[#eab34a]">
                     360°
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Holistic Approach
                   </p>
+
                 </div>
 
                 <div className="border-l border-white/20 pl-8">
+
                   <p className="text-2xl font-black text-[#eab34a]">
                     24/7
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Online Access
                   </p>
+
                 </div>
 
               </div>
@@ -186,27 +348,34 @@ function Home() {
             </div>
 
           </div>
+
         </div>
 
-
         <div className="absolute bottom-[-1px] left-0 right-0">
+
           <svg
             viewBox="0 0 1440 130"
             className="h-[90px] w-full md:h-[120px]"
             preserveAspectRatio="none"
           >
+
             <path
               fill="#f7f4ed"
               d="M0 55 C180 115 300 100 450 75 C580 53 650 125 760 125 C900 125 930 53 1060 75 C1190 100 1280 115 1440 55 L1440 130 L0 130 Z"
             />
+
           </svg>
+
         </div>
 
       </section>
 
 
       {/* ================= INTRO ================= */}
-      <section id="about" className="bg-[#f7f4ed] py-20 md:py-28">
+      <section
+        id="about"
+        className="bg-[#f7f4ed] py-20 md:py-28"
+      >
 
         <div className="mx-auto max-w-6xl px-6">
 
@@ -219,11 +388,15 @@ function Home() {
               </p>
 
               <h2 className="mt-4 text-3xl md:text-5xl font-black leading-tight text-[#173d3a]">
+
                 A deeper approach to
+
                 <br />
+
                 <span className="text-[#c88d22]">
                   human empowerment.
                 </span>
+
               </h2>
 
               <p className="mt-6 leading-8 text-gray-600">
@@ -287,6 +460,7 @@ function Home() {
           </div>
 
         </div>
+
       </section>
 
 
@@ -310,7 +484,6 @@ function Home() {
             </p>
 
           </div>
-
 
           <div className="mt-14 grid md:grid-cols-3 gap-7">
 
@@ -370,6 +543,7 @@ function Home() {
           </div>
 
         </div>
+
       </section>
 
 
@@ -383,10 +557,17 @@ function Home() {
           </p>
 
           <h2 className="mt-2 text-3xl md:text-5xl font-black leading-tight text-[#173d3a]">
+
             The first step towards
+
             <br />
+
             transformation is
-            <span className="text-[#c88d22]"> understanding.</span>
+
+            <span className="text-[#c88d22]">
+              understanding.
+            </span>
+
           </h2>
 
           <p className="mt-6 text-gray-500">
@@ -399,7 +580,10 @@ function Home() {
 
 
       {/* ================= PROCESS ================= */}
-      <section id="process" className="bg-[#0d4743] py-20 md:py-24 text-white">
+      <section
+        id="process"
+        className="bg-[#0d4743] py-20 md:py-24 text-white"
+      >
 
         <div className="mx-auto max-w-6xl px-6">
 
@@ -414,7 +598,6 @@ function Home() {
             </h2>
 
           </div>
-
 
           <div className="mt-14 grid md:grid-cols-3 gap-8">
 
@@ -474,11 +657,15 @@ function Home() {
           </div>
 
         </div>
+
       </section>
 
 
       {/* ================= EXPERTS ================= */}
-      <section id="experts" className="bg-[#f7f4ed] py-20 md:py-28">
+      <section
+        id="experts"
+        className="bg-[#f7f4ed] py-20 md:py-28"
+      >
 
         <div className="mx-auto max-w-7xl px-6">
 
@@ -557,30 +744,42 @@ function Home() {
                   </p>
 
                   <div className="mt-3 space-y-2 text-sm text-gray-600">
+
                     <div className="flex justify-between">
                       <span>One Hour</span>
-                      <span className="font-bold text-[#173d3a]">₹1,500</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹1,500
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Psychometric Analysis</span>
-                      <span className="font-bold text-[#173d3a]">₹2,500</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹2,500
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>One-to-One Session</span>
-                      <span className="font-bold text-[#173d3a]">₹3,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹3,000
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Training Sessions</span>
-                      <span className="font-bold text-[#173d3a]">₹12,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹12,000
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Mentoring</span>
-                      <span className="font-bold text-[#173d3a]">₹25,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹25,000
+                      </span>
                     </div>
+
                   </div>
 
                   <p className="mt-4 text-xs text-gray-400">
@@ -655,27 +854,37 @@ function Home() {
 
                     <div className="flex justify-between">
                       <span>One Hour</span>
-                      <span className="font-bold text-[#173d3a]">₹1,500</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹1,500
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Psychometric Analysis</span>
-                      <span className="font-bold text-[#173d3a]">₹2,500</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹2,500
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>One-to-One Session</span>
-                      <span className="font-bold text-[#173d3a]">₹3,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹3,000
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Training Sessions</span>
-                      <span className="font-bold text-[#173d3a]">₹12,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹12,000
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span>Mentoring</span>
-                      <span className="font-bold text-[#173d3a]">₹25,000</span>
+                      <span className="font-bold text-[#173d3a]">
+                        ₹25,000
+                      </span>
                     </div>
 
                   </div>
@@ -785,11 +994,15 @@ function Home() {
           </div>
 
         </div>
+
       </section>
 
 
       {/* ================= SERVICES ================= */}
-      <section id="services" className="bg-white py-20 md:py-24">
+      <section
+        id="services"
+        className="bg-white py-20 md:py-24"
+      >
 
         <div className="mx-auto max-w-7xl px-6">
 
@@ -873,18 +1086,20 @@ function Home() {
                 from your account.
               </p>
 
-              <Link
-                to="/my-appointment"
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
                 className="mt-7 inline-block font-bold text-[#c88d22]"
               >
                 My Appointments →
-              </Link>
+              </button>
 
             </div>
 
           </div>
 
         </div>
+
       </section>
 
 
@@ -935,6 +1150,7 @@ function Home() {
           </div>
 
         </div>
+
       </section>
 
 
@@ -971,27 +1187,45 @@ function Home() {
 
               <div className="mt-4 flex flex-col gap-3 text-sm text-white/55">
 
-                <Link to="/" className="hover:text-[#eab34a]">
+                <Link
+                  to="/home"
+                  className="hover:text-[#eab34a]"
+                >
                   Home
                 </Link>
 
-                <a href="#about" className="hover:text-[#eab34a]">
+                <a
+                  href="#about"
+                  className="hover:text-[#eab34a]"
+                >
                   About
                 </a>
 
-                <a href="#experts" className="hover:text-[#eab34a]">
+                <a
+                  href="#experts"
+                  className="hover:text-[#eab34a]"
+                >
                   Experts
                 </a>
 
-                <a href="#services" className="hover:text-[#eab34a]">
+                <a
+                  href="#services"
+                  className="hover:text-[#eab34a]"
+                >
                   Services
                 </a>
 
-                <Link to="/assessment" className="hover:text-[#eab34a]">
+                <Link
+                  to="/assessment"
+                  className="hover:text-[#eab34a]"
+                >
                   Assessment
                 </Link>
 
-                <Link to="/booking" className="hover:text-[#eab34a]">
+                <Link
+                  to="/booking"
+                  className="hover:text-[#eab34a]"
+                >
                   Appointment
                 </Link>
 
