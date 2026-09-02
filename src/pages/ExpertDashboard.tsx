@@ -25,13 +25,11 @@ type Booking = {
   status: string;
   notes: string | null;
   created_at: string;
-  services:
-    | {
-        title: string;
-        price: number;
-        duration_minutes: number;
-      }
-    | null;
+  services: {
+    title: string;
+    price: number;
+    duration_minutes: number;
+  } | null;
 };
 
 function ExpertDashboard() {
@@ -43,9 +41,7 @@ function ExpertDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionLoading, setActionLoading] = useState<string | null>(
-    null
-  );
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -56,6 +52,7 @@ function ExpertDashboard() {
     try {
       setLoading(true);
       setError("");
+      setMessage("");
 
       const {
         data: { user },
@@ -68,7 +65,7 @@ function ExpertDashboard() {
 
       setEmail(user.email || "");
 
-      // Load expert profile
+      // Get expert profile
       const { data: expertData, error: expertError } =
         await supabase
           .from("expert_profiles")
@@ -100,37 +97,7 @@ function ExpertDashboard() {
 
       setExpert(expertData);
 
-      // Load bookings for this expert
-      const { data: bookingData, error: bookingError } =
-        await supabase
-          .from("bookings")
-          .select(`
-            id,
-            booking_date,
-            start_time,
-            status,
-            notes,
-            created_at,
-            services (
-              title,
-              price,
-              duration_minutes
-            )
-          `)
-          .eq("service_id", expertData.id);
-
-      /*
-        The query above depends on service_id being the expert profile id,
-        which is not the actual database relationship.
-
-        So we fetch the expert's service IDs first below.
-      */
-
-      if (bookingError) {
-        console.error("Booking query error:", bookingError);
-      }
-
-      // Get expert services
+      // Get services created by this expert
       const { data: serviceData, error: serviceError } =
         await supabase
           .from("services")
@@ -147,13 +114,14 @@ function ExpertDashboard() {
         (service) => service.id
       );
 
+      // No services = no bookings
       if (serviceIds.length === 0) {
         setBookings([]);
         return;
       }
 
-      // Get bookings belonging to expert services
-      const { data: finalBookings, error: finalBookingError } =
+      // Get bookings for this expert's services
+      const { data: bookingData, error: bookingError } =
         await supabase
           .from("bookings")
           .select(`
@@ -173,17 +141,14 @@ function ExpertDashboard() {
           .order("booking_date", { ascending: true })
           .order("start_time", { ascending: true });
 
-      if (finalBookingError) {
-        console.error(
-          "Final bookings error:",
-          finalBookingError
-        );
+      if (bookingError) {
+        console.error("Bookings query error:", bookingError);
         setError("Unable to load bookings.");
         return;
       }
 
       const formattedBookings: Booking[] = (
-        finalBookings || []
+        bookingData || []
       ).map((item: any) => ({
         id: item.id,
         booking_date: item.booking_date,
@@ -199,7 +164,9 @@ function ExpertDashboard() {
       setBookings(formattedBookings);
     } catch (err) {
       console.error("Dashboard error:", err);
-      setError("Something went wrong while loading dashboard.");
+      setError(
+        "Something went wrong while loading the dashboard."
+      );
     } finally {
       setLoading(false);
     }
@@ -216,9 +183,7 @@ function ExpertDashboard() {
 
       const { error: updateError } = await supabase
         .from("bookings")
-        .update({
-          status,
-        })
+        .update({ status })
         .eq("id", bookingId);
 
       if (updateError) {
@@ -230,7 +195,9 @@ function ExpertDashboard() {
       setMessage(
         status === "confirmed"
           ? "Appointment confirmed successfully."
-          : "Appointment cancelled successfully."
+          : status === "cancelled"
+          ? "Appointment cancelled successfully."
+          : "Appointment marked as completed."
       );
 
       await loadDashboard();
@@ -285,15 +252,18 @@ function ExpertDashboard() {
   };
 
   const pendingBookings = bookings.filter(
-    (booking) => booking.status.toLowerCase() === "pending"
+    (booking) =>
+      booking.status.toLowerCase() === "pending"
   ).length;
 
   const confirmedBookings = bookings.filter(
-    (booking) => booking.status.toLowerCase() === "confirmed"
+    (booking) =>
+      booking.status.toLowerCase() === "confirmed"
   ).length;
 
   const completedBookings = bookings.filter(
-    (booking) => booking.status.toLowerCase() === "completed"
+    (booking) =>
+      booking.status.toLowerCase() === "completed"
   ).length;
 
   const totalRevenue = bookings
@@ -419,13 +389,24 @@ function ExpertDashboard() {
                 </h3>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  {expert.qualification || "Qualification not added"}
+                  {expert.qualification ||
+                    "Qualification not added"}
+
                   {expert.experience_years !== null &&
                     ` • ${expert.experience_years} years experience`}
                 </p>
+
+                {expert.hourly_rate !== null && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Hourly Rate:{" "}
+                    <span className="font-semibold">
+                      ₹{expert.hourly_rate}
+                    </span>
+                  </p>
+                )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <span
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
                     expert.is_active
@@ -563,7 +544,7 @@ function ExpertDashboard() {
           </div>
         </section>
 
-        {/* Bookings */}
+        {/* Appointments */}
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -597,7 +578,6 @@ function ExpertDashboard() {
                   className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                    {/* Booking details */}
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-3">
                         <h4 className="text-xl font-bold text-gray-900">
@@ -653,8 +633,8 @@ function ExpertDashboard() {
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap gap-2 lg:w-auto">
+                    {/* Booking Actions */}
+                    <div className="flex flex-wrap gap-2">
                       {booking.status.toLowerCase() ===
                         "pending" && (
                         <>
@@ -708,7 +688,7 @@ function ExpertDashboard() {
                         >
                           {actionLoading === booking.id
                             ? "Updating..."
-                            : "Mark Completed"}
+                            : "✓ Mark Completed"}
                         </button>
                       )}
                     </div>
