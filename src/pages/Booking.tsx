@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -11,9 +11,14 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-type Service = {
-  name: string;
-  price: number | null;
+type DbService = {
+  id: string;
+  expert_id: string;
+  title: string;
+  description: string;
+  duration_minutes: number;
+  price: number;
+  is_active: boolean;
 };
 
 type Expert = {
@@ -23,7 +28,6 @@ type Expert = {
   experience: string;
   image: string;
   bio: string;
-  services: Service[];
 };
 
 const experts: Expert[] = [
@@ -34,13 +38,6 @@ const experts: Expert[] = [
     experience: "26 Years Experience",
     image: bossImage,
     bio: "Simon Anandh Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development.",
-    services: [
-      { name: "One Hour Session", price: 1500 },
-      { name: "Psychometric Analysis", price: 2500 },
-      { name: "One-to-One Session", price: 3000 },
-      { name: "Training Sessions", price: 12000 },
-      { name: "Mentoring", price: 25000 },
-    ],
   },
   {
     name: "Jeevitha S",
@@ -49,13 +46,6 @@ const experts: Expert[] = [
     experience: "5 Years Experience",
     image: jeevithaImage,
     bio: "Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training.",
-    services: [
-      { name: "One Hour Session", price: 1500 },
-      { name: "Psychometric Analysis", price: 2500 },
-      { name: "One-to-One Session", price: 3000 },
-      { name: "Training Sessions", price: 12000 },
-      { name: "Mentoring", price: 25000 },
-    ],
   },
   {
     name: "Rahul K.P",
@@ -64,11 +54,6 @@ const experts: Expert[] = [
     experience: "7 Years Experience",
     image: rahulImage,
     bio: "Rahul K.P is a Life Coach and Content Head with 7 years of experience in training and content management.",
-    services: [
-      { name: "Training & Coaching", price: null },
-      { name: "Content Management", price: null },
-      { name: "Life Coaching", price: null },
-    ],
   },
 ];
 
@@ -87,7 +72,12 @@ function Booking() {
   const navigate = useNavigate();
 
   const [selectedExpert, setSelectedExpert] = useState(0);
-  const [selectedService, setSelectedService] = useState(0);
+  const [selectedService, setSelectedService] =
+    useState<DbService | null>(null);
+
+  const [services, setServices] = useState<DbService[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -97,20 +87,106 @@ function Booking() {
   const [phone, setPhone] = useState("");
   const [reason, setReason] = useState("");
 
-  const [loading, setLoading] = useState(false);
-
   const expert = experts[selectedExpert];
-  const service = expert.services[selectedService];
+
+  // Load services from Supabase
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoadingServices(true);
+
+        const { data, error } = await supabase
+          .from("services")
+          .select(
+            "id, expert_id, title, description, duration_minutes, price, is_active"
+          )
+          .eq("is_active", true)
+          .order("created_at", { ascending: true });
+
+        if (error) {
+          console.error("Services loading error:", error);
+          alert(`Unable to load services: ${error.message}`);
+          return;
+        }
+
+        setServices(data || []);
+      } catch (error) {
+        console.error(error);
+        alert("Something went wrong while loading services.");
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    loadServices();
+  }, []);
+
+  // Get services for selected expert
+  const expertServices = services.filter((service) => {
+    const expertNames: Record<string, string> = {
+      "Simon Anandh Raj": "Simon Anandh Raj",
+      "Jeevitha S": "Jeevitha S",
+      "Rahul K.P": "Rahul K.P",
+    };
+
+    return service.title && expertNames[expert.name] === expert.name;
+  });
+
+  // Better expert mapping using profile name
+  const getExpertServices = () => {
+    if (expert.name === "Simon Anandh Raj") {
+      return services.filter((service) => {
+        return service.title === "One Hour Session" ||
+          service.title === "Psychometric Analysis" ||
+          service.title === "One-to-One Session" ||
+          service.title === "Training Sessions" ||
+          service.title === "Mentoring"
+          ? service
+          : null;
+      });
+    }
+
+    if (expert.name === "Jeevitha S") {
+      return services.filter((service) => {
+        return service.title === "One Hour Session" ||
+          service.title === "Psychometric Analysis" ||
+          service.title === "One-to-One Session" ||
+          service.title === "Training Sessions" ||
+          service.title === "Mentoring"
+          ? service
+          : null;
+      });
+    }
+
+    return services.filter((service) => {
+      return service.title === "Training & Coaching" ||
+        service.title === "Content Management" ||
+        service.title === "Life Coaching"
+        ? service
+        : null;
+    });
+  };
+
+  const currentServices = getExpertServices();
+
+  useEffect(() => {
+    if (currentServices.length > 0) {
+      setSelectedService(currentServices[0]);
+    } else {
+      setSelectedService(null);
+    }
+  }, [selectedExpert, services]);
 
   const handleExpertChange = (index: number) => {
     setSelectedExpert(index);
-    setSelectedService(0);
+    setSelectedService(null);
+    setTime("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date || !time || !name || !email || !phone) {
+    if (!date || !time || !name || !email || !phone || !selectedService) {
       alert("Please fill all required details.");
       return;
     }
@@ -134,19 +210,37 @@ function Booking() {
         return;
       }
 
+      // Convert 12-hour time to database TIME format
+      const convertTo24Hour = (time12: string) => {
+        const [timePart, modifier] = time12.split(" ");
+        let [hours, minutes] = timePart.split(":").map(Number);
+
+        if (modifier === "PM" && hours !== 12) {
+          hours += 12;
+        }
+
+        if (modifier === "AM" && hours === 12) {
+          hours = 0;
+        }
+
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+          2,
+          "0"
+        )}:00`;
+      };
+
+      const startTime = convertTo24Hour(time);
+
       // Save booking to Supabase
       const { error } = await supabase.from("bookings").insert({
         user_id: user.id,
-        expert_name: expert.name,
-        service_name: service.name,
-        price: service.price,
+        service_id: selectedService.id,
         booking_date: date,
-        booking_time: time,
-        name: name,
-        email: email,
-        phone: phone,
-        reason: reason,
+        start_time: startTime,
         status: "pending",
+        notes: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nReason: ${
+          reason || "Not provided"
+        }`,
       });
 
       if (error) {
@@ -157,11 +251,11 @@ function Booking() {
 
       alert(
         `Appointment request submitted successfully! 🎉\n\n` +
-        `Expert: ${expert.name}\n` +
-        `Service: ${service.name}\n` +
-        `Date: ${date}\n` +
-        `Time: ${time}\n\n` +
-        `Your appointment is currently pending confirmation.`
+          `Expert: ${expert.name}\n` +
+          `Service: ${selectedService.title}\n` +
+          `Date: ${date}\n` +
+          `Time: ${time}\n\n` +
+          `Your appointment is currently pending confirmation.`
       );
 
       // Reset form
@@ -171,7 +265,6 @@ function Booking() {
       setEmail("");
       setPhone("");
       setReason("");
-
     } catch (error) {
       console.error(error);
       alert("Something went wrong. Please try again.");
@@ -182,7 +275,6 @@ function Booking() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-
       {/* HERO */}
       <section className="bg-[#0d4743] px-6 py-20 text-white md:py-28">
         <div className="mx-auto max-w-6xl">
@@ -204,7 +296,6 @@ function Booking() {
 
       {/* MAIN */}
       <main className="mx-auto max-w-7xl px-5 py-14 md:py-20">
-
         {/* EXPERTS */}
         <section>
           <div className="mb-8">
@@ -285,7 +376,6 @@ function Booking() {
 
         {/* BOOKING FORM */}
         <section className="mt-14 rounded-[2rem] bg-white p-7 shadow-xl md:p-10">
-
           <div className="mb-9">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Appointment
@@ -301,62 +391,72 @@ function Booking() {
           </div>
 
           <form onSubmit={handleSubmit}>
-
             {/* SERVICE */}
             <div>
               <label className="mb-3 block text-sm font-bold">
                 Select Service *
               </label>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {expert.services.map((item, index) => {
-                  const selected = selectedService === index;
+              {loadingServices ? (
+                <div className="rounded-2xl bg-[#f7f4ed] p-6 text-center text-gray-600">
+                  Loading services...
+                </div>
+              ) : currentServices.length === 0 ? (
+                <div className="rounded-2xl bg-red-50 p-6 text-center text-red-600">
+                  No services available for this expert.
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {currentServices.map((item) => {
+                    const selected = selectedService?.id === item.id;
 
-                  return (
-                    <button
-                      key={item.name}
-                      type="button"
-                      onClick={() => setSelectedService(index)}
-                      className={`rounded-2xl border-2 p-5 text-left transition ${
-                        selected
-                          ? "border-[#c88d22] bg-[#f8f1e1]"
-                          : "border-gray-200 hover:border-[#0d4743]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="font-bold">
-                            {item.name}
-                          </p>
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedService(item)}
+                        className={`rounded-2xl border-2 p-5 text-left transition ${
+                          selected
+                            ? "border-[#c88d22] bg-[#f8f1e1]"
+                            : "border-gray-200 hover:border-[#0d4743]"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-bold">{item.title}</p>
 
-                          <p className="mt-2 text-xs text-gray-500">
-                            Professional FREEWILL service
-                          </p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="font-black text-[#0d4743]">
-                            {item.price !== null
-                              ? `₹${item.price.toLocaleString("en-IN")}`
-                              : "Contact"}
-                          </p>
-
-                          {selected && (
-                            <p className="mt-1 text-xs font-bold text-[#c88d22]">
-                              Selected ✓
+                            <p className="mt-2 text-xs text-gray-500">
+                              {item.description}
                             </p>
-                          )}
+
+                            <p className="mt-2 text-xs font-semibold text-gray-500">
+                              {item.duration_minutes} minutes
+                            </p>
+                          </div>
+
+                          <div className="min-w-fit text-right">
+                            <p className="font-black text-[#0d4743]">
+                              {item.price > 0
+                                ? `₹${item.price.toLocaleString("en-IN")}`
+                                : "Price on request"}
+                            </p>
+
+                            {selected && (
+                              <p className="mt-1 text-xs font-bold text-[#c88d22]">
+                                Selected ✓
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* DATE + TIME */}
             <div className="mt-10 grid gap-8 md:grid-cols-2">
-
               <div>
                 <label className="mb-3 block text-sm font-bold">
                   Select Date *
@@ -394,18 +494,13 @@ function Booking() {
                   ))}
                 </div>
               </div>
-
             </div>
 
             {/* PERSONAL DETAILS */}
             <div className="mt-10 border-t border-gray-100 pt-10">
-
-              <h3 className="text-xl font-black">
-                Your Details
-              </h3>
+              <h3 className="text-xl font-black">Your Details</h3>
 
               <div className="mt-6 grid gap-6 md:grid-cols-2">
-
                 <div>
                   <label className="mb-2 block text-sm font-bold">
                     Full Name *
@@ -450,7 +545,6 @@ function Booking() {
                     required
                   />
                 </div>
-
               </div>
 
               <div className="mt-6">
@@ -466,81 +560,61 @@ function Booking() {
                   className="w-full resize-none rounded-xl border-2 border-gray-200 px-5 py-4 outline-none focus:border-[#0d4743]"
                 />
               </div>
-
             </div>
 
             {/* SUMMARY */}
             <div className="mt-10 rounded-2xl bg-[#f7f4ed] p-6">
-
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
                 Appointment Summary
               </p>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-xs text-gray-500">Expert</p>
+                  <p className="mt-1 font-bold">{expert.name}</p>
+                </div>
 
                 <div>
-                  <p className="text-xs text-gray-500">
-                    Expert
-                  </p>
-
+                  <p className="text-xs text-gray-500">Service</p>
                   <p className="mt-1 font-bold">
-                    {expert.name}
+                    {selectedService?.title || "Not selected"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500">
-                    Service
-                  </p>
-
-                  <p className="mt-1 font-bold">
-                    {service.name}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">
-                    Date
-                  </p>
-
+                  <p className="text-xs text-gray-500">Date</p>
                   <p className="mt-1 font-bold">
                     {date || "Not selected"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500">
-                    Time
-                  </p>
-
+                  <p className="text-xs text-gray-500">Time</p>
                   <p className="mt-1 font-bold">
                     {time || "Not selected"}
                   </p>
                 </div>
 
                 <div className="md:col-span-2 border-t border-black/5 pt-4">
-
-                  <p className="text-xs text-gray-500">
-                    Session Price
-                  </p>
+                  <p className="text-xs text-gray-500">Session Price</p>
 
                   <p className="mt-1 text-2xl font-black text-[#0d4743]">
-                    {service.price !== null
-                      ? `₹${service.price.toLocaleString("en-IN")}`
-                      : "Price will be confirmed"}
+                    {selectedService
+                      ? selectedService.price > 0
+                        ? `₹${selectedService.price.toLocaleString("en-IN")}`
+                        : "Price on request"
+                      : "Not selected"}
                   </p>
-
                 </div>
-
               </div>
             </div>
 
             {/* SUBMIT */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !selectedService}
               className={`mt-8 w-full rounded-full px-8 py-4 font-bold text-white shadow-lg transition ${
-                loading
+                loading || !selectedService
                   ? "cursor-not-allowed bg-gray-400"
                   : "bg-[#0d4743] hover:bg-[#12554f]"
               }`}
@@ -553,13 +627,11 @@ function Booking() {
             <p className="mt-4 text-center text-xs text-gray-400">
               Payment will be available after appointment confirmation.
             </p>
-
           </form>
         </section>
 
         {/* TRUST MESSAGE */}
         <section className="mt-10 rounded-[2rem] border border-[#ddd6c8] bg-white p-8 text-center">
-
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f8f1e1] text-2xl">
             ✦
           </div>
@@ -569,11 +641,10 @@ function Booking() {
           </h2>
 
           <p className="mx-auto mt-3 max-w-2xl leading-7 text-gray-600">
-            FREEWILL aims to create a safe and supportive environment
-            where you can take time to understand yourself and seek
-            meaningful guidance.
+            FREEWILL aims to create a safe and supportive environment where
+            you can take time to understand yourself and seek meaningful
+            guidance.
           </p>
-
         </section>
 
         {/* BACK */}
@@ -585,7 +656,6 @@ function Booking() {
             ← Back to FREEWILL Home
           </Link>
         </div>
-
       </main>
     </div>
   );
