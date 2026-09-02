@@ -20,7 +20,7 @@ function Login() {
 
     setError("");
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
     }
@@ -44,7 +44,28 @@ function Login() {
         return;
       }
 
-      navigate("/dashboard");
+      // Get the user's role from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        setError("Unable to load your account details.");
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // Redirect based on role
+      if (profile?.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (profile?.role === "expert") {
+        navigate("/expert-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("Something went wrong. Please try again.");
