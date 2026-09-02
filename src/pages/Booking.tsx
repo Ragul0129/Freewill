@@ -19,6 +19,8 @@ type Service = {
 type Expert = {
   id: string;
   specialization: string | null;
+  is_active: boolean;
+  is_verified: boolean;
   profile: {
     full_name: string | null;
   } | null;
@@ -55,6 +57,8 @@ function Booking() {
       setLoading(true);
       setError("");
 
+      if (!serviceId) return;
+
       const { data: serviceData, error: serviceError } =
         await supabase
           .from("services")
@@ -70,7 +74,7 @@ function Booking() {
           .eq("is_active", true)
           .single();
 
-      if (serviceError) {
+      if (serviceError || !serviceData) {
         console.error("Service error:", serviceError);
         setError("Unable to load this session.");
         return;
@@ -84,6 +88,8 @@ function Booking() {
           .select(`
             id,
             specialization,
+            is_active,
+            is_verified,
             profiles (
               full_name
             )
@@ -93,23 +99,61 @@ function Booking() {
 
       if (expertError) {
         console.error("Expert error:", expertError);
-      } else {
-        const formattedExpert: Expert = {
-          id: expertData.id,
-          specialization: expertData.specialization,
-          profile: Array.isArray(expertData.profiles)
-            ? expertData.profiles[0] || null
-            : expertData.profiles || null,
-        };
-
-        setExpert(formattedExpert);
+        setError("Unable to load expert information.");
+        return;
       }
+
+      const formattedExpert: Expert = {
+        id: expertData.id,
+        specialization: expertData.specialization,
+        is_active: expertData.is_active,
+        is_verified: expertData.is_verified,
+        profile: Array.isArray(expertData.profiles)
+          ? expertData.profiles[0] || null
+          : expertData.profiles || null,
+      };
+
+      setExpert(formattedExpert);
     } catch (err) {
       console.error("Load service error:", err);
       setError("Something went wrong.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const getToday = () => {
+    const today = new Date();
+
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const isPastTime = () => {
+    if (!bookingDate || !startTime) return false;
+
+    const today = getToday();
+
+    if (bookingDate !== today) {
+      return false;
+    }
+
+    const now = new Date();
+
+    const [hours, minutes] = startTime.split(":");
+
+    const selectedTime = new Date();
+    selectedTime.setHours(
+      Number(hours),
+      Number(minutes),
+      0,
+      0
+    );
+
+    return selectedTime <= now;
   };
 
   const handleBooking = async () => {
@@ -132,6 +176,20 @@ function Booking() {
         return;
       }
 
+      if (isPastTime()) {
+        setError(
+          "Please select a future time. The selected time has already passed."
+        );
+        return;
+      }
+
+      if (expert && !expert.is_active) {
+        setError(
+          "This expert is currently unavailable for new appointments."
+        );
+        return;
+      }
+
       setBooking(true);
 
       const {
@@ -140,6 +198,77 @@ function Booking() {
 
       if (!user) {
         navigate("/login");
+        return;
+      }
+
+      /*
+       * Check whether the same user already has a booking
+       * for the same service, date and time.
+       */
+      const { data: existingBooking, error: existingError } =
+        await supabase
+          .from("bookings")
+          .select("id, status")
+          .eq("user_id", user.id)
+          .eq("service_id", service.id)
+          .eq("booking_date", bookingDate)
+          .eq("start_time", startTime)
+          .in("status", ["pending", "confirmed"])
+          .maybeSingle();
+
+      if (existingError) {
+        console.error(
+          "Existing booking check error:",
+          existingError
+        );
+      }
+
+      if (existingBooking) {
+        setError(
+          "You already have an active booking for this session at the selected time."
+        );
+        return;
+      }
+
+      /*
+       * Check whether another confirmed/pending booking
+       * already occupies the exact same expert slot.
+       */
+      const { data: serviceBookings, error: slotError } =
+        await supabase
+          .from("bookings")
+          .select(`
+            id,
+            status,
+            service_id,
+            services!inner (
+              expert_id
+            )
+          `)
+          .eq("booking_date", bookingDate)
+          .eq("start_time", startTime)
+          .in("status", ["pending", "confirmed"]);
+
+      if (slotError) {
+        console.error("Slot check error:", slotError);
+      }
+
+      const sameExpertBooking = (serviceBookings || []).some(
+        (item: any) => {
+          const bookingService = Array.isArray(item.services)
+            ? item.services[0]
+            : item.services;
+
+          return (
+            bookingService?.expert_id === service.expert_id
+          );
+        }
+      );
+
+      if (sameExpertBooking) {
+        setError(
+          "This time slot is already requested or booked with this expert. Please choose another time."
+        );
         return;
       }
 
@@ -184,6 +313,7 @@ function Booking() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4" />
+
           <p className="text-gray-600">
             Loading session...
           </p>
@@ -262,6 +392,7 @@ function Booking() {
             <h1 className="text-2xl font-bold text-gray-900">
               FREEWILL
             </h1>
+
             <p className="text-xs text-gray-500">
               Human Empowerment
             </p>
@@ -304,6 +435,26 @@ function Booking() {
                   {expert.specialization ||
                     "Wellness Expert"}
                 </p>
+
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      expert.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {expert.is_active
+                      ? "● Available"
+                      : "● Unavailable"}
+                  </span>
+
+                  {expert.is_verified && (
+                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                      ✓ Verified Expert
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
@@ -366,10 +517,11 @@ function Booking() {
               <input
                 type="date"
                 value={bookingDate}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setBookingDate(e.target.value)
-                }
+                min={getToday()}
+                onChange={(e) => {
+                  setBookingDate(e.target.value);
+                  setError("");
+                }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900"
               />
             </div>
@@ -382,11 +534,16 @@ function Booking() {
               <input
                 type="time"
                 value={startTime}
-                onChange={(e) =>
-                  setStartTime(e.target.value)
-                }
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  setError("");
+                }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900"
               />
+
+              <p className="text-xs text-gray-400 mt-2">
+                Please choose a future time.
+              </p>
             </div>
 
             <div className="mt-5">
@@ -396,9 +553,7 @@ function Booking() {
 
               <textarea
                 value={notes}
-                onChange={(e) =>
-                  setNotes(e.target.value)
-                }
+                onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 placeholder="Anything you'd like the expert to know..."
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900 resize-none"
@@ -407,11 +562,11 @@ function Booking() {
 
             <button
               onClick={handleBooking}
-              disabled={booking}
+              disabled={booking || (expert ? !expert.is_active : false)}
               className="w-full mt-7 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {booking
-                ? "Confirming..."
+                ? "Submitting..."
                 : "Confirm Appointment"}
             </button>
 
