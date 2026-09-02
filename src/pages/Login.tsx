@@ -1,65 +1,154 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const { data, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (loginError) {
+        setError(loginError.message);
+        return;
+      }
+
+      if (!data.user) {
+        setError("Login failed. Please try again.");
+        return;
+      }
+
+      navigate("/booking");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-[#f7f4ed] px-6 py-12 flex items-center justify-center">
+      <div className="w-full max-w-md">
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-700">
-            Welcome Back
-          </h1>
-
-          <p className="text-gray-600 mt-2">
-            Login to your FREEWILL account
-          </p>
+        <div className="mb-6 text-center">
+          <Link
+            to="/"
+            className="text-sm font-bold text-[#0d4743] hover:text-[#c88d22]"
+          >
+            ← Back to FREEWILL
+          </Link>
         </div>
 
-        <form className="space-y-5">
+        <div className="rounded-[2rem] bg-white p-8 shadow-xl md:p-10">
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email Address
-            </label>
+          <div className="mb-8 text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
+              FREEWILL • HUMAN EMPOWERMENT
+            </p>
 
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <h1 className="mt-4 text-3xl font-black text-[#173d3a]">
+              Welcome Back
+            </h1>
+
+            <p className="mt-2 text-gray-600">
+              Login to your FREEWILL account
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password
-            </label>
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            <div>
+              <label className="mb-2 block text-sm font-bold text-[#173d3a]">
+                Email Address
+              </label>
+
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
+                className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 outline-none transition focus:border-[#0d4743]"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-bold text-[#173d3a]">
+                Password
+              </label>
+
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 outline-none transition focus:border-[#0d4743]"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full rounded-full px-6 py-4 font-bold text-white shadow-lg transition ${
+                loading
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-[#0d4743] hover:bg-[#12554f]"
+              }`}
+            >
+              {loading ? "Logging in..." : "Login →"}
+            </button>
+
+          </form>
+
+          <div className="mt-7 border-t border-gray-100 pt-6 text-center">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="font-bold text-[#0d4743] hover:text-[#c88d22] hover:underline"
+              >
+                Register
+              </Link>
+            </p>
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
-          >
-            Login
-          </button>
-
-        </form>
-
-        <p className="text-center text-gray-600 mt-6">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-indigo-600 font-semibold hover:underline"
-          >
-            Register
-          </Link>
-        </p>
-
+        </div>
       </div>
     </div>
   );
