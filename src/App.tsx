@@ -17,53 +17,111 @@ import ExpertServices from "./pages/ExpertServices";
 
 import AdminDashboard from "./pages/AdminDashboard";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <Routes>
-      {/* User */}
+      {/* Public Pages */}
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/home" element={<Home />} />
 
-      {/* Assessment */}
-      <Route path="/assessment" element={<Assessment />} />
-      <Route path="/result" element={<AssessmentResult />} />
+      <Route
+        path="/assessment"
+        element={
+          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
+            <Assessment />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Booking */}
-      <Route path="/booking" element={<Booking />} />
+      <Route
+        path="/result"
+        element={
+          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
+            <AssessmentResult />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Experts Marketplace */}
-      <Route path="/experts" element={<Experts />} />
+      <Route
+        path="/experts"
+        element={
+          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
+            <Experts />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* User Dashboard */}
-      <Route path="/dashboard" element={<UserDashboard />} />
+      <Route
+        path="/booking"
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <Booking />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* User */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <UserDashboard />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/my-appointments"
-        element={<MyAppointments />}
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <MyAppointments />
+          </ProtectedRoute>
+        }
       />
 
       {/* Expert */}
       <Route
         path="/expert-dashboard"
-        element={<ExpertDashboard />}
+        element={
+          <ProtectedRoute allowedRoles={["expert"]}>
+            <ExpertDashboard />
+          </ProtectedRoute>
+        }
       />
+
       <Route
         path="/expert-profile"
-        element={<ExpertProfile />}
+        element={
+          <ProtectedRoute allowedRoles={["expert"]}>
+            <ExpertProfile />
+          </ProtectedRoute>
+        }
       />
+
       <Route
         path="/expert-services"
-        element={<ExpertServices />}
+        element={
+          <ProtectedRoute allowedRoles={["expert"]}>
+            <ExpertServices />
+          </ProtectedRoute>
+        }
       />
 
       {/* Admin */}
       <Route
         path="/admin-dashboard"
-        element={<AdminDashboard />}
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
       />
 
-      {/* Fallback */}
+      {/* Unknown route */}
       <Route path="*" element={<Login />} />
     </Routes>
   );
