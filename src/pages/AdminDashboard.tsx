@@ -107,9 +107,7 @@ function AdminDashboard() {
 
       if (bookingsError) {
         console.error(bookingsError);
-        setError(
-          `Unable to load bookings: ${bookingsError.message}`
-        );
+        setError(`Unable to load bookings: ${bookingsError.message}`);
       }
 
       setUsers(userData || []);
@@ -199,22 +197,22 @@ function AdminDashboard() {
     );
   }
 
-  if (error && users.length === 0 && experts.length === 0 && bookings.length === 0) {
+  if (
+    error &&
+    users.length === 0 &&
+    experts.length === 0 &&
+    bookings.length === 0
+  ) {
     return (
       <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center px-6">
         <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center border border-[#e8dfcf]">
-
-          <div className="text-5xl mb-5">
-            🔒
-          </div>
+          <div className="text-5xl mb-5">🔒</div>
 
           <h1 className="text-2xl font-bold text-[#173d3a] mb-3">
             Access Restricted
           </h1>
 
-          <p className="text-gray-600 mb-6">
-            {error}
-          </p>
+          <p className="text-gray-600 mb-6">{error}</p>
 
           <Link
             to="/"
@@ -222,7 +220,6 @@ function AdminDashboard() {
           >
             Back to Home
           </Link>
-
         </div>
       </div>
     );
@@ -230,11 +227,9 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-
       {/* Header */}
       <header className="bg-[#173d3a] text-white">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-
           <Link
             to="/"
             className="text-xl font-bold tracking-[0.2em]"
@@ -243,7 +238,6 @@ function AdminDashboard() {
           </Link>
 
           <div className="flex items-center gap-3">
-
             <span className="hidden md:block text-sm text-white/70">
               Admin Portal
             </span>
@@ -254,17 +248,14 @@ function AdminDashboard() {
             >
               Logout
             </button>
-
           </div>
         </div>
       </header>
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-6 py-10">
-
         {/* Welcome */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9 mb-8">
-
           <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold mb-2">
             Administration
           </p>
@@ -276,7 +267,6 @@ function AdminDashboard() {
           <p className="text-gray-600 mt-3">
             Manage users, experts and appointment activity.
           </p>
-
         </section>
 
         {/* Error */}
@@ -287,8 +277,7 @@ function AdminDashboard() {
         )}
 
         {/* Statistics */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
-
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-10">
           <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
             <p className="text-sm text-gray-500 font-semibold">
               Total Users
@@ -339,13 +328,20 @@ function AdminDashboard() {
             </p>
           </div>
 
+          <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
+            <p className="text-sm text-gray-500 font-semibold">
+              Rejected
+            </p>
+
+            <p className="text-3xl font-black text-red-600 mt-2">
+              {rejectedCount}
+            </p>
+          </div>
         </section>
 
         {/* Users */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9 mb-8">
-
           <div className="flex items-center justify-between mb-6">
-
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold">
                 Users
@@ -359,7 +355,6 @@ function AdminDashboard() {
             <span className="px-4 py-2 rounded-full bg-[#f7f4ed] text-sm font-bold">
               {users.length}
             </span>
-
           </div>
 
           {users.length === 0 ? (
@@ -368,9 +363,7 @@ function AdminDashboard() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-
               <table className="w-full text-left">
-
                 <thead>
                   <tr className="border-b border-gray-200 text-sm text-gray-500">
                     <th className="py-4 pr-4">Name</th>
@@ -406,19 +399,14 @@ function AdminDashboard() {
                     </tr>
                   ))}
                 </tbody>
-
               </table>
-
             </div>
           )}
-
         </section>
 
         {/* Experts */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9 mb-8">
-
           <div className="flex items-center justify-between mb-6">
-
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold">
                 Experts
@@ -432,7 +420,6 @@ function AdminDashboard() {
             <span className="px-4 py-2 rounded-full bg-[#f7f4ed] text-sm font-bold">
               {experts.length}
             </span>
-
           </div>
 
           {experts.length === 0 ? (
@@ -441,15 +428,12 @@ function AdminDashboard() {
             </p>
           ) : (
             <div className="grid md:grid-cols-2 gap-5">
-
               {experts.map((expert) => (
                 <div
                   key={expert.id}
                   className="border border-[#e8dfcf] rounded-2xl p-5"
                 >
-
                   <div className="flex items-center justify-between gap-4">
-
                     <div>
                       <h3 className="font-bold text-lg">
                         {expert.full_name || "Unnamed Expert"}
@@ -463,27 +447,21 @@ function AdminDashboard() {
                     <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
                       EXPERT
                     </span>
-
                   </div>
 
                   <p className="text-xs text-gray-400 mt-4">
                     Joined{" "}
                     {formatDate(expert.created_at.split("T")[0])}
                   </p>
-
                 </div>
               ))}
-
             </div>
           )}
-
         </section>
 
         {/* Bookings */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9">
-
           <div className="flex items-center justify-between mb-6">
-
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold">
                 Appointments
@@ -500,14 +478,11 @@ function AdminDashboard() {
             >
               Refresh
             </button>
-
           </div>
 
           {bookings.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-[#e8dfcf] rounded-2xl">
-              <div className="text-5xl mb-4">
-                📭
-              </div>
+              <div className="text-5xl mb-4">📭</div>
 
               <h3 className="text-xl font-bold mb-2">
                 No bookings yet
@@ -519,23 +494,18 @@ function AdminDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
                   className="border border-[#e8dfcf] rounded-2xl p-5"
                 >
-
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
                     <div>
-
                       <h3 className="font-bold text-lg">
                         Booking #{booking.id.slice(0, 8)}
                       </h3>
 
                       <div className="mt-2 space-y-1 text-sm text-gray-600">
-
                         <p>
                           <span className="font-semibold">
                             Date:
@@ -563,9 +533,7 @@ function AdminDashboard() {
                           </span>{" "}
                           {booking.service_id.slice(0, 8)}...
                         </p>
-
                       </div>
-
                     </div>
 
                     <span
@@ -575,7 +543,6 @@ function AdminDashboard() {
                     >
                       {booking.status}
                     </span>
-
                   </div>
 
                   {booking.notes && (
@@ -589,21 +556,16 @@ function AdminDashboard() {
                       </p>
                     </div>
                   )}
-
                 </div>
               ))}
-
             </div>
           )}
-
         </section>
-
       </main>
 
       <footer className="text-center py-8 text-sm text-gray-500">
         © {new Date().getFullYear()} FREEWILL – Human Empowerment
       </footer>
-
     </div>
   );
 }
