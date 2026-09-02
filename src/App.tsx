@@ -9,6 +9,8 @@ import Booking from "./pages/Booking";
 import UserDashboard from "./pages/UserDashboard";
 import MyAppointments from "./pages/MyAppointments";
 
+import Experts from "./pages/Experts";
+
 import ExpertDashboard from "./pages/ExpertDashboard";
 import ExpertProfile from "./pages/ExpertProfile";
 import ExpertServices from "./pages/ExpertServices";
@@ -23,23 +25,33 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/home" element={<Home />} />
+
+      {/* Assessment */}
       <Route path="/assessment" element={<Assessment />} />
       <Route path="/result" element={<AssessmentResult />} />
+
+      {/* Booking */}
       <Route path="/booking" element={<Booking />} />
+
+      {/* Experts Marketplace */}
+      <Route path="/experts" element={<Experts />} />
+
+      {/* User Dashboard */}
       <Route path="/dashboard" element={<UserDashboard />} />
-      <Route path="/my-appointments" element={<MyAppointments />} />
+      <Route
+        path="/my-appointments"
+        element={<MyAppointments />}
+      />
 
       {/* Expert */}
       <Route
         path="/expert-dashboard"
         element={<ExpertDashboard />}
       />
-
       <Route
         path="/expert-profile"
         element={<ExpertProfile />}
       />
-
       <Route
         path="/expert-services"
         element={<ExpertServices />}
