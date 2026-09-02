@@ -1,169 +1,331 @@
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+type ResultData = {
+  score: number;
+  maxScore: number;
+  totalQuestions: number;
+  resultLevel: string;
+  resultTitle: string;
+  resultMessage: string;
+};
 
 function AssessmentResult() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const score = location.state?.score ?? 0;
-  const totalQuestions = location.state?.totalQuestions ?? 10;
-  const maxScore = totalQuestions * 4;
+  const [result, setResult] = useState<ResultData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  let level = "";
-  let message = "";
+  useEffect(() => {
+    loadResult();
+  }, []);
 
-  if (score <= 13) {
-    level = "Low Concern";
-    message =
-      "Your responses indicate relatively low levels of concern. Continue maintaining healthy routines and positive connections.";
-  } else if (score <= 26) {
-    level = "Moderate Concern";
-    message =
-      "Your responses indicate some areas that may benefit from attention. Consider taking time for self-care and speaking with someone you trust.";
-  } else {
-    level = "Higher Concern";
-    message =
-      "Your responses indicate that you may be experiencing a higher level of emotional difficulty. Consider connecting with a qualified mental health professional for support.";
+  const loadResult = async () => {
+    try {
+      // First, check data passed from Assessment page
+      const state = location.state as Partial<ResultData> | null;
+
+      if (
+        state?.score !== undefined &&
+        state?.maxScore !== undefined &&
+        state?.resultLevel &&
+        state?.resultTitle &&
+        state?.resultMessage
+      ) {
+        setResult({
+          score: state.score,
+          maxScore: state.maxScore,
+          totalQuestions:
+            state.totalQuestions || 10,
+          resultLevel: state.resultLevel,
+          resultTitle: state.resultTitle,
+          resultMessage: state.resultMessage,
+        });
+
+        setLoading(false);
+        return;
+      }
+
+      // If page is opened directly, load latest result from Supabase
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("assessment_results")
+        .select(`
+          total_score,
+          max_score,
+          result_level,
+          result_title,
+          result_message
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Result loading error:", error);
+        setLoading(false);
+        return;
+      }
+
+      if (!data) {
+        navigate("/assessment");
+        return;
+      }
+
+      setResult({
+        score: data.total_score,
+        maxScore: data.max_score,
+        totalQuestions: 10,
+        resultLevel: data.result_level,
+        resultTitle:
+          data.result_title || "Assessment Result",
+        resultMessage:
+          data.result_message || "Thank you for completing the assessment.",
+      });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getLevelStyle = (level: string) => {
+    const value = level.toLowerCase();
+
+    if (value.includes("low")) {
+      return {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        border: "border-green-200",
+      };
+    }
+
+    if (value.includes("moderate")) {
+      return {
+        bg: "bg-yellow-100",
+        text: "text-yellow-700",
+        border: "border-yellow-200",
+      };
+    }
+
+    if (value.includes("high")) {
+      return {
+        bg: "bg-orange-100",
+        text: "text-orange-700",
+        border: "border-orange-200",
+      };
+    }
+
+    return {
+      bg: "bg-red-100",
+      text: "text-red-700",
+      border: "border-red-200",
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full mx-auto mb-4"></div>
+
+          <p className="text-gray-600">
+            Preparing your assessment result...
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  const percentage = Math.round((score / maxScore) * 100);
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center max-w-md w-full">
+          <div className="text-5xl mb-4">📋</div>
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            No Result Found
+          </h1>
+
+          <p className="text-gray-600 mb-6">
+            Please complete the assessment to view your result.
+          </p>
+
+          <Link
+            to="/assessment"
+            className="inline-block px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition"
+          >
+            Take Assessment
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const levelStyle = getLevelStyle(result.resultLevel);
+
+  const percentage = Math.round(
+    (result.score / result.maxScore) * 100
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-12">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">
+              FREEWILL
+            </h1>
 
-        {/* Header */}
+            <p className="text-xs text-gray-500">
+              Human Empowerment
+            </p>
+          </div>
+
+          <Link
+            to="/home"
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Home
+          </Link>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="max-w-4xl mx-auto px-4 py-10">
+        {/* Title */}
         <div className="text-center mb-8">
-          <p className="text-indigo-600 font-semibold uppercase tracking-wider">
-            FREEWILL
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            Assessment Completed
           </p>
 
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
-            Your Assessment Result
+            Your Wellbeing Result
           </h1>
 
-          <p className="text-gray-600 mt-3">
-            Here is a summary of your self-assessment.
+          <p className="text-gray-500 mt-3">
+            Here's a summary based on your responses.
           </p>
         </div>
 
         {/* Score Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 md:p-10">
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-2">
+              Your Score
+            </p>
 
-          <p className="text-gray-500 font-medium">
-            Your Score
-          </p>
+            <div className="flex items-end justify-center gap-2">
+              <span className="text-6xl font-bold text-gray-900">
+                {result.score}
+              </span>
 
-          <div className="mt-4">
-            <span className="text-6xl font-bold text-indigo-700">
-              {score}
-            </span>
-
-            <span className="text-gray-500 text-xl">
-              {" "} / {maxScore}
-            </span>
-          </div>
-
-          <div className="w-full max-w-md mx-auto h-4 bg-gray-200 rounded-full mt-6 overflow-hidden">
-            <div
-              className="h-full bg-indigo-600 rounded-full transition-all"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-
-          <h2 className="text-2xl font-bold text-gray-900 mt-8">
-            {level}
-          </h2>
-
-          <p className="text-gray-600 mt-4 leading-relaxed">
-            {message}
-          </p>
-
-        </div>
-
-        {/* Recommendations */}
-        <div className="bg-white rounded-2xl shadow-sm p-8 mt-6">
-
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            What You Can Do
-          </h2>
-
-          <div className="space-y-5">
-
-            <div className="flex gap-4">
-              <div className="text-2xl">🌱</div>
-
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  Take Care of Yourself
-                </h3>
-
-                <p className="text-gray-600 mt-1">
-                  Maintain regular sleep, balanced meals, physical activity
-                  and time for relaxation.
-                </p>
-              </div>
+              <span className="text-lg text-gray-400 mb-2">
+                / {result.maxScore}
+              </span>
             </div>
 
-            <div className="flex gap-4">
-              <div className="text-2xl">💬</div>
-
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  Talk to Someone
-                </h3>
-
-                <p className="text-gray-600 mt-1">
-                  Sharing your thoughts with a trusted person can provide
-                  emotional support.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-2xl">👩‍⚕️</div>
-
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  Consider Professional Support
-                </h3>
-
-                <p className="text-gray-600 mt-1">
-                  If you are struggling, consider speaking with a qualified
-                  mental health professional.
-                </p>
-              </div>
-            </div>
-
+            <p className="text-sm text-gray-500 mt-2">
+              {result.totalQuestions} questions completed
+            </p>
           </div>
 
-        </div>
+          {/* Progress */}
+          <div className="mt-8">
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gray-900 rounded-full transition-all duration-700"
+                style={{ width: `${percentage}%` }}
+              ></div>
+            </div>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+            <div className="flex justify-between text-xs text-gray-400 mt-2">
+              <span>0</span>
+              <span>{result.maxScore}</span>
+            </div>
+          </div>
 
-          <Link
-            to="/booking"
-            className="px-7 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-center hover:bg-indigo-700 transition"
+          {/* Result Level */}
+          <div
+            className={`mt-8 rounded-2xl border p-6 text-center ${levelStyle.bg} ${levelStyle.border}`}
           >
-            Book Counselling
-          </Link>
+            <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 mb-2">
+              Wellbeing Level
+            </p>
 
-          <Link
-            to="/"
-            className="px-7 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold text-center hover:bg-gray-100 transition"
-          >
-            Back to Home
-          </Link>
+            <h2
+              className={`text-3xl font-bold ${levelStyle.text}`}
+            >
+              {result.resultLevel}
+            </h2>
+          </div>
 
+          {/* Result Message */}
+          <div className="mt-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {result.resultTitle}
+            </h2>
+
+            <p className="text-gray-600 leading-relaxed mt-4 max-w-2xl mx-auto">
+              {result.resultMessage}
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/booking"
+              className="px-6 py-3 rounded-xl bg-gray-900 text-white font-medium text-center hover:bg-gray-800 transition"
+            >
+              Book a Counseling Session
+            </Link>
+
+            <Link
+              to="/assessment"
+              className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium text-center hover:bg-gray-50 transition"
+            >
+              Retake Assessment
+            </Link>
+
+            <Link
+              to="/home"
+              className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium text-center hover:bg-gray-50 transition"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
 
         {/* Disclaimer */}
-        <p className="text-center text-xs text-gray-500 mt-8">
-          This result is for general wellbeing awareness only and is not a
-          medical diagnosis. If you are in immediate danger or crisis,
-          contact local emergency services or a qualified professional.
-        </p>
-
-      </div>
+        <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5">
+          <p className="text-xs text-gray-500 leading-relaxed text-center">
+            <strong className="text-gray-700">
+              Important:
+            </strong>{" "}
+            This assessment is intended for general wellbeing
+            awareness and self-reflection. It is not a medical
+            diagnosis or a substitute for professional mental
+            health evaluation.
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
