@@ -6,36 +6,52 @@ import Home from "./pages/Home";
 import Assessment from "./pages/Assessment";
 import AssessmentResult from "./pages/AssessmentResult";
 import Booking from "./pages/Booking";
-import MyAppointments from "./pages/MyAppointments";
 import UserDashboard from "./pages/UserDashboard";
+import MyAppointments from "./pages/MyAppointments";
+
 import ExpertDashboard from "./pages/ExpertDashboard";
+import ExpertProfile from "./pages/ExpertProfile";
+import ExpertServices from "./pages/ExpertServices";
+
 import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
     <Routes>
-      {/* ================= AUTH ================= */}
+      {/* User */}
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-
-      {/* ================= MAIN WEBSITE ================= */}
       <Route path="/home" element={<Home />} />
       <Route path="/assessment" element={<Assessment />} />
       <Route path="/result" element={<AssessmentResult />} />
       <Route path="/booking" element={<Booking />} />
-
-      {/* ================= USER ================= */}
-      <Route path="/my-appointments" element={<MyAppointments />} />
       <Route path="/dashboard" element={<UserDashboard />} />
+      <Route path="/my-appointments" element={<MyAppointments />} />
 
-      {/* ================= EXPERT ================= */}
-      <Route path="/expert-dashboard" element={<ExpertDashboard />} />
+      {/* Expert */}
+      <Route
+        path="/expert-dashboard"
+        element={<ExpertDashboard />}
+      />
 
-      {/* ================= ADMIN ================= */}
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
+      <Route
+        path="/expert-profile"
+        element={<ExpertProfile />}
+      />
 
-      {/* ================= FALLBACK ================= */}
+      <Route
+        path="/expert-services"
+        element={<ExpertServices />}
+      />
+
+      {/* Admin */}
+      <Route
+        path="/admin-dashboard"
+        element={<AdminDashboard />}
+      />
+
+      {/* Fallback */}
       <Route path="*" element={<Login />} />
     </Routes>
   );
