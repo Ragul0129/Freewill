@@ -7,6 +7,7 @@ import Booking from "./pages/Booking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
+import ExpertDashboard from "./pages/ExpertDashboard";
 
 function App() {
   return (
@@ -24,6 +25,11 @@ function App() {
       <Route path="/register" element={<Register />} />
 
       <Route path="/dashboard" element={<UserDashboard />} />
+
+      <Route
+        path="/expert-dashboard"
+        element={<ExpertDashboard />}
+      />
 
       <Route path="*" element={<Home />} />
     </Routes>
