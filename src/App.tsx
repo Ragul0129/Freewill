@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Assessment from "./pages/Assessment";
 import AssessmentResult from "./pages/AssessmentResult";
 import Booking from "./pages/Booking";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import ExpertDashboard from "./pages/ExpertDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -13,7 +13,19 @@ import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* ================= AUTH ================= */}
+
+      {/* Website opening page */}
+      <Route path="/" element={<Login />} />
+
+      <Route path="/login" element={<Login />} />
+
+      <Route path="/register" element={<Register />} />
+
+
+      {/* ================= MAIN WEBSITE ================= */}
+
+      <Route path="/home" element={<Home />} />
 
       <Route path="/assessment" element={<Assessment />} />
 
@@ -21,9 +33,8 @@ function App() {
 
       <Route path="/booking" element={<Booking />} />
 
-      <Route path="/login" element={<Login />} />
 
-      <Route path="/register" element={<Register />} />
+      {/* ================= DASHBOARDS ================= */}
 
       <Route path="/dashboard" element={<UserDashboard />} />
 
@@ -37,7 +48,10 @@ function App() {
         element={<AdminDashboard />}
       />
 
-      <Route path="*" element={<Home />} />
+
+      {/* ================= FALLBACK ================= */}
+
+      <Route path="*" element={<Login />} />
     </Routes>
   );
 }
