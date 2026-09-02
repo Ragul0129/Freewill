@@ -14,14 +14,12 @@ type Appointment = {
   status: string;
   notes: string | null;
   created_at: string;
-  services:
-    | {
-        title: string;
-        description: string | null;
-        duration_minutes: number;
-        price: number;
-      }
-    | null;
+  services: {
+    title: string;
+    description: string | null;
+    duration_minutes: number;
+    price: number;
+  } | null;
 };
 
 function MyAppointments() {
@@ -75,7 +73,21 @@ function MyAppointments() {
         return;
       }
 
-      setAppointments((data as Appointment[]) || []);
+      const formattedAppointments: Appointment[] = (data || []).map(
+        (item: any) => ({
+          id: item.id,
+          booking_date: item.booking_date,
+          start_time: item.start_time,
+          status: item.status,
+          notes: item.notes,
+          created_at: item.created_at,
+          services: Array.isArray(item.services)
+            ? item.services[0] || null
+            : item.services || null,
+        })
+      );
+
+      setAppointments(formattedAppointments);
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("Something went wrong. Please try again.");
@@ -95,8 +107,8 @@ function MyAppointments() {
 
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(":");
-    const date = new Date();
 
+    const date = new Date();
     date.setHours(Number(hours), Number(minutes), 0, 0);
 
     return date.toLocaleTimeString("en-IN", {
@@ -125,290 +137,211 @@ function MyAppointments() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              My Appointments
+            </h1>
 
-      {/* ================= HEADER ================= */}
-      <header className="border-b border-[#e4ddce] bg-[#0d4743] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your counseling appointments
+            </p>
+          </div>
 
           <Link
             to="/home"
-            className="text-2xl font-black tracking-wide"
+            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition"
           >
-            FREEWILL
+            Back to Home
           </Link>
-
-          <Link
-            to="/home"
-            className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10 transition"
-          >
-            ← Back to Home
-          </Link>
-
         </div>
       </header>
 
-
-      {/* ================= MAIN ================= */}
-      <main className="mx-auto max-w-6xl px-6 py-12 md:py-16">
-
-        {/* TITLE */}
-        <div className="mb-10">
-
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
-            Your Account
-          </p>
-
-          <h1 className="mt-3 text-3xl font-black md:text-5xl">
-            My Appointments
-          </h1>
-
-          <p className="mt-4 max-w-2xl leading-7 text-gray-600">
-            View your upcoming and previous FREEWILL counselling
-            appointments in one place.
-          </p>
-
-        </div>
-
-
-        {/* ERROR */}
-        {error && (
-          <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-
-        {/* LOADING */}
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Loading */}
         {loading && (
-          <div className="rounded-[2rem] bg-white p-12 text-center shadow-sm">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full mx-auto mb-4"></div>
 
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#0d4743]" />
-
-            <p className="mt-5 font-semibold text-gray-600">
+            <p className="text-gray-600">
               Loading your appointments...
             </p>
-
           </div>
         )}
 
+        {/* Error */}
+        {!loading && error && (
+          <div className="bg-white rounded-2xl shadow-sm border border-red-200 p-8 text-center">
+            <div className="text-4xl mb-4">⚠️</div>
 
-        {/* EMPTY */}
-        {!loading && !error && appointments.length === 0 && (
-          <div className="rounded-[2rem] bg-white px-6 py-16 text-center shadow-sm">
-
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#edf4f2] text-4xl">
-              📅
-            </div>
-
-            <h2 className="mt-6 text-2xl font-black">
-              No Appointments Yet
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Something went wrong
             </h2>
 
-            <p className="mx-auto mt-3 max-w-md leading-7 text-gray-600">
-              You haven't booked any counselling sessions yet.
-              Start your journey with FREEWILL today.
+            <p className="text-gray-600 mb-5">
+              {error}
+            </p>
+
+            <button
+              onClick={loadAppointments}
+              className="px-5 py-2.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && appointments.length === 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center">
+            <div className="text-5xl mb-4">📅</div>
+
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              No appointments yet
+            </h2>
+
+            <p className="text-gray-500 mb-6">
+              You haven't booked any counseling appointments yet.
             </p>
 
             <Link
               to="/booking"
-              className="mt-7 inline-block rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white shadow-lg hover:bg-[#12554f] transition"
+              className="inline-block px-6 py-3 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
             >
-              Book an Appointment →
+              Book an Appointment
             </Link>
-
           </div>
         )}
 
-
-        {/* APPOINTMENTS */}
-        {!loading && appointments.length > 0 && (
-          <div className="space-y-6">
-
+        {/* Appointments */}
+        {!loading && !error && appointments.length > 0 && (
+          <div className="space-y-5">
             {appointments.map((appointment) => (
-
               <div
                 key={appointment.id}
-                className="overflow-hidden rounded-[2rem] border border-[#e3ded2] bg-white shadow-sm transition hover:shadow-xl"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
               >
-
-                {/* TOP */}
-                <div className="flex flex-col gap-5 border-b border-gray-100 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-
-                  <div className="flex items-start gap-4">
-
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#edf4f2] text-2xl">
-                      📅
-                    </div>
-
-                    <div>
-
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-                        Appointment
-                      </p>
-
-                      <h2 className="mt-1 text-xl font-black md:text-2xl">
-                        {appointment.services?.title || "Counselling Session"}
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+                  {/* Appointment Info */}
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {appointment.services?.title ||
+                          "Counseling Appointment"}
                       </h2>
 
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusStyle(
+                          appointment.status
+                        )}`}
+                      >
+                        {appointment.status}
+                      </span>
                     </div>
 
-                  </div>
-
-
-                  {/* STATUS */}
-                  <span
-                    className={`w-fit rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider ${getStatusStyle(
-                      appointment.status
-                    )}`}
-                  >
-                    {appointment.status || "Pending"}
-                  </span>
-
-                </div>
-
-
-                {/* DETAILS */}
-                <div className="grid gap-6 p-6 md:grid-cols-3 md:p-8">
-
-                  {/* DATE */}
-                  <div>
-
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      Date
-                    </p>
-
-                    <p className="mt-2 font-bold text-[#173d3a]">
-                      {formatDate(appointment.booking_date)}
-                    </p>
-
-                  </div>
-
-
-                  {/* TIME */}
-                  <div>
-
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      Time
-                    </p>
-
-                    <p className="mt-2 font-bold text-[#173d3a]">
-                      {formatTime(appointment.start_time)}
-                    </p>
-
-                  </div>
-
-
-                  {/* PRICE */}
-                  <div>
-
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      Price
-                    </p>
-
-                    <p className="mt-2 font-bold text-[#173d3a]">
-                      ₹
-                      {appointment.services?.price
-                        ? Number(appointment.services.price).toLocaleString(
-                            "en-IN"
-                          )
-                        : "—"}
-                    </p>
-
-                  </div>
-
-                </div>
-
-
-                {/* SERVICE INFO */}
-                <div className="border-t border-gray-100 bg-[#faf9f5] px-6 py-6 md:px-8">
-
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-
-                    <div>
-
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                        Session Details
+                    {appointment.services?.description && (
+                      <p className="text-gray-600 mb-4">
+                        {appointment.services.description}
                       </p>
+                    )}
 
-                      <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Date */}
+                      <div className="flex items-start gap-3">
+                        <div className="text-xl">📅</div>
 
-                        <span>
-                          ⏱️{" "}
-                          {appointment.services?.duration_minutes || "—"} minutes
-                        </span>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wide">
+                            Date
+                          </p>
 
-                        <span>•</span>
-
-                        <span>
-                          💬 Professional Support
-                        </span>
-
+                          <p className="text-sm font-medium text-gray-900 mt-1">
+                            {formatDate(appointment.booking_date)}
+                          </p>
+                        </div>
                       </div>
 
+                      {/* Time */}
+                      <div className="flex items-start gap-3">
+                        <div className="text-xl">⏰</div>
+
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wide">
+                            Time
+                          </p>
+
+                          <p className="text-sm font-medium text-gray-900 mt-1">
+                            {formatTime(appointment.start_time)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Duration */}
+                      {appointment.services && (
+                        <div className="flex items-start gap-3">
+                          <div className="text-xl">⌛</div>
+
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">
+                              Duration
+                            </p>
+
+                            <p className="text-sm font-medium text-gray-900 mt-1">
+                              {appointment.services.duration_minutes} minutes
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
+                    {/* Notes */}
+                    {appointment.notes && (
+                      <div className="mt-5 p-4 bg-gray-50 rounded-xl">
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                          Notes
+                        </p>
+
+                        <p className="text-sm text-gray-700">
+                          {appointment.notes}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-
-                  {/* NOTES */}
-                  {appointment.notes && (
-                    <div className="mt-5 rounded-xl bg-white p-4">
-
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                        Your Notes
+                  {/* Price */}
+                  {appointment.services && (
+                    <div className="md:text-right">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">
+                        Price
                       </p>
 
-                      <p className="mt-2 text-sm leading-6 text-gray-600">
-                        {appointment.notes}
+                      <p className="text-2xl font-bold text-gray-900 mt-1">
+                        ₹{appointment.services.price}
                       </p>
-
                     </div>
                   )}
-
                 </div>
-
               </div>
-
             ))}
-
           </div>
         )}
 
-
-        {/* BOTTOM ACTIONS */}
-        {!loading && (
-          <div className="mt-10 flex flex-wrap gap-4">
-
+        {/* Book Another */}
+        {!loading && !error && appointments.length > 0 && (
+          <div className="mt-8 text-center">
             <Link
               to="/booking"
-              className="rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white shadow-lg hover:bg-[#12554f] transition"
+              className="inline-block px-6 py-3 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
             >
               + Book Another Appointment
             </Link>
-
-            <Link
-              to="/dashboard"
-              className="rounded-full border-2 border-[#0d4743] px-7 py-4 font-bold text-[#0d4743] hover:bg-[#0d4743] hover:text-white transition"
-            >
-              Go to Dashboard
-            </Link>
-
           </div>
         )}
-
       </main>
-
-
-      {/* ================= FOOTER ================= */}
-      <footer className="bg-[#082f2d] py-8 text-center text-sm text-white/50">
-
-        <p>
-          © 2026 FREEWILL — Human Empowerment
-        </p>
-
-      </footer>
-
     </div>
   );
 }
