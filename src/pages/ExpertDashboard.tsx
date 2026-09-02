@@ -17,6 +17,13 @@ type ExpertProfile = {
   hourly_rate: number | null;
 };
 
+type Service = {
+  title: string;
+  description: string | null;
+  duration_minutes: number;
+  price: number;
+};
+
 type Booking = {
   id: string;
   user_id: string;
@@ -26,12 +33,11 @@ type Booking = {
   status: string;
   notes: string | null;
   created_at: string;
-  service?: {
-    title: string;
-    description: string | null;
-    duration_minutes: number;
-    price: number;
-  } | null;
+  service?: Service | null;
+};
+
+type SupabaseBooking = Omit<Booking, "service"> & {
+  service: Service | Service[] | null;
 };
 
 function ExpertDashboard() {
@@ -119,7 +125,9 @@ function ExpertDashboard() {
         return;
       }
 
-      const serviceIds = (serviceData || []).map((service) => service.id);
+      const serviceIds = (serviceData || []).map(
+        (service) => service.id
+      );
 
       if (serviceIds.length === 0) {
         setBookings([]);
@@ -158,7 +166,18 @@ function ExpertDashboard() {
         return;
       }
 
-      setBookings(bookingData || []);
+      // Supabase can return the related service as an array.
+      // Convert it into the single service object our UI expects.
+      const normalizedBookings: Booking[] = (
+        (bookingData || []) as SupabaseBooking[]
+      ).map((booking) => ({
+        ...booking,
+        service: Array.isArray(booking.service)
+          ? booking.service[0] || null
+          : booking.service,
+      }));
+
+      setBookings(normalizedBookings);
     } catch (error) {
       console.error("Expert dashboard error:", error);
       setError("Something went wrong while loading the dashboard.");
@@ -309,11 +328,9 @@ function ExpertDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-
       {/* Header */}
       <header className="bg-[#173d3a] text-white">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
-
           <Link
             to="/"
             className="text-xl font-bold tracking-[0.2em]"
@@ -322,7 +339,6 @@ function ExpertDashboard() {
           </Link>
 
           <div className="flex items-center gap-3">
-
             <span className="hidden md:block text-sm text-white/70">
               Expert Dashboard
             </span>
@@ -333,21 +349,16 @@ function ExpertDashboard() {
             >
               Logout
             </button>
-
           </div>
         </div>
       </header>
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-6 py-10">
-
         {/* Profile Header */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9 mb-8">
-
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-
             <div>
-
               <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold mb-2">
                 Expert Portal
               </p>
@@ -368,11 +379,9 @@ function ExpertDashboard() {
                     {expertProfile.experience_years} years of experience
                   </p>
                 )}
-
             </div>
 
             <div className="bg-[#f7f4ed] rounded-2xl px-6 py-5 min-w-[180px]">
-
               <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
                 Total Requests
               </p>
@@ -380,16 +389,12 @@ function ExpertDashboard() {
               <p className="text-3xl font-black text-[#173d3a] mt-1">
                 {bookings.length}
               </p>
-
             </div>
-
           </div>
-
         </section>
 
         {/* Statistics */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-
           <div className="bg-white rounded-3xl shadow-md border border-[#e8dfcf] p-6">
             <p className="text-sm text-gray-500 font-semibold">
               Pending
@@ -419,7 +424,6 @@ function ExpertDashboard() {
               {rejectedCount}
             </p>
           </div>
-
         </section>
 
         {/* Error */}
@@ -431,9 +435,7 @@ function ExpertDashboard() {
 
         {/* Bookings */}
         <section className="bg-white rounded-3xl shadow-lg border border-[#e8dfcf] p-7 md:p-9">
-
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
-
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#b58a3a] font-semibold">
                 Appointment Requests
@@ -450,15 +452,11 @@ function ExpertDashboard() {
             >
               Refresh
             </button>
-
           </div>
 
           {bookings.length === 0 ? (
             <div className="text-center py-14 border-2 border-dashed border-[#e8dfcf] rounded-2xl">
-
-              <div className="text-5xl mb-4">
-                📭
-              </div>
+              <div className="text-5xl mb-4">📭</div>
 
               <h3 className="text-xl font-bold mb-2">
                 No booking requests yet
@@ -467,25 +465,20 @@ function ExpertDashboard() {
               <p className="text-gray-500">
                 New appointment requests from users will appear here.
               </p>
-
             </div>
           ) : (
             <div className="space-y-5">
-
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
                   className="border border-[#e8dfcf] rounded-2xl p-6 hover:shadow-md transition"
                 >
-
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-
                     <div className="flex-1">
-
                       <div className="flex flex-wrap items-center gap-3 mb-3">
-
                         <h3 className="text-xl font-bold">
-                          {booking.service?.title || "FREEWILL Session"}
+                          {booking.service?.title ||
+                            "FREEWILL Session"}
                         </h3>
 
                         <span
@@ -495,11 +488,9 @@ function ExpertDashboard() {
                         >
                           {booking.status}
                         </span>
-
                       </div>
 
                       <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-600">
-
                         <p>
                           <span className="font-semibold text-[#173d3a]">
                             Date:
@@ -531,12 +522,10 @@ function ExpertDashboard() {
                             ₹{booking.service.price}
                           </p>
                         )}
-
                       </div>
 
                       {booking.notes && (
                         <div className="mt-5 bg-[#f7f4ed] rounded-xl p-4">
-
                           <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">
                             Client Details
                           </p>
@@ -544,16 +533,13 @@ function ExpertDashboard() {
                           <p className="text-sm text-gray-700 whitespace-pre-line">
                             {booking.notes}
                           </p>
-
                         </div>
                       )}
-
                     </div>
 
                     {/* Actions */}
                     {booking.status === "pending" && (
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:min-w-[150px]">
-
                         <button
                           onClick={() =>
                             updateBookingStatus(
@@ -583,26 +569,19 @@ function ExpertDashboard() {
                             ? "Updating..."
                             : "✕ Reject"}
                         </button>
-
                       </div>
                     )}
-
                   </div>
-
                 </div>
               ))}
-
             </div>
           )}
-
         </section>
-
       </main>
 
       <footer className="text-center py-8 text-sm text-gray-500">
         © {new Date().getFullYear()} FREEWILL – Human Empowerment
       </footer>
-
     </div>
   );
 }
