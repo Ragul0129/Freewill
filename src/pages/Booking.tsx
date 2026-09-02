@@ -89,7 +89,6 @@ function Booking() {
 
   const expert = experts[selectedExpert];
 
-  // Load services from Supabase
   useEffect(() => {
     const loadServices = async () => {
       try {
@@ -121,50 +120,35 @@ function Booking() {
     loadServices();
   }, []);
 
-  // Get services for selected expert
-  const expertServices = services.filter((service) => {
-    const expertNames: Record<string, string> = {
-      "Simon Anandh Raj": "Simon Anandh Raj",
-      "Jeevitha S": "Jeevitha S",
-      "Rahul K.P": "Rahul K.P",
-    };
-
-    return service.title && expertNames[expert.name] === expert.name;
-  });
-
-  // Better expert mapping using profile name
   const getExpertServices = () => {
     if (expert.name === "Simon Anandh Raj") {
-      return services.filter((service) => {
-        return service.title === "One Hour Session" ||
+      return services.filter(
+        (service) =>
+          service.title === "One Hour Session" ||
           service.title === "Psychometric Analysis" ||
           service.title === "One-to-One Session" ||
           service.title === "Training Sessions" ||
           service.title === "Mentoring"
-          ? service
-          : null;
-      });
+      );
     }
 
     if (expert.name === "Jeevitha S") {
-      return services.filter((service) => {
-        return service.title === "One Hour Session" ||
+      return services.filter(
+        (service) =>
+          service.title === "One Hour Session" ||
           service.title === "Psychometric Analysis" ||
           service.title === "One-to-One Session" ||
           service.title === "Training Sessions" ||
           service.title === "Mentoring"
-          ? service
-          : null;
-      });
+      );
     }
 
-    return services.filter((service) => {
-      return service.title === "Training & Coaching" ||
+    return services.filter(
+      (service) =>
+        service.title === "Training & Coaching" ||
         service.title === "Content Management" ||
         service.title === "Life Coaching"
-        ? service
-        : null;
-    });
+    );
   };
 
   const currentServices = getExpertServices();
@@ -194,7 +178,6 @@ function Booking() {
     try {
       setLoading(true);
 
-      // Check logged-in user
       const {
         data: { user },
         error: userError,
@@ -210,7 +193,6 @@ function Booking() {
         return;
       }
 
-      // Convert 12-hour time to database TIME format
       const convertTo24Hour = (time12: string) => {
         const [timePart, modifier] = time12.split(" ");
         let [hours, minutes] = timePart.split(":").map(Number);
@@ -231,7 +213,6 @@ function Booking() {
 
       const startTime = convertTo24Hour(time);
 
-      // Save booking to Supabase
       const { error } = await supabase.from("bookings").insert({
         user_id: user.id,
         service_id: selectedService.id,
@@ -258,7 +239,6 @@ function Booking() {
           `Your appointment is currently pending confirmation.`
       );
 
-      // Reset form
       setDate("");
       setTime("");
       setName("");
@@ -275,7 +255,6 @@ function Booking() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-      {/* HERO */}
       <section className="bg-[#0d4743] px-6 py-20 text-white md:py-28">
         <div className="mx-auto max-w-6xl">
           <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#e2b85b]">
@@ -294,9 +273,7 @@ function Booking() {
         </div>
       </section>
 
-      {/* MAIN */}
       <main className="mx-auto max-w-7xl px-5 py-14 md:py-20">
-        {/* EXPERTS */}
         <section>
           <div className="mb-8">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
@@ -374,7 +351,6 @@ function Booking() {
           </div>
         </section>
 
-        {/* BOOKING FORM */}
         <section className="mt-14 rounded-[2rem] bg-white p-7 shadow-xl md:p-10">
           <div className="mb-9">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
@@ -391,7 +367,6 @@ function Booking() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* SERVICE */}
             <div>
               <label className="mb-3 block text-sm font-bold">
                 Select Service *
@@ -455,7 +430,6 @@ function Booking() {
               )}
             </div>
 
-            {/* DATE + TIME */}
             <div className="mt-10 grid gap-8 md:grid-cols-2">
               <div>
                 <label className="mb-3 block text-sm font-bold">
@@ -496,7 +470,6 @@ function Booking() {
               </div>
             </div>
 
-            {/* PERSONAL DETAILS */}
             <div className="mt-10 border-t border-gray-100 pt-10">
               <h3 className="text-xl font-black">Your Details</h3>
 
@@ -562,7 +535,6 @@ function Booking() {
               </div>
             </div>
 
-            {/* SUMMARY */}
             <div className="mt-10 rounded-2xl bg-[#f7f4ed] p-6">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
                 Appointment Summary
@@ -583,16 +555,12 @@ function Booking() {
 
                 <div>
                   <p className="text-xs text-gray-500">Date</p>
-                  <p className="mt-1 font-bold">
-                    {date || "Not selected"}
-                  </p>
+                  <p className="mt-1 font-bold">{date || "Not selected"}</p>
                 </div>
 
                 <div>
                   <p className="text-xs text-gray-500">Time</p>
-                  <p className="mt-1 font-bold">
-                    {time || "Not selected"}
-                  </p>
+                  <p className="mt-1 font-bold">{time || "Not selected"}</p>
                 </div>
 
                 <div className="md:col-span-2 border-t border-black/5 pt-4">
@@ -609,7 +577,6 @@ function Booking() {
               </div>
             </div>
 
-            {/* SUBMIT */}
             <button
               type="submit"
               disabled={loading || !selectedService}
@@ -630,7 +597,6 @@ function Booking() {
           </form>
         </section>
 
-        {/* TRUST MESSAGE */}
         <section className="mt-10 rounded-[2rem] border border-[#ddd6c8] bg-white p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f8f1e1] text-2xl">
             ✦
@@ -647,7 +613,6 @@ function Booking() {
           </p>
         </section>
 
-        {/* BACK */}
         <div className="mt-8 text-center">
           <Link
             to="/"
