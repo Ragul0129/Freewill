@@ -1310,9 +1310,15 @@ function Home() {
               © 2026 FREEWILL. All rights reserved.
             </p>
 
-            <p className="mt-2 text-[11px] font-serif tracking-wide text-white/30">
+            <a
+              href="https://www.instagram.com/ragul_arunan/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-[11px] font-serif tracking-wide text-white/30"
+              aria-label="Ragul Arunan Instagram"
+            >
               𝓡𝓪𝓰𝓾𝓵 𝓐𝓻𝓾𝓷𝓪𝓷
-            </p>
+            </a>
           </div>
 
         </div>
