@@ -169,7 +169,7 @@ function Home() {
                       </p>
                     </div>
 
-                    {/* EXPERT MENU */}
+                    {/* ================= EXPERT MENU ================= */}
                     {userRole === "expert" ? (
                       <>
                         <button
@@ -211,7 +211,7 @@ function Home() {
 
                     ) : userRole === "admin" ? (
 
-                      /* ADMIN MENU */
+                      /* ================= ADMIN MENU ================= */
                       <button
                         type="button"
                         onClick={() => {
@@ -226,8 +226,9 @@ function Home() {
 
                     ) : (
 
-                      /* NORMAL USER MENU */
+                      /* ================= NORMAL USER MENU ================= */
                       <>
+                        {/* DASHBOARD */}
                         <button
                           type="button"
                           onClick={() => {
@@ -240,6 +241,7 @@ function Home() {
                           <span>Dashboard</span>
                         </button>
 
+                        {/* MY APPOINTMENTS */}
                         <button
                           type="button"
                           onClick={() => {
@@ -251,10 +253,69 @@ function Home() {
                           <span className="text-xl">📅</span>
                           <span>My Appointments</span>
                         </button>
+
+                        {/* WHATSAPP */}
+                        <a
+                          href="https://wa.me/919841624060"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setMenuOpen(false)}
+                          className="flex w-full items-center gap-4 px-5 py-4 text-left text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25D366] text-lg text-white">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-5 w-5 fill-current"
+                              aria-hidden="true"
+                            >
+                              <path d="M20.52 3.48A11.86 11.86 0 0 0 12.04 0C5.48 0 .13 5.35.13 11.91c0 2.1.55 4.15 1.59 5.96L.02 24l6.27-1.64a11.86 11.86 0 0 0 5.74 1.47h.01c6.56 0 11.91-5.35 11.91-11.91 0-3.18-1.24-6.17-3.43-8.44ZM12.04 21.8h-.01a9.86 9.86 0 0 1-5.03-1.38l-.36-.21-3.72.97.99-3.63-.23-.37a9.85 9.85 0 0 1-1.51-5.27C2.17 6.56 6.6 2.2 12.04 2.2c2.64 0 5.12 1.03 6.98 2.89a9.83 9.83 0 0 1 2.89 6.99c0 5.43-4.43 9.72-9.87 9.72Zm5.4-7.29c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.23-.65.08-.3-.15-1.25-.46-2.39-1.47-.88-.78-1.47-1.74-1.64-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52-.18-.01-.38-.01-.58-.01-.2 0-.53.08-.8.38-.28.3-1.05 1.03-1.05 2.51s1.08 2.91 1.23 3.11c.15.2 2.12 3.24 5.13 4.54.72.31 1.28.5 1.72.64.72.23 1.37.2 1.88.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35Z" />
+                            </svg>
+                          </span>
+
+                          <span>WhatsApp</span>
+                        </a>
+
+                        {/* INSTAGRAM */}
+                        <a
+                          href="https://www.instagram.com/simonanandhraj/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setMenuOpen(false)}
+                          className="flex w-full items-center gap-4 px-5 py-4 text-left text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-5 w-5 fill-none stroke-current"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <rect
+                                x="3"
+                                y="3"
+                                width="18"
+                                height="18"
+                                rx="5"
+                                ry="5"
+                              />
+                              <circle cx="12" cy="12" r="4" />
+                              <circle
+                                cx="17.5"
+                                cy="6.5"
+                                r="1"
+                                className="fill-current stroke-none"
+                              />
+                            </svg>
+                          </span>
+
+                          <span>Instagram</span>
+                        </a>
                       </>
                     )}
 
-                    {/* LOGOUT */}
+                    {/* ================= LOGOUT ================= */}
                     <button
                       type="button"
                       onClick={handleLogout}
