@@ -366,6 +366,7 @@ function ExpertDashboard() {
             </Link>
 
             <button
+              type="button"
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate("/login");
@@ -578,6 +579,7 @@ function ExpertDashboard() {
             </Link>
 
             <button
+              type="button"
               onClick={loadDashboard}
               className="text-left bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition"
             >
@@ -629,6 +631,7 @@ function ExpertDashboard() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                    {/* Booking information */}
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-3">
                         <h4 className="text-xl font-bold text-gray-900">
@@ -678,4 +681,185 @@ function ExpertDashboard() {
                           </p>
 
                           <p className="text-sm text-gray-700 mt-1">
-   
+                            {booking.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 self-start lg:self-center">
+                      {booking.status.toLowerCase() ===
+                        "pending" && (
+                        <>
+                          <button
+                            type="button"
+                            disabled={
+                              actionLoading === booking.id
+                            }
+                            onClick={() =>
+                              updateBookingStatus(
+                                booking.id,
+                                "confirmed"
+                              )
+                            }
+                            className="px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
+                          >
+                            {actionLoading === booking.id
+                              ? "Updating..."
+                              : "✓ Confirm"}
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={
+                              actionLoading === booking.id
+                            }
+                            onClick={() =>
+                              updateBookingStatus(
+                                booking.id,
+                                "cancelled"
+                              )
+                            }
+                            className="px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-semibold hover:bg-red-100 transition disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+
+                      {booking.status.toLowerCase() ===
+                        "confirmed" && (
+                        <button
+                          type="button"
+                          disabled={
+                            actionLoading === booking.id
+                          }
+                          onClick={() =>
+                            updateBookingStatus(
+                              booking.id,
+                              "completed"
+                            )
+                          }
+                          className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                        >
+                          {actionLoading === booking.id
+                            ? "Updating..."
+                            : "✓ Mark Completed"}
+                        </button>
+                      )}
+
+                      {/* Three-dot menu */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          aria-label="Appointment options"
+                          onClick={(e) => {
+                            e.stopPropagation();
+
+                            setOpenMenuId((current) =>
+                              current === booking.id
+                                ? null
+                                : booking.id
+                            );
+                          }}
+                          className="w-11 h-11 rounded-xl border border-gray-200 bg-white text-gray-700 text-2xl font-bold hover:bg-gray-50 transition flex items-center justify-center"
+                        >
+                          ⋮
+                        </button>
+
+                        {openMenuId === booking.id && (
+                          <div
+                            className="absolute right-0 top-12 z-30 w-56 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+                            onClick={(e) =>
+                              e.stopPropagation()
+                            }
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenMenuId(null);
+                                setDeleteBookingId(
+                                  booking.id
+                                );
+                              }}
+                              className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                            >
+                              🗑️ Delete Appointment
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteBookingId && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => {
+            if (!deleteLoading) {
+              setDeleteBookingId(null);
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🗑️</span>
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900">
+                Delete Appointment?
+              </h3>
+
+              <p className="text-sm text-gray-500 mt-2">
+                Are you sure you want to permanently delete
+                this appointment?
+              </p>
+
+              <p className="text-xs text-red-500 mt-3">
+                This action cannot be undone.
+              </p>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  disabled={deleteLoading}
+                  onClick={() =>
+                    setDeleteBookingId(null)
+                  }
+                  className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  Keep Appointment
+                </button>
+
+                <button
+                  type="button"
+                  disabled={deleteLoading}
+                  onClick={deleteAppointment}
+                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  {deleteLoading
+                    ? "Deleting..."
+                    : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ExpertDashboard;
