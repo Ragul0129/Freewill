@@ -156,14 +156,6 @@ function MyAppointments() {
         return;
       }
 
-      const amount = Number(appointment.services.price);
-
-      if (!amount || amount < 10) {
-        setError("Invalid session amount.");
-        setPayingId(null);
-        return;
-      }
-
       const scriptLoaded = await loadRazorpayScript();
 
       if (!scriptLoaded) {
@@ -174,24 +166,25 @@ function MyAppointments() {
         return;
       }
 
-      /*
-       * STEP 1
-       * Create Razorpay order using Supabase Edge Function.
-       */
+      // Secure payment order creation.
+      // Only booking_id is sent.
+      // The Edge Function gets the real service price
+      // directly from Supabase.
       const { data, error: functionError } =
         await supabase.functions.invoke("create-razorpay-order", {
           body: {
-            amount,
-            receipt: `freewill_${appointment.id}`,
+            booking_id: appointment.id,
           },
         });
 
       if (functionError) {
         console.error("Razorpay function error:", functionError);
+
         setError(
           functionError.message ||
             "Unable to create payment order."
         );
+
         setPayingId(null);
         return;
       }
@@ -204,10 +197,6 @@ function MyAppointments() {
         return;
       }
 
-      /*
-       * STEP 2
-       * Open Razorpay Checkout.
-       */
       const options = {
         key: razorpayData.key_id,
         amount: razorpayData.order.amount,
@@ -225,23 +214,13 @@ function MyAppointments() {
           color: "#111827",
         },
 
-        /*
-         * STEP 3
-         * Razorpay payment successful.
-         *
-         * IMPORTANT:
-         * Do NOT mark payment as successful only on frontend.
-         * Send Razorpay response to secure Supabase Edge Function.
-         */
         handler: async function (response: any) {
+          console.log("Razorpay payment response:", response);
+
           try {
-            setPaymentMessage("");
+            setPaymentMessage("Verifying payment...");
             setError("");
 
-            /*
-             * STEP 4
-             * Verify Razorpay signature on server.
-             */
             const {
               data: verificationData,
               error: verificationError,
@@ -266,9 +245,11 @@ function MyAppointments() {
                 verificationError
               );
 
+              setPaymentMessage("");
+
               setError(
                 verificationError.message ||
-                  "Payment verification failed. Please contact FREEWILL support."
+                  "Payment verification failed."
               );
 
               setPayingId(null);
@@ -276,10 +257,7 @@ function MyAppointments() {
             }
 
             if (!verificationData?.success) {
-              console.error(
-                "Payment verification failed:",
-                verificationData
-              );
+              setPaymentMessage("");
 
               setError(
                 verificationData?.error ||
@@ -290,29 +268,23 @@ function MyAppointments() {
               return;
             }
 
-            /*
-             * STEP 5
-             * Payment verified + saved in Supabase.
-             */
             setPaymentMessage(
               "Payment completed and verified successfully. Your payment has been recorded."
             );
 
             setPayingId(null);
 
-            /*
-             * Reload appointments so latest booking/payment state
-             * is reflected.
-             */
             await loadAppointments();
           } catch (error) {
             console.error(
-              "Payment verification exception:",
+              "Payment verification error:",
               error
             );
 
+            setPaymentMessage("");
+
             setError(
-              "Payment was received, but verification could not be completed. Please contact FREEWILL support."
+              "Payment was completed, but verification failed. Please contact support."
             );
 
             setPayingId(null);
@@ -322,6 +294,7 @@ function MyAppointments() {
         modal: {
           ondismiss: function () {
             setPayingId(null);
+            setPaymentMessage("");
           },
         },
       };
@@ -345,21 +318,22 @@ function MyAppointments() {
       razorpay.open();
     } catch (err) {
       console.error("Payment error:", err);
-      setError("Unable to start payment. Please try again.");
+
+      setError(
+        "Unable to start payment. Please try again."
+      );
+
       setPayingId(null);
     }
   };
 
   const formatDate = (date: string) => {
-    return new Date(`${date}T00:00:00`).toLocaleDateString(
-      "en-IN",
-      {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }
-    );
+    return new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   };
 
   const formatTime = (time: string) => {
@@ -524,9 +498,7 @@ function MyAppointments() {
                           </p>
 
                           <p className="text-sm font-medium text-gray-900 mt-1">
-                            {formatDate(
-                              appointment.booking_date
-                            )}
+                            {formatDate(appointment.booking_date)}
                           </p>
                         </div>
                       </div>
@@ -541,9 +513,7 @@ function MyAppointments() {
                           </p>
 
                           <p className="text-sm font-medium text-gray-900 mt-1">
-                            {formatTime(
-                              appointment.start_time
-                            )}
+                            {formatTime(appointment.start_time)}
                           </p>
                         </div>
                       </div>
@@ -559,11 +529,7 @@ function MyAppointments() {
                             </p>
 
                             <p className="text-sm font-medium text-gray-900 mt-1">
-                              {
-                                appointment.services
-                                  .duration_minutes
-                              }{" "}
-                              minutes
+                              {appointment.services.duration_minutes} minutes
                             </p>
                           </div>
                         </div>
@@ -596,15 +562,10 @@ function MyAppointments() {
                       </p>
 
                       {/* Pay Now only after expert confirms */}
-                      {appointment.status.toLowerCase() ===
-                        "confirmed" && (
+                      {appointment.status.toLowerCase() === "confirmed" && (
                         <button
-                          onClick={() =>
-                            handlePayment(appointment)
-                          }
-                          disabled={
-                            payingId === appointment.id
-                          }
+                          onClick={() => handlePayment(appointment)}
+                          disabled={payingId === appointment.id}
                           className="w-full md:w-auto mt-4 px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                           {payingId === appointment.id
@@ -613,24 +574,20 @@ function MyAppointments() {
                         </button>
                       )}
 
-                      {appointment.status.toLowerCase() ===
-                        "pending" && (
+                      {appointment.status.toLowerCase() === "pending" && (
                         <p className="text-xs text-yellow-600 mt-3">
                           Waiting for expert confirmation
                         </p>
                       )}
 
-                      {appointment.status.toLowerCase() ===
-                        "completed" && (
+                      {appointment.status.toLowerCase() === "completed" && (
                         <p className="text-xs text-blue-600 mt-3">
                           Session completed
                         </p>
                       )}
 
-                      {(appointment.status.toLowerCase() ===
-                        "cancelled" ||
-                        appointment.status.toLowerCase() ===
-                          "canceled") && (
+                      {(appointment.status.toLowerCase() === "cancelled" ||
+                        appointment.status.toLowerCase() === "canceled") && (
                         <p className="text-xs text-red-600 mt-3">
                           Appointment cancelled
                         </p>
