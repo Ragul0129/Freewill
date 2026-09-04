@@ -22,12 +22,32 @@ type Appointment = {
   } | null;
 };
 
+type RazorpayResponse = {
+  success: boolean;
+  order: {
+    id: string;
+    amount: number;
+    currency: string;
+    receipt: string;
+    status: string;
+  };
+  key_id: string;
+};
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 function MyAppointments() {
   const navigate = useNavigate();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState("");
 
   useEffect(() => {
     loadAppointments();
@@ -96,6 +116,151 @@ function MyAppointments() {
     }
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const existingScript = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
+
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve(true));
+        existingScript.addEventListener("error", () => resolve(false));
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (appointment: Appointment) => {
+    try {
+      setError("");
+      setPaymentMessage("");
+      setPayingId(appointment.id);
+
+      if (!appointment.services) {
+        setError("Session information is unavailable.");
+        return;
+      }
+
+      const amount = Number(appointment.services.price);
+
+      if (!amount || amount < 10) {
+        setError("Invalid session amount.");
+        return;
+      }
+
+      const scriptLoaded = await loadRazorpayScript();
+
+      if (!scriptLoaded) {
+        setError(
+          "Unable to load Razorpay Checkout. Please check your internet connection and try again."
+        );
+        return;
+      }
+
+      /*
+       * Create Razorpay Order using Supabase Edge Function.
+       *
+       * IMPORTANT:
+       * The current Edge Function is being used for TEST MODE.
+       * Before LIVE payments, the server must validate the booking
+       * and service price directly from Supabase.
+       */
+      const { data, error: functionError } =
+        await supabase.functions.invoke("create-razorpay-order", {
+          body: {
+            amount,
+            receipt: `freewill_${appointment.id}`,
+          },
+        });
+
+      if (functionError) {
+        console.error("Razorpay function error:", functionError);
+        setError(
+          functionError.message ||
+            "Unable to create payment order."
+        );
+        return;
+      }
+
+      const razorpayData = data as RazorpayResponse;
+
+      if (!razorpayData?.success || !razorpayData?.order?.id) {
+        setError("Unable to create Razorpay order.");
+        return;
+      }
+
+      const options = {
+        key: razorpayData.key_id,
+        amount: razorpayData.order.amount,
+        currency: razorpayData.order.currency,
+        name: "FREEWILL",
+        description: appointment.services.title,
+        order_id: razorpayData.order.id,
+
+        prefill: {
+          name: "",
+          email: "",
+        },
+
+        theme: {
+          color: "#111827",
+        },
+
+        handler: function (response: any) {
+          console.log("Razorpay payment response:", response);
+
+          setPaymentMessage(
+            "Payment completed successfully in Test Mode. Payment verification will be connected next."
+          );
+
+          setPayingId(null);
+        },
+
+        modal: {
+          ondismiss: function () {
+            setPayingId(null);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.on(
+        "payment.failed",
+        function (response: any) {
+          console.error("Payment failed:", response);
+
+          setError(
+            response?.error?.description ||
+              "Payment failed. Please try again."
+          );
+
+          setPayingId(null);
+        }
+      );
+
+      razorpay.open();
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError("Unable to start payment. Please try again.");
+      setPayingId(null);
+    }
+  };
+
   const formatDate = (date: string) => {
     return new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", {
       weekday: "long",
@@ -160,7 +325,7 @@ function MyAppointments() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Loading */}
         {loading && (
@@ -175,7 +340,7 @@ function MyAppointments() {
 
         {/* Error */}
         {!loading && error && (
-          <div className="bg-white rounded-2xl shadow-sm border border-red-200 p-8 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-red-200 p-8 text-center mb-6">
             <div className="text-4xl mb-4">⚠️</div>
 
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -192,6 +357,13 @@ function MyAppointments() {
             >
               Try Again
             </button>
+          </div>
+        )}
+
+        {/* Payment Message */}
+        {!loading && paymentMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-6 text-sm">
+            ✅ {paymentMessage}
           </div>
         )}
 
@@ -312,9 +484,9 @@ function MyAppointments() {
                     )}
                   </div>
 
-                  {/* Price */}
+                  {/* Price + Payment */}
                   {appointment.services && (
-                    <div className="md:text-right">
+                    <div className="md:text-right min-w-[160px]">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">
                         Price
                       </p>
@@ -322,6 +494,38 @@ function MyAppointments() {
                       <p className="text-2xl font-bold text-gray-900 mt-1">
                         ₹{appointment.services.price}
                       </p>
+
+                      {/* Pay Now only after expert confirms */}
+                      {appointment.status.toLowerCase() === "confirmed" && (
+                        <button
+                          onClick={() => handlePayment(appointment)}
+                          disabled={payingId === appointment.id}
+                          className="w-full md:w-auto mt-4 px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                          {payingId === appointment.id
+                            ? "Opening Payment..."
+                            : `Pay ₹${appointment.services.price}`}
+                        </button>
+                      )}
+
+                      {appointment.status.toLowerCase() === "pending" && (
+                        <p className="text-xs text-yellow-600 mt-3">
+                          Waiting for expert confirmation
+                        </p>
+                      )}
+
+                      {appointment.status.toLowerCase() === "completed" && (
+                        <p className="text-xs text-blue-600 mt-3">
+                          Session completed
+                        </p>
+                      )}
+
+                      {(appointment.status.toLowerCase() === "cancelled" ||
+                        appointment.status.toLowerCase() === "canceled") && (
+                        <p className="text-xs text-red-600 mt-3">
+                          Appointment cancelled
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
