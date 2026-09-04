@@ -1306,7 +1306,13 @@ function Home() {
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/40">
-            © 2026 FREEWILL. All rights reserved.
+            <p>
+              © 2026 FREEWILL. All rights reserved.
+            </p>
+
+            <p className="mt-2 text-[11px] font-serif tracking-wide text-white/30">
+              𝓡𝓪𝓰𝓾𝓵 𝓐𝓻𝓾𝓷𝓪𝓷
+            </p>
           </div>
 
         </div>
