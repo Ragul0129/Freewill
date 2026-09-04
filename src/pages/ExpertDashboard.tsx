@@ -44,6 +44,13 @@ function ExpertDashboard() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
+  // Three-dot menu
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // Delete confirmation
+  const [deleteBookingId, setDeleteBookingId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -180,6 +187,7 @@ function ExpertDashboard() {
       setActionLoading(bookingId);
       setMessage("");
       setError("");
+      setOpenMenuId(null);
 
       const { error: updateError } = await supabase
         .from("bookings")
@@ -206,6 +214,44 @@ function ExpertDashboard() {
       setError("Something went wrong.");
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const deleteAppointment = async () => {
+    if (!deleteBookingId) return;
+
+    try {
+      setDeleteLoading(true);
+      setError("");
+      setMessage("");
+
+      const { error: deleteError } = await supabase
+        .from("bookings")
+        .delete()
+        .eq("id", deleteBookingId);
+
+      if (deleteError) {
+        console.error("Delete booking error:", deleteError);
+        setError(
+          "Unable to delete appointment. Please try again."
+        );
+        return;
+      }
+
+      setBookings((currentBookings) =>
+        currentBookings.filter(
+          (booking) => booking.id !== deleteBookingId
+        )
+      );
+
+      setMessage("Appointment deleted successfully.");
+      setDeleteBookingId(null);
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Delete error:", err);
+      setError("Something went wrong while deleting.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -293,7 +339,10 @@ function ExpertDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="min-h-screen bg-gray-50"
+      onClick={() => setOpenMenuId(null)}
+    >
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -310,6 +359,7 @@ function ExpertDashboard() {
           <div className="flex items-center gap-2">
             <Link
               to="/home"
+              onClick={(e) => e.stopPropagation()}
               className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
             >
               Home
@@ -576,6 +626,7 @@ function ExpertDashboard() {
                 <div
                   key={booking.id}
                   className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                     <div className="flex-1">
@@ -627,80 +678,4 @@ function ExpertDashboard() {
                           </p>
 
                           <p className="text-sm text-gray-700 mt-1">
-                            {booking.notes}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Booking Actions */}
-                    <div className="flex flex-wrap gap-2">
-                      {booking.status.toLowerCase() ===
-                        "pending" && (
-                        <>
-                          <button
-                            disabled={
-                              actionLoading === booking.id
-                            }
-                            onClick={() =>
-                              updateBookingStatus(
-                                booking.id,
-                                "confirmed"
-                              )
-                            }
-                            className="px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition"
-                          >
-                            {actionLoading === booking.id
-                              ? "Updating..."
-                              : "✓ Confirm"}
-                          </button>
-
-                          <button
-                            disabled={
-                              actionLoading === booking.id
-                            }
-                            onClick={() =>
-                              updateBookingStatus(
-                                booking.id,
-                                "cancelled"
-                              )
-                            }
-                            className="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 disabled:opacity-50 transition"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-
-                      {booking.status.toLowerCase() ===
-                        "confirmed" && (
-                        <button
-                          disabled={
-                            actionLoading === booking.id
-                          }
-                          onClick={() =>
-                            updateBookingStatus(
-                              booking.id,
-                              "completed"
-                            )
-                          }
-                          className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition"
-                        >
-                          {actionLoading === booking.id
-                            ? "Updating..."
-                            : "✓ Mark Completed"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
-    </div>
-  );
-}
-
-export default ExpertDashboard;
+   
