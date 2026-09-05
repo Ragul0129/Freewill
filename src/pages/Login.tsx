@@ -19,8 +19,11 @@ function Login() {
     "email" | "password" | null
   >(null);
 
-  const isPasswordFocused =
+  const passwordMode =
     focusedField === "password" || password.length > 0;
+
+  const emailMode =
+    focusedField === "email" || email.length > 0;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,11 +56,12 @@ function Login() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .maybeSingle();
+      const { data: profile, error: profileError } =
+        await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle();
 
       if (profileError) {
         console.error(profileError);
@@ -81,32 +85,49 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      {/* =========================
-          ANIMATED BACKGROUND
-      ========================== */}
+    <div className="freewill-login">
 
-      <div className="background-animation">
-        <div className="moon-glow" />
+      {/* =====================================================
+          NIGHT SKY BACKGROUND
+      ====================================================== */}
 
-        <div className="wind wind-one" />
-        <div className="wind wind-two" />
-        <div className="wind wind-three" />
+      <div className="sky">
 
-        <div className="wave wave-one" />
-        <div className="wave wave-two" />
-        <div className="wave wave-three" />
+        <div className="big-glow" />
 
-        <div className="floating-dot dot-one" />
-        <div className="floating-dot dot-two" />
-        <div className="floating-dot dot-three" />
-        <div className="floating-dot dot-four" />
-        <div className="floating-dot dot-five" />
+        {/* Stars */}
+        <span className="star s1" />
+        <span className="star s2" />
+        <span className="star s3" />
+        <span className="star s4" />
+        <span className="star s5" />
+        <span className="star s6" />
+        <span className="star s7" />
+        <span className="star s8" />
+        <span className="star s9" />
+        <span className="star s10" />
+        <span className="star s11" />
+        <span className="star s12" />
+        <span className="star s13" />
+        <span className="star s14" />
+        <span className="star s15" />
+
+        {/* Shooting stars */}
+        <div className="shooting-star shooting-one" />
+        <div className="shooting-star shooting-two" />
+
+        {/* Soft floating particles */}
+        <span className="particle p1" />
+        <span className="particle p2" />
+        <span className="particle p3" />
+        <span className="particle p4" />
+        <span className="particle p5" />
+
       </div>
 
-      {/* =========================
-          BACK TO FREEWILL
-      ========================== */}
+      {/* =====================================================
+          BACK BUTTON
+      ====================================================== */}
 
       <button
         type="button"
@@ -116,137 +137,158 @@ function Login() {
         ← Back to FREEWILL
       </button>
 
-      {/* =========================
-          MAIN CONTENT
-      ========================== */}
+      {/* =====================================================
+          MAIN
+      ====================================================== */}
 
-      <div className="login-content">
+      <div className="login-main">
 
-        {/* =========================
+        {/* =====================================================
             FOX CHARACTER
-        ========================== */}
+        ====================================================== */}
 
         <div
-          className={`fox-area ${
-            focusedField === "email" ? "fox-email-mode" : ""
-          } ${isPasswordFocused ? "fox-password-mode" : ""}`}
+          className={`fox-stage ${
+            emailMode ? "email-mode" : ""
+          } ${passwordMode ? "password-mode" : ""}`}
         >
-          <div className="fox-shadow" />
 
-          <div className="fox">
+          <div className="fox-aura" />
+
+          <div className="fox-character">
 
             {/* Ears */}
-            <div className="ear ear-left">
-              <div className="ear-inner" />
+            <div className="fox-ear fox-ear-left">
+              <div className="fox-ear-inner" />
             </div>
 
-            <div className="ear ear-right">
-              <div className="ear-inner" />
+            <div className="fox-ear fox-ear-right">
+              <div className="fox-ear-inner" />
             </div>
 
             {/* Head */}
             <div className="fox-head">
 
-              {/* Forehead */}
-              <div className="forehead-mark" />
+              {/* forehead white marking */}
+              <div className="fox-forehead" />
 
-              {/* Left eye */}
-              <div
-                className={`fox-eye fox-eye-left ${
-                  isPasswordFocused ? "eyes-closed" : ""
-                }`}
-              >
-                <span className="eye-white">
-                  <span className="pupil" />
-                </span>
+              {/* left eye */}
+              <div className="fox-eye fox-eye-left">
+                <div className="eye-ball">
+                  <div className="eye-pupil" />
+                  <div className="eye-shine" />
+                </div>
+
+                <div className="closed-eye-line" />
               </div>
 
-              {/* Right eye */}
-              <div
-                className={`fox-eye fox-eye-right ${
-                  isPasswordFocused ? "eyes-closed" : ""
-                }`}
-              >
-                <span className="eye-white">
-                  <span className="pupil" />
-                </span>
+              {/* right eye */}
+              <div className="fox-eye fox-eye-right">
+                <div className="eye-ball">
+                  <div className="eye-pupil" />
+                  <div className="eye-shine" />
+                </div>
+
+                <div className="closed-eye-line" />
               </div>
 
-              {/* Email glasses-style focus */}
-              <div className="email-look-line" />
+              {/* eyebrows */}
+              <div className="fox-brow fox-brow-left" />
+              <div className="fox-brow fox-brow-right" />
 
-              {/* Muzzle */}
-              <div className="muzzle muzzle-left" />
-              <div className="muzzle muzzle-right" />
+              {/* muzzle */}
+              <div className="fox-muzzle fox-muzzle-left" />
+              <div className="fox-muzzle fox-muzzle-right" />
 
-              {/* Nose */}
+              {/* nose */}
               <div className="fox-nose" />
 
-              {/* Mouth */}
+              {/* mouth */}
               <div className="fox-mouth">
-                <span />
+                <span className="mouth-left" />
+                <span className="mouth-right" />
               </div>
 
-              {/* Cheeks */}
-              <div className="cheek cheek-left" />
-              <div className="cheek cheek-right" />
+              {/* cheeks */}
+              <div className="fox-cheek fox-cheek-left" />
+              <div className="fox-cheek fox-cheek-right" />
+
             </div>
 
             {/* Body */}
             <div className="fox-body">
-              <div className="fox-chest" />
+              <div className="fox-belly" />
             </div>
 
-            {/* Tiny paws */}
-            <div className="fox-paw paw-left" />
-            <div className="fox-paw paw-right" />
+            {/* Paws */}
+            <div className="fox-paw fox-paw-left">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div className="fox-paw fox-paw-right">
+              <span />
+              <span />
+              <span />
+            </div>
 
             {/* Keyboard */}
-            <div className="keyboard">
+            <div className="mini-keyboard">
+
               <div className="keyboard-row">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
               </div>
 
               <div className="keyboard-row">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
               </div>
 
               <div className="keyboard-row">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
               </div>
 
-              <div className="keyboard-space" />
+              <div className="space-key" />
+
             </div>
+
           </div>
         </div>
 
-        {/* =========================
+        {/* =====================================================
             LOGIN CARD
-        ========================== */}
+        ====================================================== */}
 
         <div className="login-card">
 
-          <div className="brand-small">
-            FREEWILL <span>•</span> HUMAN EMPOWERMENT
+          <div className="brand">
+            FREEWILL
+          </div>
+
+          <div className="brand-sub">
+            HUMAN EMPOWERMENT
           </div>
 
           <h1>Welcome Back</h1>
 
-          <p className="subtitle">
+          <p className="login-description">
             Login to your FREEWILL account
           </p>
 
@@ -254,115 +296,195 @@ function Login() {
 
             {/* EMAIL */}
 
-            <div
-              className={`input-group ${
-                focusedField === "email" ? "input-active" : ""
-              }`}
-            >
+            <div className="field">
+
               <label>Email Address</label>
 
-              <div className="input-wrapper">
-                <div className="input-icon">
+              <div
+                className={`input-box ${
+                  focusedField === "email"
+                    ? "active"
+                    : ""
+                }`}
+              >
+
+                <span className="field-icon">
                   ✉
-                </div>
+                </span>
 
                 <input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setFocusedField("email")}
-                  onBlur={() => setFocusedField(null)}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                  onFocus={() =>
+                    setFocusedField("email")
+                  }
+                  onBlur={() =>
+                    setFocusedField(null)
+                  }
                   autoComplete="email"
                 />
+
               </div>
+
             </div>
 
             {/* PASSWORD */}
 
-            <div
-              className={`input-group ${
-                focusedField === "password" ? "input-active" : ""
-              }`}
-            >
+            <div className="field">
+
               <label>Password</label>
 
-              <div className="input-wrapper">
-                <div className="input-icon">
+              <div
+                className={`input-box ${
+                  focusedField === "password"
+                    ? "active"
+                    : ""
+                }`}
+              >
+
+                <span className="field-icon">
                   🔒
-                </div>
+                </span>
 
                 <input
                   type="password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  onFocus={() =>
+                    setFocusedField("password")
+                  }
+                  onBlur={() =>
+                    setFocusedField(null)
+                  }
                   autoComplete="current-password"
                 />
+
               </div>
+
             </div>
 
             {/* ERROR */}
 
             {error && (
-              <div className="error-message">
+              <div className="error-box">
                 <span>!</span>
                 {error}
               </div>
             )}
 
-            {/* LOGIN BUTTON */}
+            {/* LOGIN */}
 
             <button
               type="submit"
               className="login-button"
               disabled={loading}
             >
+
               {loading ? (
                 <>
-                  <span className="loading-spinner" />
+                  <span className="spinner" />
                   Signing in...
                 </>
               ) : (
                 <>
-                  Login <span className="arrow">→</span>
+                  Login
+                  <span className="login-arrow">
+                    →
+                  </span>
                 </>
               )}
+
             </button>
 
           </form>
 
-          <div className="divider" />
+          <div className="divider">
+            <span />
+            <p>or continue with</p>
+            <span />
+          </div>
 
-          <p className="register-text">
-            Don't have an account?{" "}
+          {/* Social buttons — visual only */}
+
+          <div className="social-row">
+
             <button
               type="button"
-              onClick={() => navigate("/register")}
+              className="social-button"
+              onClick={() =>
+                setError(
+                  "Google sign-in is not enabled yet."
+                )
+              }
+            >
+              <span className="google-icon">
+                G
+              </span>
+              Google
+            </button>
+
+            <button
+              type="button"
+              className="social-button"
+              onClick={() =>
+                setError(
+                  "Apple sign-in is not enabled yet."
+                )
+              }
+            >
+              <span className="apple-icon">
+                
+              </span>
+              Apple
+            </button>
+
+          </div>
+
+          <div className="create-account">
+            Don't have an account?{" "}
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/register")
+              }
             >
               Create Account
             </button>
-          </p>
+          </div>
 
-        </div>
+          <div className="privacy-note">
+            🔒 Your account information is protected
+          </div>
 
-        {/* =========================
-            BOTTOM MESSAGE
-        ========================== */}
-
-        <div className="bottom-message">
-          <span>🌿</span>
-          Take a breath. Your wellbeing matters.
-          <span>🌊</span>
         </div>
 
       </div>
 
-      {/* =========================
-          ANIMATION CSS
-      ========================== */}
+      {/* =====================================================
+          OCEAN WAVES
+      ====================================================== */}
+
+      <div className="ocean">
+
+        <div className="wave wave-back" />
+        <div className="wave wave-middle" />
+        <div className="wave wave-front" />
+
+        <div className="water-glow" />
+
+      </div>
+
+      {/* =====================================================
+          CSS
+      ====================================================== */}
 
       <style>{`
 
@@ -370,19 +492,24 @@ function Login() {
           box-sizing: border-box;
         }
 
-        .login-page {
+        .freewill-login {
           min-height: 100vh;
           width: 100%;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: auto;
+
           background:
-            linear-gradient(
-              180deg,
-              #f8f5ee 0%,
-              #f5f2e9 55%,
-              #eaf4f0 100%
+            radial-gradient(
+              circle at 50% 15%,
+              #243d61 0%,
+              #172a47 24%,
+              #101d34 52%,
+              #091323 100%
             );
-          color: #173f3b;
+
+          color: white;
+
           font-family:
             Inter,
             ui-sans-serif,
@@ -393,977 +520,1794 @@ function Login() {
             sans-serif;
         }
 
-        /* =========================
-           BACKGROUND
-        ========================== */
+        /* =====================================================
+           SKY
+        ====================================================== */
 
-        .background-animation {
+        .sky {
           position: absolute;
           inset: 0;
           overflow: hidden;
           pointer-events: none;
         }
 
-        .moon-glow {
+        .big-glow {
           position: absolute;
-          width: 500px;
-          height: 500px;
+          width: 520px;
+          height: 520px;
+
+          top: -230px;
+          left: 50%;
+          transform: translateX(-50%);
+
           border-radius: 50%;
-          right: -180px;
-          top: -160px;
+
           background:
             radial-gradient(
               circle,
-              rgba(204, 166, 75, 0.16) 0%,
-              rgba(204, 166, 75, 0.05) 38%,
-              transparent 70%
+              rgba(101, 165, 230, 0.20) 0%,
+              rgba(101, 165, 230, 0.07) 40%,
+              transparent 72%
             );
-          animation: moonPulse 6s ease-in-out infinite;
+
+          animation:
+            skyGlow 7s ease-in-out infinite;
         }
 
-        @keyframes moonPulse {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 0.7;
-          }
+        @keyframes skyGlow {
 
-          50% {
-            transform: scale(1.08);
-            opacity: 1;
-          }
-        }
-
-        /* WIND */
-
-        .wind {
-          position: absolute;
-          width: 240px;
-          height: 60px;
-          border-top: 2px solid rgba(26, 101, 95, 0.13);
-          border-radius: 50%;
-          transform: rotate(-7deg);
-          animation: windMove 8s linear infinite;
-        }
-
-        .wind-one {
-          top: 15%;
-          left: -260px;
-          animation-delay: 0s;
-        }
-
-        .wind-two {
-          top: 28%;
-          left: -330px;
-          width: 330px;
-          animation-delay: 2.5s;
-        }
-
-        .wind-three {
-          top: 42%;
-          left: -300px;
-          width: 280px;
-          animation-delay: 5s;
-        }
-
-        @keyframes windMove {
-          0% {
-            transform:
-              translateX(0)
-              rotate(-7deg);
-            opacity: 0;
-          }
-
-          10% {
-            opacity: 1;
-          }
-
-          80% {
-            opacity: 0.6;
-          }
-
-          100% {
-            transform:
-              translateX(calc(100vw + 500px))
-              rotate(-7deg);
-            opacity: 0;
-          }
-        }
-
-        /* WAVES */
-
-        .wave {
-          position: absolute;
-          left: -10%;
-          width: 120%;
-          height: 150px;
-          border-radius: 50%;
-          border-top: 2px solid rgba(23, 98, 92, 0.12);
-          border-bottom: 1px solid rgba(23, 98, 92, 0.06);
-        }
-
-        .wave-one {
-          bottom: -85px;
-          animation: waveMove 7s ease-in-out infinite;
-        }
-
-        .wave-two {
-          bottom: -120px;
-          animation: waveMove 9s ease-in-out infinite reverse;
-          opacity: 0.7;
-        }
-
-        .wave-three {
-          bottom: -155px;
-          animation: waveMove 11s ease-in-out infinite;
-          opacity: 0.5;
-        }
-
-        @keyframes waveMove {
           0%,
           100% {
             transform:
-              translateX(-2%)
-              rotate(1deg);
+              translateX(-50%)
+              scale(1);
+            opacity: 0.75;
           }
 
           50% {
             transform:
-              translateX(2%)
-              rotate(-1deg);
+              translateX(-50%)
+              scale(1.12);
+            opacity: 1;
           }
         }
 
-        /* FLOATING DOTS */
+        /* =====================================================
+           STARS
+        ====================================================== */
 
-        .floating-dot {
+        .star {
           position: absolute;
-          width: 5px;
-          height: 5px;
+
+          width: 3px;
+          height: 3px;
+
           border-radius: 50%;
-          background: rgba(201, 161, 69, 0.4);
-          animation: floating 5s ease-in-out infinite;
+
+          background: #ffffff;
+
+          box-shadow:
+            0 0 7px
+            rgba(180, 220, 255, 0.95);
+
+          animation:
+            starTwinkle
+            3s
+            ease-in-out
+            infinite;
         }
 
-        .dot-one {
-          top: 18%;
-          left: 10%;
+        .s1 {
+          top: 8%;
+          left: 12%;
         }
 
-        .dot-two {
-          top: 32%;
-          right: 14%;
-          animation-delay: 1s;
+        .s2 {
+          top: 13%;
+          left: 27%;
+          animation-delay: .7s;
         }
 
-        .dot-three {
-          top: 60%;
-          left: 8%;
+        .s3 {
+          top: 9%;
+          right: 18%;
+          animation-delay: 1.4s;
+        }
+
+        .s4 {
+          top: 22%;
+          right: 8%;
           animation-delay: 2s;
         }
 
-        .dot-four {
-          top: 72%;
+        .s5 {
+          top: 31%;
+          left: 8%;
+          animation-delay: .4s;
+        }
+
+        .s6 {
+          top: 27%;
+          left: 23%;
+          animation-delay: 1.7s;
+        }
+
+        .s7 {
+          top: 36%;
+          right: 17%;
+          animation-delay: 2.3s;
+        }
+
+        .s8 {
+          top: 16%;
+          right: 35%;
+          animation-delay: 1s;
+        }
+
+        .s9 {
+          top: 44%;
+          left: 14%;
+          animation-delay: 2.5s;
+        }
+
+        .s10 {
+          top: 41%;
+          right: 7%;
+          animation-delay: .9s;
+        }
+
+        .s11 {
+          top: 52%;
+          left: 27%;
+          animation-delay: 1.9s;
+        }
+
+        .s12 {
+          top: 56%;
+          right: 29%;
+          animation-delay: .2s;
+        }
+
+        .s13 {
+          top: 67%;
+          left: 7%;
+          animation-delay: 1.2s;
+        }
+
+        .s14 {
+          top: 63%;
           right: 10%;
+          animation-delay: 2.7s;
+        }
+
+        .s15 {
+          top: 72%;
+          right: 36%;
+          animation-delay: .5s;
+        }
+
+        @keyframes starTwinkle {
+
+          0%,
+          100% {
+            opacity: .25;
+            transform: scale(.7);
+          }
+
+          50% {
+            opacity: 1;
+            transform: scale(1.45);
+          }
+        }
+
+        /* =====================================================
+           SHOOTING STARS
+        ====================================================== */
+
+        .shooting-star {
+          position: absolute;
+
+          width: 85px;
+          height: 1px;
+
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.8),
+              transparent
+            );
+
+          transform: rotate(-28deg);
+
+          opacity: 0;
+
+          animation:
+            shooting
+            7s
+            linear
+            infinite;
+        }
+
+        .shooting-one {
+          top: 20%;
+          left: -100px;
+        }
+
+        .shooting-two {
+          top: 38%;
+          left: -100px;
+          animation-delay: 3.5s;
+        }
+
+        @keyframes shooting {
+
+          0% {
+            transform:
+              translateX(0)
+              rotate(-28deg);
+            opacity: 0;
+          }
+
+          8% {
+            opacity: .8;
+          }
+
+          18% {
+            transform:
+              translateX(500px)
+              rotate(-28deg);
+            opacity: 0;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        /* =====================================================
+           PARTICLES
+        ====================================================== */
+
+        .particle {
+          position: absolute;
+
+          width: 4px;
+          height: 4px;
+
+          border-radius: 50%;
+
+          background: #72b8db;
+
+          opacity: .4;
+
+          animation:
+            floatParticle
+            6s
+            ease-in-out
+            infinite;
+        }
+
+        .p1 {
+          left: 17%;
+          top: 38%;
+        }
+
+        .p2 {
+          right: 22%;
+          top: 31%;
+          animation-delay: 1s;
+        }
+
+        .p3 {
+          left: 32%;
+          top: 22%;
+          animation-delay: 2s;
+        }
+
+        .p4 {
+          right: 11%;
+          top: 51%;
           animation-delay: 3s;
         }
 
-        .dot-five {
-          top: 12%;
-          right: 34%;
+        .p5 {
+          left: 8%;
+          top: 57%;
           animation-delay: 4s;
         }
 
-        @keyframes floating {
+        @keyframes floatParticle {
+
           0%,
           100% {
             transform:
               translateY(0)
               scale(1);
-            opacity: 0.3;
           }
 
           50% {
             transform:
-              translateY(-18px)
-              scale(1.4);
-            opacity: 0.8;
+              translateY(-25px)
+              scale(1.5);
           }
         }
 
-        /* =========================
+        /* =====================================================
            BACK BUTTON
-        ========================== */
+        ====================================================== */
 
         .back-button {
           position: relative;
-          z-index: 10;
+          z-index: 20;
+
           display: block;
-          margin: 0 auto;
-          padding-top: 44px;
+
+          margin:
+            0
+            auto;
+
+          padding-top: 34px;
+
           border: none;
           background: transparent;
-          color: #164d49;
-          font-size: 17px;
+
+          color: #c6d7eb;
+
+          font-size: 16px;
           font-weight: 700;
+
           cursor: pointer;
-          transition: all 0.25s ease;
+
+          transition:
+            color .25s ease,
+            transform .25s ease;
         }
 
         .back-button:hover {
+          color: white;
           transform: translateX(-4px);
         }
 
-        /* =========================
-           CONTENT
-        ========================== */
+        /* =====================================================
+           MAIN
+        ====================================================== */
 
-        .login-content {
+        .login-main {
           position: relative;
-          z-index: 5;
-          min-height: calc(100vh - 90px);
+          z-index: 10;
+
+          min-height:
+            calc(100vh - 70px);
+
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
+
           padding:
-            25px
+            15px
             20px
-            60px;
+            130px;
         }
 
-        /* =========================
-           FOX
-        ========================== */
+        /* =====================================================
+           FOX STAGE
+        ====================================================== */
 
-        .fox-area {
-          width: 230px;
-          height: 180px;
+        .fox-stage {
           position: relative;
-          margin-bottom: -30px;
-          z-index: 4;
-          transition: transform 0.5s ease;
+
+          width: 260px;
+          height: 210px;
+
+          margin-bottom: -32px;
+
+          z-index: 15;
+
+          transition:
+            transform .45s ease;
         }
 
-        .fox-area.fox-email-mode {
-          transform: translateY(5px);
+        .fox-stage.email-mode {
+          transform:
+            translateY(4px)
+            scale(1.02);
         }
 
-        .fox-area.fox-password-mode {
-          transform: translateY(2px);
+        .fox-stage.password-mode {
+          transform:
+            translateY(2px)
+            scale(1.01);
         }
 
-        .fox-shadow {
+        .fox-aura {
           position: absolute;
-          width: 150px;
-          height: 22px;
-          left: 40px;
-          bottom: 6px;
+
+          width: 220px;
+          height: 220px;
+
+          left: 20px;
+          top: -10px;
+
           border-radius: 50%;
-          background: rgba(20, 65, 61, 0.12);
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(99, 184, 230, .17),
+              transparent 68%
+            );
+
           filter: blur(8px);
+
+          animation:
+            foxAura
+            4s
+            ease-in-out
+            infinite;
         }
 
-        .fox {
+        @keyframes foxAura {
+
+          0%,
+          100% {
+            transform: scale(.95);
+            opacity: .55;
+          }
+
+          50% {
+            transform: scale(1.08);
+            opacity: .9;
+          }
+        }
+
+        .fox-character {
           position: relative;
-          width: 230px;
-          height: 180px;
-          animation: foxBreathing 4s ease-in-out infinite;
+
+          width: 260px;
+          height: 210px;
+
+          animation:
+            foxFloat
+            4s
+            ease-in-out
+            infinite;
         }
 
-        @keyframes foxBreathing {
+        @keyframes foxFloat {
+
           0%,
           100% {
             transform: translateY(0);
           }
 
           50% {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
           }
         }
 
-        /* EARS */
+        /* =====================================================
+           FOX EARS
+        ====================================================== */
 
-        .ear {
+        .fox-ear {
           position: absolute;
-          width: 64px;
-          height: 74px;
-          top: 18px;
-          background: #c66f36;
-          clip-path: polygon(
-            50% 0%,
-            100% 100%,
-            0% 100%
-          );
-          z-index: 1;
-        }
 
-        .ear-left {
-          left: 42px;
-          transform: rotate(-12deg);
-        }
+          top: 12px;
 
-        .ear-right {
-          right: 42px;
-          transform: rotate(12deg);
-        }
+          width: 76px;
+          height: 86px;
 
-        .ear-inner {
-          position: absolute;
-          width: 34px;
-          height: 42px;
-          left: 15px;
-          top: 13px;
-          background: #f1c0a2;
-          clip-path: polygon(
-            50% 0%,
-            100% 100%,
-            0% 100%
-          );
-        }
-
-        /* HEAD */
-
-        .fox-head {
-          position: absolute;
-          width: 135px;
-          height: 112px;
-          top: 42px;
-          left: 48px;
-          border-radius:
-            45%
-            45%
-            48%
-            48%;
           background:
             linear-gradient(
               145deg,
-              #d77a3c,
-              #b95e2e
+              #d8894e,
+              #a95732
             );
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+
+          z-index: 1;
+        }
+
+        .fox-ear-left {
+          left: 47px;
+
+          transform: rotate(-10deg);
+        }
+
+        .fox-ear-right {
+          right: 47px;
+
+          transform: rotate(10deg);
+        }
+
+        .fox-ear-inner {
+          position: absolute;
+
+          width: 42px;
+          height: 51px;
+
+          top: 14px;
+          left: 17px;
+
+          background: #f3b6a0;
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+        }
+
+        /* =====================================================
+           FOX HEAD
+        ====================================================== */
+
+        .fox-head {
+          position: absolute;
+
+          width: 157px;
+          height: 133px;
+
+          top: 43px;
+          left: 51px;
+
+          border-radius:
+            48%
+            48%
+            45%
+            45%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #e18a4d,
+              #b85e32
+            );
+
           box-shadow:
             inset
-            0 -8px 18px
-            rgba(83, 35, 17, 0.12);
-          z-index: 3;
+            0 -12px 22px
+            rgba(63, 25, 16, .18),
+
+            0 15px 35px
+            rgba(0,0,0,.28);
+
+          z-index: 4;
         }
 
-        /* WHITE FACE */
-
-        .muzzle {
+        .fox-forehead {
           position: absolute;
-          width: 65px;
-          height: 65px;
-          bottom: -3px;
-          background: #f5eee4;
-          border-radius: 50%;
-        }
 
-        .muzzle-left {
-          left: 11px;
-        }
+          width: 49px;
+          height: 67px;
 
-        .muzzle-right {
-          right: 11px;
-        }
-
-        /* FOREHEAD */
-
-        .forehead-mark {
-          position: absolute;
-          width: 38px;
-          height: 48px;
           top: 0;
-          left: 48px;
-          background: #f5eee4;
-          clip-path: polygon(
-            50% 0%,
-            100% 100%,
-            0% 100%
-          );
-          opacity: 0.92;
+          left: 54px;
+
+          background: #f8f3eb;
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
         }
 
-        /* EYES */
+        /* =====================================================
+           EYES
+        ====================================================== */
 
         .fox-eye {
           position: absolute;
-          top: 49px;
-          width: 29px;
-          height: 22px;
-          z-index: 7;
+
+          top: 54px;
+
+          width: 34px;
+          height: 27px;
+
+          z-index: 8;
+
           transition:
-            transform 0.35s ease,
-            height 0.3s ease;
+            transform .35s ease;
         }
 
         .fox-eye-left {
-          left: 25px;
+          left: 29px;
         }
 
         .fox-eye-right {
-          right: 25px;
+          right: 29px;
         }
 
-        .eye-white {
-          display: flex;
-          width: 29px;
-          height: 20px;
-          background: white;
-          border-radius: 50%;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-
-        .pupil {
-          width: 10px;
-          height: 14px;
-          border-radius: 50%;
-          background: #172f2d;
+        .eye-ball {
           position: relative;
-          transition:
-            transform 0.35s ease;
-        }
 
-        /* FOX LOOKS TOWARDS EMAIL */
+          width: 34px;
+          height: 25px;
 
-        .fox-email-mode .pupil {
-          transform:
-            translateX(6px)
-            translateY(-1px);
-        }
-
-        .fox-email-mode .fox-eye-left {
-          transform: rotate(-3deg);
-        }
-
-        .fox-email-mode .fox-eye-right {
-          transform: rotate(3deg);
-        }
-
-        /* PASSWORD CLOSED EYES */
-
-        .eyes-closed .eye-white {
-          height: 4px;
-          margin-top: 9px;
-          background: #6d3824;
           border-radius: 50%;
+
+          background: white;
+
+          overflow: hidden;
+
+          box-shadow:
+            0 0 10px
+            rgba(165,215,255,.18);
         }
 
-        .eyes-closed .pupil {
+        .eye-pupil {
+          position: absolute;
+
+          width: 14px;
+          height: 17px;
+
+          top: 4px;
+          left: 10px;
+
+          border-radius: 50%;
+
+          background:
+            radial-gradient(
+              circle at 35% 25%,
+              #5caee4 0%,
+              #28628c 35%,
+              #111d2d 65%
+            );
+
+          transition:
+            transform .35s ease,
+            opacity .25s ease;
+        }
+
+        .eye-shine {
+          position: absolute;
+
+          width: 5px;
+          height: 5px;
+
+          top: 6px;
+          left: 15px;
+
+          border-radius: 50%;
+
+          background: white;
+
+          z-index: 2;
+        }
+
+        .email-mode .eye-pupil {
+          transform:
+            translateX(8px);
+        }
+
+        .email-mode .fox-eye-left {
+          transform: rotate(-4deg);
+        }
+
+        .email-mode .fox-eye-right {
+          transform: rotate(4deg);
+        }
+
+        /* CLOSED EYES */
+
+        .password-mode .eye-ball {
+          height: 5px;
+
+          margin-top: 10px;
+
+          background: transparent;
+
+          border-bottom:
+            3px solid
+            #573123;
+
+          border-radius: 0;
+        }
+
+        .password-mode .eye-pupil,
+        .password-mode .eye-shine {
           opacity: 0;
         }
 
-        .eyes-closed {
-          transform: translateY(2px);
+        .closed-eye-line {
+          display: none;
         }
 
-        /* NOSE */
+        /* =====================================================
+           BROWS
+        ====================================================== */
+
+        .fox-brow {
+          position: absolute;
+
+          top: 44px;
+
+          width: 26px;
+          height: 5px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(87,43,27,.55);
+        }
+
+        .fox-brow-left {
+          left: 28px;
+          transform: rotate(-8deg);
+        }
+
+        .fox-brow-right {
+          right: 28px;
+          transform: rotate(8deg);
+        }
+
+        /* =====================================================
+           MUZZLE
+        ====================================================== */
+
+        .fox-muzzle {
+          position: absolute;
+
+          width: 72px;
+          height: 66px;
+
+          bottom: 1px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #faf6ee,
+              #ebe3d9
+            );
+
+          border-radius: 50%;
+
+          z-index: 6;
+        }
+
+        .fox-muzzle-left {
+          left: 11px;
+        }
+
+        .fox-muzzle-right {
+          right: 11px;
+        }
+
+        /* =====================================================
+           NOSE
+        ====================================================== */
 
         .fox-nose {
           position: absolute;
-          z-index: 10;
-          width: 17px;
-          height: 13px;
-          background: #2c2421;
-          left: 59px;
-          top: 77px;
+
+          width: 21px;
+          height: 16px;
+
+          left: 68px;
+          top: 82px;
+
+          background:
+            #2a2020;
+
           border-radius:
             48%
             48%
             55%
             55%;
+
+          z-index: 10;
         }
 
-        /* MOUTH */
+        /* =====================================================
+           MOUTH
+        ====================================================== */
 
         .fox-mouth {
           position: absolute;
-          z-index: 9;
-          left: 66px;
-          top: 87px;
+
+          left: 77px;
+          top: 94px;
+
           width: 4px;
-          height: 15px;
-          background: #4b2921;
-          border-radius: 5px;
+          height: 16px;
+
+          background: #472820;
+
+          border-radius: 4px;
+
+          z-index: 10;
         }
 
-        .fox-mouth span {
+        .mouth-left,
+        .mouth-right {
           position: absolute;
-          width: 20px;
-          height: 9px;
-          border-bottom: 2px solid #4b2921;
+
+          width: 22px;
+          height: 10px;
+
+          border-bottom:
+            2px solid
+            #472820;
+
           border-radius: 50%;
-          left: -8px;
+        }
+
+        .mouth-left {
+          left: -18px;
           top: 4px;
         }
 
-        /* CHEEKS */
+        .mouth-right {
+          right: -18px;
+          top: 4px;
+        }
 
-        .cheek {
+        /* =====================================================
+           CHEEKS
+        ====================================================== */
+
+        .fox-cheek {
           position: absolute;
-          width: 12px;
-          height: 8px;
-          background: rgba(224, 117, 91, 0.38);
+
+          width: 18px;
+          height: 11px;
+
+          top: 82px;
+
+          background:
+            rgba(242,125,102,.38);
+
           border-radius: 50%;
-          top: 78px;
-          z-index: 8;
+
+          z-index: 9;
         }
 
-        .cheek-left {
-          left: 16px;
+        .fox-cheek-left {
+          left: 17px;
         }
 
-        .cheek-right {
-          right: 16px;
+        .fox-cheek-right {
+          right: 17px;
         }
 
-        /* BODY */
+        /* =====================================================
+           BODY
+        ====================================================== */
 
         .fox-body {
           position: absolute;
-          width: 95px;
-          height: 60px;
-          left: 68px;
+
+          width: 110px;
+          height: 72px;
+
+          left: 75px;
           bottom: 7px;
+
           border-radius:
             50%
             50%
-            20%
-            20%;
+            25%
+            25%;
+
           background:
             linear-gradient(
-              150deg,
-              #b65d2e,
-              #914820
+              145deg,
+              #bd6335,
+              #944521
             );
-          z-index: 2;
+
+          z-index: 3;
         }
 
-        .fox-chest {
+        .fox-belly {
           position: absolute;
-          width: 56px;
-          height: 48px;
-          left: 20px;
-          top: 10px;
-          background: #f5eee4;
+
+          width: 63px;
+          height: 56px;
+
+          left: 24px;
+          top: 12px;
+
           border-radius: 50%;
+
+          background:
+            #f8f3eb;
         }
 
-        /* PAWS */
+        /* =====================================================
+           PAWS
+        ====================================================== */
 
         .fox-paw {
           position: absolute;
-          width: 37px;
-          height: 18px;
-          background: #b95c2c;
+
+          width: 43px;
+          height: 27px;
+
+          bottom: 24px;
+
           border-radius: 50%;
-          bottom: 22px;
-          z-index: 5;
+
+          background:
+            linear-gradient(
+              145deg,
+              #bf6335,
+              #954622
+            );
+
+          z-index: 12;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          gap: 3px;
         }
 
-        .paw-left {
+        .fox-paw-left {
           left: 48px;
-          transform: rotate(12deg);
+
+          transform: rotate(15deg);
         }
 
-        .paw-right {
+        .fox-paw-right {
           right: 48px;
-          transform: rotate(-12deg);
+
+          transform: rotate(-15deg);
         }
 
-        /* KEYBOARD */
+        .fox-paw span {
+          width: 5px;
+          height: 7px;
 
-        .keyboard {
+          border-radius: 50%;
+
+          background:
+            #f2c2ad;
+        }
+
+        /* =====================================================
+           KEYBOARD
+        ====================================================== */
+
+        .mini-keyboard {
           position: absolute;
-          width: 105px;
-          height: 35px;
-          background: #253f3d;
-          border-radius: 7px;
-          bottom: 2px;
-          left: 62px;
-          padding: 5px;
+
+          width: 118px;
+          height: 42px;
+
+          left: 71px;
+          bottom: 0;
+
+          padding: 6px;
+
+          border-radius: 8px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #263b55,
+              #15263b
+            );
+
+          border:
+            1px solid
+            rgba(155,200,235,.35);
+
           box-shadow:
-            0 6px 12px
-            rgba(0,0,0,0.15);
-          z-index: 8;
+            0 8px 18px
+            rgba(0,0,0,.4);
+
+          z-index: 11;
+
+          transform:
+            perspective(80px)
+            rotateX(12deg);
         }
 
         .keyboard-row {
           display: flex;
+
           gap: 3px;
+
           margin-bottom: 3px;
         }
 
-        .keyboard-row span {
+        .keyboard-row i {
+          display: block;
+
           width: 12px;
-          height: 5px;
+          height: 6px;
+
           border-radius: 2px;
-          background: #e4dccb;
+
+          background:
+            #b9cce0;
+
+          opacity: .85;
         }
 
-        .keyboard-space {
-          width: 45px;
-          height: 4px;
-          border-radius: 3px;
-          background: #e4dccb;
-          margin: 1px auto 0;
+        .space-key {
+          width: 48px;
+          height: 5px;
+
+          margin:
+            0
+            auto;
+
+          border-radius: 4px;
+
+          background:
+            #b9cce0;
         }
 
-        /* =========================
+        /* =====================================================
            LOGIN CARD
-        ========================== */
+        ====================================================== */
 
         .login-card {
           position: relative;
-          width: min(100%, 560px);
+
+          width:
+            min(100%, 540px);
+
           padding:
-            42px
-            42px
-            36px;
+            38px
+            38px
+            30px;
+
+          border-radius: 30px;
+
           background:
-            rgba(255, 255, 255, 0.94);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border-radius: 32px;
-          box-shadow:
-            0 25px 70px
-            rgba(30, 62, 58, 0.14),
-            0 2px 10px
-            rgba(0, 0, 0, 0.03);
+            linear-gradient(
+              145deg,
+              rgba(24,39,63,.92),
+              rgba(12,24,42,.95)
+            );
+
           border:
             1px solid
-            rgba(210, 198, 168, 0.35);
+            rgba(151,190,224,.22);
+
+          box-shadow:
+            0 30px 80px
+            rgba(0,0,0,.45),
+
+            inset
+            0 1px 0
+            rgba(255,255,255,.06);
+
+          backdrop-filter:
+            blur(20px);
+
+          -webkit-backdrop-filter:
+            blur(20px);
+
           text-align: center;
         }
 
-        .brand-small {
-          color: #bf9238;
-          font-size: 17px;
+        .brand {
+          color: #d8b35d;
+
+          font-size: 22px;
+
           font-weight: 800;
-          letter-spacing: 4px;
-          margin-bottom: 17px;
+
+          letter-spacing: 5px;
+
+          margin-bottom: 3px;
         }
 
-        .brand-small span {
-          color: #164d49;
-          margin: 0 4px;
+        .brand-sub {
+          color: #93a9bf;
+
+          font-size: 11px;
+
+          font-weight: 700;
+
+          letter-spacing: 3px;
+
+          margin-bottom: 18px;
         }
 
         .login-card h1 {
           margin: 0;
-          color: #144d48;
-          font-size: clamp(42px, 7vw, 58px);
+
+          color: #f5f8fb;
+
+          font-size:
+            clamp(
+              39px,
+              7vw,
+              54px
+            );
+
           line-height: 1.05;
+
           font-weight: 800;
-          letter-spacing: -2px;
+
+          letter-spacing: -1.5px;
         }
 
-        .subtitle {
+        .login-description {
           margin:
-            15px
+            13px
             0
-            36px;
-          color: #5d6672;
-          font-size: 20px;
-          line-height: 1.4;
-        }
+            30px;
 
-        /* =========================
-           INPUTS
-        ========================== */
+          color: #aab8c9;
 
-        .input-group {
-          text-align: left;
-          margin-bottom: 25px;
-        }
-
-        .input-group label {
-          display: block;
-          color: #204b47;
-          font-size: 17px;
-          font-weight: 750;
-          margin-bottom: 9px;
-        }
-
-        .input-wrapper {
-          position: relative;
-        }
-
-        .input-wrapper input {
-          width: 100%;
-          height: 68px;
-          border:
-            2px solid
-            #e1e3e4;
-          border-radius: 19px;
-          padding:
-            0
-            20px
-            0
-            53px;
           font-size: 18px;
-          color: #263e3c;
-          background: #fff;
-          outline: none;
+        }
+
+        /* =====================================================
+           FIELDS
+        ====================================================== */
+
+        .field {
+          text-align: left;
+
+          margin-bottom: 21px;
+        }
+
+        .field label {
+          display: block;
+
+          color: #d3deea;
+
+          font-size: 15px;
+
+          font-weight: 700;
+
+          margin-bottom: 8px;
+        }
+
+        .input-box {
+          position: relative;
+
+          display: flex;
+          align-items: center;
+
+          width: 100%;
+          height: 64px;
+
+          border-radius: 17px;
+
+          border:
+            1.5px solid
+            rgba(144,168,193,.25);
+
+          background:
+            rgba(255,255,255,.045);
+
           transition:
-            border 0.25s ease,
-            box-shadow 0.25s ease,
-            transform 0.25s ease;
+            border-color .25s ease,
+            box-shadow .25s ease,
+            background .25s ease;
         }
 
-        .input-wrapper input::placeholder {
-          color: #98a2a4;
-        }
+        .input-box.active {
+          border-color:
+            rgba(87,169,230,.85);
 
-        .input-wrapper input:focus {
-          border-color: #1b5b55;
+          background:
+            rgba(80,145,195,.08);
+
           box-shadow:
             0 0 0 4px
-            rgba(27, 91, 85, 0.08);
-          transform: translateY(-1px);
+            rgba(66,151,215,.10),
+
+            0 0 24px
+            rgba(66,151,215,.08);
         }
 
-        .input-icon {
-          position: absolute;
-          left: 18px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 2;
-          font-size: 19px;
-          opacity: 0.65;
-          pointer-events: none;
+        .field-icon {
+          width: 50px;
+
+          text-align: center;
+
+          color: #8da9c2;
+
+          font-size: 18px;
+
+          opacity: .9;
         }
 
-        /* =========================
+        .input-box input {
+          flex: 1;
+
+          height: 100%;
+
+          border: none;
+
+          outline: none;
+
+          background: transparent;
+
+          color: #f2f7fb;
+
+          font-size: 17px;
+
+          padding:
+            0
+            17px
+            0
+            0;
+        }
+
+        .input-box input::placeholder {
+          color: #72869c;
+        }
+
+        /* =====================================================
            ERROR
-        ========================== */
+        ====================================================== */
 
-        .error-message {
+        .error-box {
           display: flex;
           align-items: center;
+
           gap: 9px;
+
           text-align: left;
-          color: #a34032;
-          background: #fff1ef;
-          border: 1px solid #f2d0ca;
-          border-radius: 13px;
-          padding: 12px 15px;
-          margin-bottom: 18px;
-          font-size: 14px;
-          line-height: 1.4;
+
+          color: #ffb7ae;
+
+          background:
+            rgba(179,61,53,.12);
+
+          border:
+            1px solid
+            rgba(229,104,92,.25);
+
+          border-radius: 12px;
+
+          padding:
+            11px
+            13px;
+
+          margin-bottom: 17px;
+
+          font-size: 13px;
         }
 
-        .error-message span {
+        .error-box span {
           display: flex;
+
           align-items: center;
           justify-content: center;
+
           width: 20px;
           height: 20px;
+
           border-radius: 50%;
-          background: #a34032;
+
+          background: #c74e43;
+
           color: white;
+
           font-weight: 800;
-          flex-shrink: 0;
         }
 
-        /* =========================
+        /* =====================================================
            LOGIN BUTTON
-        ========================== */
+        ====================================================== */
 
         .login-button {
           width: 100%;
-          height: 72px;
+
+          height: 66px;
+
           border: none;
-          border-radius: 40px;
+
+          border-radius: 17px;
+
           background:
             linear-gradient(
               135deg,
-              #14534e,
-              #10443f
+              #377fd4,
+              #235db3
             );
+
           color: white;
-          font-size: 20px;
+
+          font-size: 19px;
+
           font-weight: 800;
+
           cursor: pointer;
+
           box-shadow:
             0 13px 30px
-            rgba(20, 83, 78, 0.2);
+            rgba(35,93,179,.30);
+
           transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease;
+            transform .25s ease,
+            box-shadow .25s ease;
         }
 
         .login-button:hover:not(:disabled) {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
+
           box-shadow:
-            0 17px 34px
-            rgba(20, 83, 78, 0.26);
+            0 17px 35px
+            rgba(35,93,179,.40);
         }
 
         .login-button:active:not(:disabled) {
-          transform: translateY(0);
+          transform:
+            translateY(0);
         }
 
         .login-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
+          opacity: .7;
+
+          cursor:
+            not-allowed;
         }
 
-        .arrow {
-          margin-left: 7px;
+        .login-arrow {
+          margin-left: 9px;
+
           font-size: 23px;
         }
 
-        .loading-spinner {
+        .spinner {
           display: inline-block;
-          width: 19px;
-          height: 19px;
+
+          width: 18px;
+          height: 18px;
+
           border:
             3px solid
-            rgba(255,255,255,0.35);
+            rgba(255,255,255,.3);
+
           border-top-color: white;
+
           border-radius: 50%;
+
           margin-right: 8px;
+
           vertical-align: -3px;
-          animation: spin 0.8s linear infinite;
+
+          animation:
+            spin
+            .8s
+            linear
+            infinite;
         }
 
         @keyframes spin {
           to {
-            transform: rotate(360deg);
+            transform:
+              rotate(360deg);
           }
         }
 
-        /* =========================
+        /* =====================================================
            DIVIDER
-        ========================== */
+        ====================================================== */
 
         .divider {
-          height: 1px;
-          background: #ececec;
+          display: flex;
+
+          align-items: center;
+
+          gap: 12px;
+
           margin:
-            31px
+            25px
             0
-            25px;
+            18px;
         }
 
-        .register-text {
+        .divider span {
+          flex: 1;
+
+          height: 1px;
+
+          background:
+            rgba(157,177,198,.15);
+        }
+
+        .divider p {
           margin: 0;
-          color: #5c6572;
-          font-size: 18px;
+
+          color: #718398;
+
+          font-size: 13px;
+
+          white-space: nowrap;
         }
 
-        .register-text button {
+        /* =====================================================
+           SOCIAL
+        ====================================================== */
+
+        .social-row {
+          display: grid;
+
+          grid-template-columns:
+            1fr
+            1fr;
+
+          gap: 12px;
+        }
+
+        .social-button {
+          height: 54px;
+
+          border-radius: 14px;
+
+          border:
+            1px solid
+            rgba(144,168,193,.22);
+
+          background:
+            rgba(255,255,255,.035);
+
+          color: #e1e9f1;
+
+          font-size: 16px;
+
+          font-weight: 700;
+
+          cursor: pointer;
+
+          transition:
+            background .25s ease,
+            border-color .25s ease,
+            transform .25s ease;
+        }
+
+        .social-button:hover {
+          background:
+            rgba(255,255,255,.075);
+
+          border-color:
+            rgba(151,190,224,.35);
+
+          transform:
+            translateY(-1px);
+        }
+
+        .google-icon {
+          margin-right: 9px;
+
+          color: #4285f4;
+
+          font-weight: 900;
+        }
+
+        .apple-icon {
+          margin-right: 8px;
+
+          color: white;
+
+          font-size: 20px;
+        }
+
+        /* =====================================================
+           CREATE ACCOUNT
+        ====================================================== */
+
+        .create-account {
+          margin-top: 24px;
+
+          color: #8293a6;
+
+          font-size: 15px;
+        }
+
+        .create-account button {
           border: none;
+
           background: transparent;
+
           padding: 0;
-          color: #14534e;
+
+          color: #65a9e7;
+
           font-size: inherit;
+
           font-weight: 800;
+
           cursor: pointer;
         }
 
-        .register-text button:hover {
+        .create-account button:hover {
           text-decoration: underline;
         }
 
-        /* =========================
-           BOTTOM MESSAGE
-        ========================== */
+        /* =====================================================
+           PRIVACY
+        ====================================================== */
 
-        .bottom-message {
-          margin-top: 24px;
-          color: #60716e;
-          font-size: 14px;
-          font-weight: 600;
-          letter-spacing: 0.2px;
+        .privacy-note {
+          margin-top: 20px;
+
+          color: #607389;
+
+          font-size: 11px;
+
+          letter-spacing: .2px;
         }
 
-        .bottom-message span {
-          margin: 0 8px;
+        /* =====================================================
+           OCEAN
+        ====================================================== */
+
+        .ocean {
+          position: fixed;
+
+          left: 0;
+          right: 0;
+          bottom: 0;
+
+          height: 190px;
+
+          z-index: 2;
+
+          pointer-events: none;
+
+          overflow: hidden;
         }
 
-        /* =========================
+        .wave {
+          position: absolute;
+
+          left: -10%;
+
+          width: 120%;
+
+          border-radius:
+            50% 50% 0 0;
+
+          border-top:
+            2px solid
+            rgba(96,180,220,.25);
+        }
+
+        .wave-back {
+          height: 130px;
+
+          bottom: -100px;
+
+          background:
+            rgba(18,62,91,.35);
+
+          animation:
+            waveBack
+            10s
+            ease-in-out
+            infinite;
+        }
+
+        .wave-middle {
+          height: 105px;
+
+          bottom: -83px;
+
+          background:
+            rgba(15,75,104,.30);
+
+          animation:
+            waveMiddle
+            8s
+            ease-in-out
+            infinite
+            reverse;
+        }
+
+        .wave-front {
+          height: 80px;
+
+          bottom: -63px;
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(35,115,145,.30),
+              rgba(8,34,58,.70)
+            );
+
+          animation:
+            waveFront
+            6s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes waveBack {
+
+          0%,
+          100% {
+            transform:
+              translateX(-3%)
+              rotate(1deg);
+          }
+
+          50% {
+            transform:
+              translateX(3%)
+              rotate(-1deg);
+          }
+        }
+
+        @keyframes waveMiddle {
+
+          0%,
+          100% {
+            transform:
+              translateX(3%)
+              rotate(-1deg);
+          }
+
+          50% {
+            transform:
+              translateX(-3%)
+              rotate(1deg);
+          }
+        }
+
+        @keyframes waveFront {
+
+          0%,
+          100% {
+            transform:
+              translateX(-2%);
+          }
+
+          50% {
+            transform:
+              translateX(2%);
+          }
+        }
+
+        .water-glow {
+          position: absolute;
+
+          width: 100%;
+
+          height: 90px;
+
+          bottom: 0;
+
+          background:
+            linear-gradient(
+              180deg,
+              transparent,
+              rgba(27,96,128,.15)
+            );
+
+          filter: blur(3px);
+        }
+
+        /* =====================================================
            MOBILE
-        ========================== */
+        ====================================================== */
 
         @media (max-width: 640px) {
 
           .back-button {
-            padding-top: 28px;
-            font-size: 15px;
+            padding-top: 23px;
+
+            font-size: 14px;
           }
 
-          .login-content {
+          .login-main {
             padding:
-              10px
-              15px
-              35px;
+              5px
+              13px
+              100px;
           }
 
-          .fox-area {
-            transform: scale(0.82);
-            transform-origin: bottom center;
-            margin-bottom: -52px;
+          .fox-stage {
+            width: 230px;
+            height: 185px;
+
+            margin-bottom: -34px;
+
+            transform: scale(.87);
           }
 
-          .fox-area.fox-email-mode {
+          .fox-stage.email-mode {
             transform:
-              scale(0.82)
-              translateY(5px);
+              scale(.87)
+              translateY(4px);
           }
 
-          .fox-area.fox-password-mode {
+          .fox-stage.password-mode {
             transform:
-              scale(0.82)
+              scale(.87)
               translateY(2px);
           }
 
           .login-card {
+            width: 100%;
+
             padding:
-              32px
-              20px
-              28px;
+              31px
+              19px
+              27px;
+
             border-radius: 27px;
           }
 
-          .brand-small {
-            font-size: 13px;
-            letter-spacing: 2.8px;
+          .brand {
+            font-size: 18px;
+
+            letter-spacing: 4px;
+          }
+
+          .brand-sub {
+            font-size: 9px;
+
+            letter-spacing: 2.5px;
+
+            margin-bottom: 15px;
           }
 
           .login-card h1 {
-            font-size: 42px;
+            font-size: 39px;
           }
 
-          .subtitle {
-            font-size: 17px;
-            margin-bottom: 28px;
-          }
-
-          .input-group label {
-            font-size: 15px;
-          }
-
-          .input-wrapper input {
-            height: 62px;
+          .login-description {
             font-size: 16px;
-            border-radius: 16px;
+
+            margin-bottom: 26px;
+          }
+
+          .field {
+            margin-bottom: 18px;
+          }
+
+          .input-box {
+            height: 60px;
+
+            border-radius: 15px;
+          }
+
+          .field label {
+            font-size: 14px;
+          }
+
+          .input-box input {
+            font-size: 16px;
           }
 
           .login-button {
-            height: 64px;
+            height: 61px;
+
+            border-radius: 15px;
+
             font-size: 18px;
           }
 
-          .register-text {
-            font-size: 16px;
+          .social-button {
+            height: 51px;
+
+            font-size: 14px;
           }
 
-          .bottom-message {
-            font-size: 12px;
+          .create-account {
+            font-size: 14px;
+          }
+
+          .ocean {
+            height: 130px;
           }
         }
 
@@ -1372,29 +2316,45 @@ function Login() {
           .login-card {
             padding:
               28px
-              16px
-              25px;
+              15px
+              24px;
           }
 
           .login-card h1 {
-            font-size: 36px;
+            font-size: 35px;
           }
 
-          .brand-small {
-            font-size: 11px;
+          .fox-stage {
+            transform: scale(.78);
+            margin-bottom: -48px;
+          }
+
+          .fox-stage.email-mode {
+            transform:
+              scale(.78)
+              translateY(4px);
+          }
+
+          .fox-stage.password-mode {
+            transform:
+              scale(.78)
+              translateY(2px);
           }
         }
 
-        /* REDUCE MOTION ACCESSIBILITY */
+        /* =====================================================
+           REDUCED MOTION
+        ====================================================== */
 
         @media (prefers-reduced-motion: reduce) {
+
           *,
           *::before,
           *::after {
-            animation-duration: 0.01ms !important;
+            animation-duration: .01ms !important;
             animation-iteration-count: 1 !important;
-            scroll-behavior: auto !important;
           }
+
         }
 
       `}</style>
