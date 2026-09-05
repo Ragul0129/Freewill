@@ -63,7 +63,9 @@ function Home() {
       setUserRole(profile?.role || "user");
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -75,10 +77,8 @@ function Home() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
 
-      {/* =========================================================
-          NAVBAR
-      ========================================================= */}
-      <header className="absolute inset-x-0 top-0 z-50">
+      {/* ================= NAVBAR ================= */}
+      <header className="absolute left-0 right-0 top-0 z-50">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <div className="flex items-center justify-between">
 
@@ -90,23 +90,39 @@ function Home() {
             </Link>
 
             <nav className="hidden items-center gap-8 text-sm font-medium text-white/90 lg:flex">
-              <Link to="/home" className="transition hover:text-[#e9ad3d]">
+
+              <Link
+                to="/home"
+                className="transition hover:text-[#e9ad3d]"
+              >
                 Home
               </Link>
 
-              <a href="#about" className="transition hover:text-[#e9ad3d]">
+              <a
+                href="#about"
+                className="transition hover:text-[#e9ad3d]"
+              >
                 About
               </a>
 
-              <a href="#experts" className="transition hover:text-[#e9ad3d]">
+              <a
+                href="#experts"
+                className="transition hover:text-[#e9ad3d]"
+              >
                 Experts
               </a>
 
-              <a href="#services" className="transition hover:text-[#e9ad3d]">
+              <a
+                href="#services"
+                className="transition hover:text-[#e9ad3d]"
+              >
                 Services
               </a>
 
-              <a href="#process" className="transition hover:text-[#e9ad3d]">
+              <a
+                href="#process"
+                className="transition hover:text-[#e9ad3d]"
+              >
                 How It Works
               </a>
 
@@ -116,6 +132,7 @@ function Home() {
               >
                 Appointment
               </Link>
+
             </nav>
 
             <div className="flex items-center gap-3">
@@ -127,6 +144,7 @@ function Home() {
                 Get Started
               </Link>
 
+              {/* THREE DOT / MENU */}
               <div className="relative">
 
                 <button
@@ -156,6 +174,7 @@ function Home() {
                       </p>
                     </div>
 
+                    {/* ================= EXPERT ================= */}
                     {userRole === "expert" ? (
                       <>
                         <button
@@ -194,7 +213,10 @@ function Home() {
                           <span>My Services</span>
                         </button>
                       </>
+
                     ) : userRole === "admin" ? (
+
+                      /* ================= ADMIN ================= */
                       <button
                         type="button"
                         onClick={() => {
@@ -206,7 +228,10 @@ function Home() {
                         <span className="text-xl">🛡️</span>
                         <span>Admin Dashboard</span>
                       </button>
+
                     ) : (
+
+                      /* ================= USER ================= */
                       <>
                         <button
                           type="button"
@@ -243,47 +268,12 @@ function Home() {
                             <svg
                               viewBox="0 0 24 24"
                               className="h-5 w-5 fill-current"
-                              aria-hidden="true"
                             >
                               <path d="M20.52 3.48A11.86 11.86 0 0 0 12.04 0C5.48 0 .13 5.35.13 11.91c0 2.1.55 4.15 1.59 5.96L.02 24l6.27-1.64a11.86 11.86 0 0 0 5.74 1.47h.01c6.56 0 11.91-5.35 11.91-11.91 0-3.18-1.24-6.17-3.43-8.44ZM12.04 21.8h-.01a9.86 9.86 0 0 1-5.03-1.38l-.36-.21-3.72.97.99-3.63-.23-.37a9.85 9.85 0 0 1-1.51-5.27C2.17 6.56 6.6 2.2 12.04 2.2c2.64 0 5.12 1.03 6.98 2.89a9.83 9.83 0 0 1 2.89 6.99c0 5.43-4.43 9.72-9.87 9.72Zm5.4-7.29c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.23-.65.08-.3-.15-1.25-.46-2.39-1.47-.88-.78-1.47-1.74-1.64-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52-.18-.01-.38-.01-.58-.01-.2 0-.53.08-.8.38-.28.3-1.05 1.03-1.05 2.51s1.08 2.91 1.23 3.11c.15.2 2.12 3.24 5.13 4.54.72.31 1.28.5 1.72.64.72.23 1.37.2 1.88.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35Z" />
                             </svg>
                           </span>
-                          <span>WhatsApp</span>
-                        </a>
 
-                        <a
-                          href="https://www.instagram.com/simonanandhraj/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setMenuOpen(false)}
-                          className="flex w-full items-center gap-4 px-5 py-4 text-left text-sm font-semibold text-[#173d3a] transition hover:bg-[#f7f4ed]"
-                        >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white">
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="h-5 w-5 fill-none stroke-current"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <rect
-                                x="3"
-                                y="3"
-                                width="18"
-                                height="18"
-                                rx="5"
-                              />
-                              <circle cx="12" cy="12" r="4" />
-                              <circle
-                                cx="17.5"
-                                cy="6.5"
-                                r="1"
-                                className="fill-current stroke-none"
-                              />
-                            </svg>
-                          </span>
-                          <span>Instagram</span>
+                          <span>WhatsApp</span>
                         </a>
                       </>
                     )}
@@ -296,21 +286,23 @@ function Home() {
                       <span className="text-xl">🚪</span>
                       <span>Logout</span>
                     </button>
+
                   </div>
                 )}
+
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* =========================================================
-          HERO
-      ========================================================= */}
+      {/* ================= HERO ================= */}
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
 
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
+
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
+
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-6 pb-32 pt-32 md:pt-40">
@@ -318,15 +310,6 @@ function Home() {
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
 
             <div className="max-w-2xl">
-
-              <div className="mb-6 flex items-center gap-3">
-                <span className="text-lg tracking-widest text-[#eab34a]">
-                  ★★★★★
-                </span>
-                <span className="text-sm text-white/70">
-                  Human Empowerment
-                </span>
-              </div>
 
               <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a] md:text-base">
                 FREEWILL – Human Empowerment
@@ -395,6 +378,7 @@ function Home() {
                 </div>
 
               </div>
+
             </div>
 
             <div className="relative flex justify-center lg:justify-end">
@@ -408,18 +392,6 @@ function Home() {
                 alt="FREEWILL Human Empowerment"
                 className="relative z-10 max-h-[570px] w-full max-w-[520px] object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.35)]"
               />
-
-              <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
-                <p className="font-serif text-3xl text-[#eab34a]">
-                  “
-                </p>
-                <p className="text-sm font-semibold leading-6 text-white">
-                  Your journey towards self-understanding starts here.
-                </p>
-                <p className="mt-2 text-xs text-white/50">
-                  FREEWILL Human Empowerment
-                </p>
-              </div>
 
             </div>
 
@@ -438,12 +410,14 @@ function Home() {
             />
           </svg>
         </div>
+
       </section>
 
-      {/* =========================================================
-          ABOUT FREEWILL
-      ========================================================= */}
-      <section id="about" className="bg-[#f7f4ed] py-20 md:py-28">
+      {/* ================= ABOUT ================= */}
+      <section
+        id="about"
+        className="bg-[#f7f4ed] py-20 md:py-28"
+      >
 
         <div className="mx-auto max-w-6xl px-6">
 
@@ -484,243 +458,35 @@ function Home() {
 
             </div>
 
-            {/* =====================================================
-                PREMIUM MENTAL WELLNESS ANIMATION
-            ===================================================== */}
+            {/* ================= VIDEO ================= */}
             <div className="relative">
 
               <div className="absolute -inset-5 rounded-[2rem] bg-[#e6d9bb]/50" />
 
               <div className="relative overflow-hidden rounded-[2rem] bg-[#0d4743] p-6 md:p-8">
 
-                <div className="relative flex h-[420px] items-center justify-center overflow-hidden rounded-[1.5rem] bg-[#083b38]">
+                <div className="relative h-[420px] overflow-hidden rounded-[1.5rem] bg-[#083b38]">
 
-                  {/* Soft ambient glow */}
-                  <div className="absolute h-72 w-72 animate-pulse rounded-full bg-[#eab34a]/10 blur-3xl" />
+                  <video
+                    className="h-full w-full object-cover"
+                    src="/mental-wellness.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-label="FREEWILL mental wellness animation"
+                  />
 
-                  {/* Floating particles */}
-                  <div className="absolute left-[18%] top-[20%] h-2 w-2 animate-pulse rounded-full bg-[#eab34a]/60" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#083b38]/80 via-transparent to-[#083b38]/10" />
 
-                  <div className="absolute right-[20%] top-[28%] h-1.5 w-1.5 animate-pulse rounded-full bg-white/40" />
-
-                  <div className="absolute bottom-[25%] left-[25%] h-1.5 w-1.5 animate-pulse rounded-full bg-[#eab34a]/50" />
-
-                  <div className="absolute bottom-[22%] right-[27%] h-2 w-2 animate-pulse rounded-full bg-white/30" />
-
-                  {/* Breathing rings */}
-                  <svg
-                    viewBox="0 0 400 400"
-                    className="relative z-10 h-[330px] w-[330px] md:h-[370px] md:w-[370px]"
-                  >
-
-                    <defs>
-
-                      <radialGradient id="wellnessGlow">
-                        <stop
-                          offset="0%"
-                          stopColor="#eab34a"
-                          stopOpacity="0.45"
-                        />
-                        <stop
-                          offset="45%"
-                          stopColor="#eab34a"
-                          stopOpacity="0.12"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#eab34a"
-                          stopOpacity="0"
-                        />
-                      </radialGradient>
-
-                      <linearGradient
-                        id="wellnessGold"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#eab34a"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#c88d22"
-                        />
-                      </linearGradient>
-
-                    </defs>
-
-                    {/* Outer breathing glow */}
-                    <circle
-                      cx="200"
-                      cy="200"
-                      r="150"
-                      fill="url(#wellnessGlow)"
-                    >
-                      <animate
-                        attributeName="r"
-                        values="140;155;140"
-                        dur="5s"
-                        repeatCount="indefinite"
-                      />
-
-                      <animate
-                        attributeName="opacity"
-                        values="0.55;0.9;0.55"
-                        dur="5s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                    {/* Outer ring */}
-                    <circle
-                      cx="200"
-                      cy="200"
-                      r="125"
-                      fill="none"
-                      stroke="#eab34a"
-                      strokeOpacity="0.18"
-                      strokeWidth="1"
-                    >
-                      <animate
-                        attributeName="r"
-                        values="115;130;115"
-                        dur="5s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                    {/* Inner ring */}
-                    <circle
-                      cx="200"
-                      cy="200"
-                      r="100"
-                      fill="none"
-                      stroke="#eab34a"
-                      strokeOpacity="0.28"
-                      strokeWidth="1.5"
-                    >
-                      <animate
-                        attributeName="r"
-                        values="92;105;92"
-                        dur="5s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                    {/* Human head / mind silhouette */}
-                    <path
-                      d="M200 105
-                         C153 105 125 139 125 184
-                         C125 218 143 241 165 254
-                         C177 261 180 274 180 292
-                         L220 292
-                         C220 274 223 261 235 254
-                         C257 241 275 218 275 184
-                         C275 139 247 105 200 105Z"
-                      fill="#f7f4ed"
-                      fillOpacity="0.96"
-                    />
-
-                    {/* Neck */}
-                    <path
-                      d="M178 286 L178 315
-                         C178 327 166 334 154 338
-                         L246 338
-                         C234 334 222 327 222 315
-                         L222 286Z"
-                      fill="#f7f4ed"
-                      fillOpacity="0.96"
-                    />
-
-                    {/* Inner mind glow */}
-                    <circle
-                      cx="200"
-                      cy="185"
-                      r="35"
-                      fill="url(#wellnessGlow)"
-                    >
-                      <animate
-                        attributeName="r"
-                        values="28;42;28"
-                        dur="4s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                    {/* Consciousness line */}
-                    <path
-                      d="M168 183
-                         C181 168 192 197 203 181
-                         C213 166 222 190 235 176"
-                      fill="none"
-                      stroke="url(#wellnessGold)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    >
-                      <animate
-                        attributeName="stroke-opacity"
-                        values="0.45;1;0.45"
-                        dur="3s"
-                        repeatCount="indefinite"
-                      />
-                    </path>
-
-                    {/* Second consciousness line */}
-                    <path
-                      d="M170 207
-                         C183 192 193 218 204 202
-                         C215 187 224 211 233 199"
-                      fill="none"
-                      stroke="#0d4743"
-                      strokeOpacity="0.45"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-
-                    {/* Golden center point */}
-                    <circle
-                      cx="200"
-                      cy="185"
-                      r="5"
-                      fill="#eab34a"
-                    >
-                      <animate
-                        attributeName="r"
-                        values="4;7;4"
-                        dur="2.5s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                    {/* Orbiting dot */}
-                    <circle
-                      cx="200"
-                      cy="65"
-                      r="4"
-                      fill="#eab34a"
-                    >
-                      <animateTransform
-                        attributeName="transform"
-                        type="rotate"
-                        from="0 200 200"
-                        to="360 200 200"
-                        dur="10s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-
-                  </svg>
-
-                  <div className="absolute bottom-7 left-0 right-0 z-20 text-center">
+                  <div className="pointer-events-none absolute bottom-7 left-0 right-0 z-20 text-center">
 
                     <p className="text-[10px] uppercase tracking-[0.3em] text-[#eab34a]">
                       Mind · Balance · Growth
                     </p>
 
-                    <p className="mt-2 text-sm text-white/60">
+                    <p className="mt-2 text-sm text-white/70">
                       Pause. Understand. Transform.
                     </p>
 
@@ -751,9 +517,7 @@ function Home() {
         </div>
       </section>
 
-      {/* =========================================================
-          WHY FREEWILL
-      ========================================================= */}
+      {/* ================= WHY FREEWILL ================= */}
       <section className="bg-white py-20 md:py-24">
 
         <div className="mx-auto max-w-7xl px-6">
@@ -777,6 +541,7 @@ function Home() {
           <div className="mt-14 grid gap-7 md:grid-cols-3">
 
             <div className="rounded-[2rem] bg-[#f3f7f5] p-8 transition hover:-translate-y-1 hover:shadow-xl">
+
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
                 🧠
               </div>
@@ -789,9 +554,11 @@ function Home() {
                 Explore your thoughts, emotions and wellbeing through
                 simple self-assessment tools.
               </p>
+
             </div>
 
             <div className="rounded-[2rem] bg-[#f8f1e1] p-8 transition hover:-translate-y-1 hover:shadow-xl">
+
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e8a83b] text-2xl">
                 💬
               </div>
@@ -804,9 +571,11 @@ function Home() {
                 Connect with counselling professionals when you need
                 guidance and support.
               </p>
+
             </div>
 
             <div className="rounded-[2rem] bg-[#edf4f2] p-8 transition hover:-translate-y-1 hover:shadow-xl">
+
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
                 🌱
               </div>
@@ -819,15 +588,14 @@ function Home() {
                 Turn awareness into meaningful action and create a more
                 empowered direction for your life.
               </p>
+
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          QUOTE
-      ========================================================= */}
+      {/* ================= QUOTE ================= */}
       <section className="bg-[#f7f4ed] py-20">
 
         <div className="mx-auto max-w-4xl px-6 text-center">
@@ -852,9 +620,7 @@ function Home() {
         </div>
       </section>
 
-      {/* =========================================================
-          PROCESS
-      ========================================================= */}
+      {/* ================= PROCESS ================= */}
       <section
         id="process"
         className="bg-[#0d4743] py-20 text-white md:py-24"
@@ -877,6 +643,7 @@ function Home() {
           <div className="mt-14 grid gap-8 md:grid-cols-3">
 
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+
               <span className="text-5xl font-black text-[#eab34a]">
                 01
               </span>
@@ -889,9 +656,11 @@ function Home() {
                 Complete our simple wellbeing questionnaire and reflect
                 on your current state.
               </p>
+
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+
               <span className="text-5xl font-black text-[#eab34a]">
                 02
               </span>
@@ -904,9 +673,11 @@ function Home() {
                 Receive an easy-to-understand overview that helps you
                 recognise areas that may need attention.
               </p>
+
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+
               <span className="text-5xl font-black text-[#eab34a]">
                 03
               </span>
@@ -919,15 +690,14 @@ function Home() {
                 Book an appointment and connect with professional
                 counselling support.
               </p>
+
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          EXPERTS
-      ========================================================= */}
+      {/* ================= EXPERTS ================= */}
       <section
         id="experts"
         className="bg-[#f7f4ed] py-20 md:py-28"
@@ -959,8 +729,6 @@ function Home() {
 
               <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
 
-                <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-[#eab34a]/20" />
-
                 <img
                   src={bossImage}
                   alt="Simon Anandh Raj"
@@ -987,18 +755,10 @@ function Home() {
                   Emotional Intelligence Coach
                 </p>
 
-                <p className="mt-4 text-sm leading-6 text-gray-600">
-                  Training, Coaching & Mentoring
-                </p>
-
                 <p className="mt-5 text-sm leading-7 text-gray-600">
-                  Simon Anandh Raj is the Founder & CEO and an experienced
-                  Emotional Intelligence Coach with 26 years of professional
-                  experience in training, coaching, mentoring and human
-                  development. His work focuses on helping individuals and
-                  organisations develop emotional intelligence, improve
-                  self-awareness, strengthen relationships and unlock their
-                  potential.
+                  Experienced Emotional Intelligence Coach with 26 years
+                  of professional experience in training, coaching,
+                  mentoring and human development.
                 </p>
 
                 <div className="mt-6 border-t border-gray-100 pt-5">
@@ -1045,11 +805,6 @@ function Home() {
                     </div>
 
                   </div>
-
-                  <p className="mt-4 text-xs text-gray-400">
-                    Extended sessions and specialised programs may range
-                    from ₹5,000 to ₹50,000.
-                  </p>
 
                 </div>
 
@@ -1094,17 +849,9 @@ function Home() {
                   Clinical Psychologist & Project Head
                 </p>
 
-                <p className="mt-4 text-sm leading-6 text-gray-600">
-                  Training, Counselling & Coaching
-                </p>
-
                 <p className="mt-5 text-sm leading-7 text-gray-600">
-                  Jeevitha S is a Clinical Psychologist and Project Head
-                  with 5 years of experience in counselling, coaching and
-                  professional training. She focuses on creating a supportive
-                  and structured environment where individuals can gain
-                  clarity, develop emotional awareness and work towards
-                  meaningful personal growth.
+                  Clinical Psychologist and Project Head with experience
+                  in counselling, coaching and professional training.
                 </p>
 
                 <div className="mt-6 border-t border-gray-100 pt-5">
@@ -1152,11 +899,6 @@ function Home() {
 
                   </div>
 
-                  <p className="mt-4 text-xs text-gray-400">
-                    Session pricing may range from ₹1,000 to ₹10,000
-                    depending on the service.
-                  </p>
-
                 </div>
 
                 <Link
@@ -1200,16 +942,9 @@ function Home() {
                   Life Coach & Content Head
                 </p>
 
-                <p className="mt-4 text-sm leading-6 text-gray-600">
-                  Training & Content Management
-                </p>
-
                 <p className="mt-5 text-sm leading-7 text-gray-600">
-                  Rahul K.P is a Life Coach and Content Head with 7 years
-                  of experience in training and content management. His work
-                  combines personal development, structured learning and
-                  effective communication to help individuals build confidence,
-                  develop practical skills and move towards their goals.
+                  Life Coach and Content Head with 7 years of experience
+                  in training and content management.
                 </p>
 
                 <div className="mt-6 border-t border-gray-100 pt-5">
@@ -1234,11 +969,6 @@ function Home() {
 
                   </div>
 
-                  <p className="mt-5 text-xs text-gray-400">
-                    Service pricing will be available based on the selected
-                    program.
-                  </p>
-
                 </div>
 
                 <Link
@@ -1255,9 +985,7 @@ function Home() {
         </div>
       </section>
 
-      {/* =========================================================
-          SERVICES
-      ========================================================= */}
+      {/* ================= SERVICES ================= */}
       <section
         id="services"
         className="bg-white py-20 md:py-24"
@@ -1279,7 +1007,7 @@ function Home() {
 
           <div className="mt-14 grid gap-7 md:grid-cols-3">
 
-            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+            <div className="rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
 
               <div className="text-4xl">
                 🧠
@@ -1303,7 +1031,7 @@ function Home() {
 
             </div>
 
-            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+            <div className="rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
 
               <div className="text-4xl">
                 💬
@@ -1327,7 +1055,7 @@ function Home() {
 
             </div>
 
-            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+            <div className="rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
 
               <div className="text-4xl">
                 📅
@@ -1356,9 +1084,7 @@ function Home() {
         </div>
       </section>
 
-      {/* =========================================================
-          CTA
-      ========================================================= */}
+      {/* ================= CTA ================= */}
       <section className="bg-[#f7f4ed] py-20">
 
         <div className="mx-auto max-w-6xl px-6">
@@ -1399,14 +1125,13 @@ function Home() {
                 </Link>
 
               </div>
+
             </div>
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          FOOTER
-      ========================================================= */}
+      {/* ================= FOOTER ================= */}
       <footer className="bg-[#082f2d] text-white">
 
         <div className="mx-auto max-w-7xl px-6 py-12">
@@ -1481,6 +1206,7 @@ function Home() {
                 </Link>
 
               </div>
+
             </div>
 
             <div>
