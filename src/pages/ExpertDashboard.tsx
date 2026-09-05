@@ -25,10 +25,15 @@ type Booking = {
   status: string;
   notes: string | null;
   created_at: string;
+
   services: {
     title: string;
     price: number;
     duration_minutes: number;
+  } | null;
+
+  payment: {
+    status: string;
   } | null;
 };
 
@@ -44,11 +49,11 @@ function ExpertDashboard() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
-  // Three-dot menu
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  // Delete confirmation
-  const [deleteBookingId, setDeleteBookingId] = useState<string | null>(null);
+  const [deleteBookingId, setDeleteBookingId] = useState<string | null>(
+    null
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
@@ -72,7 +77,6 @@ function ExpertDashboard() {
 
       setEmail(user.email || "");
 
-      // Get expert profile
       const { data: expertData, error: expertError } =
         await supabase
           .from("expert_profiles")
@@ -104,7 +108,6 @@ function ExpertDashboard() {
 
       setExpert(expertData);
 
-      // Get services created by this expert
       const { data: serviceData, error: serviceError } =
         await supabase
           .from("services")
@@ -121,13 +124,11 @@ function ExpertDashboard() {
         (service) => service.id
       );
 
-      // No services = no bookings
       if (serviceIds.length === 0) {
         setBookings([]);
         return;
       }
 
-      // Get bookings for this expert's services
       const { data: bookingData, error: bookingError } =
         await supabase
           .from("bookings")
@@ -142,6 +143,9 @@ function ExpertDashboard() {
               title,
               price,
               duration_minutes
+            ),
+            payments (
+              status
             )
           `)
           .in("service_id", serviceIds)
@@ -163,9 +167,14 @@ function ExpertDashboard() {
         status: item.status,
         notes: item.notes,
         created_at: item.created_at,
+
         services: Array.isArray(item.services)
           ? item.services[0] || null
           : item.services || null,
+
+        payment: Array.isArray(item.payments)
+          ? item.payments[0] || null
+          : item.payments || null,
       }));
 
       setBookings(formattedBookings);
@@ -297,6 +306,42 @@ function ExpertDashboard() {
     }
   };
 
+  const getPaymentStyle = (status: string | undefined) => {
+    switch (status?.toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-700";
+
+      case "failed":
+        return "bg-red-100 text-red-700";
+
+      case "refunded":
+        return "bg-purple-100 text-purple-700";
+
+      case "created":
+      default:
+        return "bg-yellow-100 text-yellow-700";
+    }
+  };
+
+  const getPaymentLabel = (status: string | undefined) => {
+    switch (status?.toLowerCase()) {
+      case "paid":
+        return "💳 Paid";
+
+      case "failed":
+        return "❌ Payment Failed";
+
+      case "refunded":
+        return "↩️ Refunded";
+
+      case "created":
+        return "⏳ Payment Pending";
+
+      default:
+        return "⏳ Payment Pending";
+    }
+  };
+
   const pendingBookings = bookings.filter(
     (booking) =>
       booking.status.toLowerCase() === "pending"
@@ -312,11 +357,15 @@ function ExpertDashboard() {
       booking.status.toLowerCase() === "completed"
   ).length;
 
+  const paidBookings = bookings.filter(
+    (booking) =>
+      booking.payment?.status?.toLowerCase() === "paid"
+  ).length;
+
   const totalRevenue = bookings
     .filter(
       (booking) =>
-        booking.status.toLowerCase() !== "cancelled" &&
-        booking.status.toLowerCase() !== "canceled"
+        booking.payment?.status?.toLowerCase() === "paid"
     )
     .reduce(
       (total, booking) =>
@@ -343,7 +392,6 @@ function ExpertDashboard() {
       className="min-h-screen bg-gray-50"
       onClick={() => setOpenMenuId(null)}
     >
-      {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
@@ -380,21 +428,18 @@ function ExpertDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Error */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
             {error}
           </div>
         )}
 
-        {/* Success */}
         {message && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4">
             {message}
           </div>
         )}
 
-        {/* Welcome */}
         <section className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 md:p-8 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div>
@@ -429,7 +474,6 @@ function ExpertDashboard() {
           </div>
         </section>
 
-        {/* Expert Status */}
         {expert && (
           <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -486,7 +530,6 @@ function ExpertDashboard() {
           </section>
         )}
 
-        {/* Stats */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             <div className="text-3xl mb-4">📅</div>
@@ -532,16 +575,20 @@ function ExpertDashboard() {
             <div className="text-3xl mb-4">💰</div>
 
             <p className="text-sm text-gray-500">
-              Booking Value
+              Paid Revenue
             </p>
 
             <p className="text-3xl font-bold text-gray-900 mt-1">
               ₹{totalRevenue}
             </p>
+
+            <p className="text-xs text-gray-400 mt-2">
+              {paidBookings} paid booking
+              {paidBookings === 1 ? "" : "s"}
+            </p>
           </div>
         </section>
 
-        {/* Quick Actions */}
         <section className="mb-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">
             Quick Actions
@@ -596,7 +643,6 @@ function ExpertDashboard() {
           </div>
         </section>
 
-        {/* Appointments */}
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -624,74 +670,142 @@ function ExpertDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {bookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                    {/* Booking information */}
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h4 className="text-xl font-bold text-gray-900">
-                          {booking.services?.title ||
-                            "Counseling Session"}
-                        </h4>
+              {bookings.map((booking) => {
+                const paymentStatus =
+                  booking.payment?.status?.toLowerCase();
 
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusStyle(
-                            booking.status
-                          )}`}
-                        >
-                          {booking.status}
-                        </span>
-                      </div>
+                return (
+                  <div
+                    key={booking.id}
+                    className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h4 className="text-xl font-bold text-gray-900">
+                            {booking.services?.title ||
+                              "Counseling Session"}
+                          </h4>
 
-                      <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-600">
-                        <span>
-                          📅{" "}
-                          {formatDate(booking.booking_date)}
-                        </span>
-
-                        <span>
-                          ⏰{" "}
-                          {formatTime(booking.start_time)}
-                        </span>
-
-                        {booking.services && (
-                          <span>
-                            ⌛{" "}
-                            {booking.services.duration_minutes}{" "}
-                            min
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusStyle(
+                              booking.status
+                            )}`}
+                          >
+                            {booking.status}
                           </span>
-                        )}
 
-                        {booking.services && (
-                          <span className="font-semibold text-gray-900">
-                            ₹{booking.services.price}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStyle(
+                              paymentStatus
+                            )}`}
+                          >
+                            {getPaymentLabel(paymentStatus)}
                           </span>
-                        )}
-                      </div>
-
-                      {booking.notes && (
-                        <div className="mt-4 bg-gray-50 rounded-xl p-4">
-                          <p className="text-xs text-gray-500 uppercase tracking-wide">
-                            User Notes
-                          </p>
-
-                          <p className="text-sm text-gray-700 mt-1">
-                            {booking.notes}
-                          </p>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 self-start lg:self-center">
-                      {booking.status.toLowerCase() ===
-                        "pending" && (
-                        <>
+                        <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-600">
+                          <span>
+                            📅{" "}
+                            {formatDate(booking.booking_date)}
+                          </span>
+
+                          <span>
+                            ⏰{" "}
+                            {formatTime(booking.start_time)}
+                          </span>
+
+                          {booking.services && (
+                            <span>
+                              ⌛{" "}
+                              {booking.services.duration_minutes}{" "}
+                              min
+                            </span>
+                          )}
+
+                          {booking.services && (
+                            <span className="font-semibold text-gray-900">
+                              ₹{booking.services.price}
+                            </span>
+                          )}
+                        </div>
+
+                        {booking.notes && (
+                          <div className="mt-4 bg-gray-50 rounded-xl p-4">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">
+                              User Notes
+                            </p>
+
+                            <p className="text-sm text-gray-700 mt-1">
+                              {booking.notes}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="mt-4">
+                          {paymentStatus === "paid" ? (
+                            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-2 text-sm font-semibold">
+                              💳 Payment completed successfully
+                            </div>
+                          ) : paymentStatus === "failed" ? (
+                            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-2 text-sm font-semibold">
+                              ❌ Payment failed
+                            </div>
+                          ) : paymentStatus === "refunded" ? (
+                            <div className="inline-flex items-center gap-2 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl px-4 py-2 text-sm font-semibold">
+                              ↩️ Payment refunded
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl px-4 py-2 text-sm font-semibold">
+                              ⏳ Payment not completed
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start lg:self-center">
+                        {booking.status.toLowerCase() ===
+                          "pending" && (
+                          <>
+                            <button
+                              type="button"
+                              disabled={
+                                actionLoading === booking.id
+                              }
+                              onClick={() =>
+                                updateBookingStatus(
+                                  booking.id,
+                                  "confirmed"
+                                )
+                              }
+                              className="px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
+                            >
+                              {actionLoading === booking.id
+                                ? "Updating..."
+                                : "✓ Confirm"}
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={
+                                actionLoading === booking.id
+                              }
+                              onClick={() =>
+                                updateBookingStatus(
+                                  booking.id,
+                                  "cancelled"
+                                )
+                              }
+                              className="px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-semibold hover:bg-red-100 transition disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+
+                        {booking.status.toLowerCase() ===
+                          "confirmed" && (
                           <button
                             type="button"
                             disabled={
@@ -700,106 +814,67 @@ function ExpertDashboard() {
                             onClick={() =>
                               updateBookingStatus(
                                 booking.id,
-                                "confirmed"
+                                "completed"
                               )
                             }
-                            className="px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
+                            className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
                           >
                             {actionLoading === booking.id
                               ? "Updating..."
-                              : "✓ Confirm"}
+                              : "✓ Mark Completed"}
                           </button>
+                        )}
 
+                        <div className="relative">
                           <button
                             type="button"
-                            disabled={
-                              actionLoading === booking.id
-                            }
-                            onClick={() =>
-                              updateBookingStatus(
-                                booking.id,
-                                "cancelled"
-                              )
-                            }
-                            className="px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-semibold hover:bg-red-100 transition disabled:opacity-50"
+                            aria-label="Appointment options"
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              setOpenMenuId((current) =>
+                                current === booking.id
+                                  ? null
+                                  : booking.id
+                              );
+                            }}
+                            className="w-11 h-11 rounded-xl border border-gray-200 bg-white text-gray-700 text-2xl font-bold hover:bg-gray-50 transition flex items-center justify-center"
                           >
-                            Cancel
+                            ⋮
                           </button>
-                        </>
-                      )}
 
-                      {booking.status.toLowerCase() ===
-                        "confirmed" && (
-                        <button
-                          type="button"
-                          disabled={
-                            actionLoading === booking.id
-                          }
-                          onClick={() =>
-                            updateBookingStatus(
-                              booking.id,
-                              "completed"
-                            )
-                          }
-                          className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-                        >
-                          {actionLoading === booking.id
-                            ? "Updating..."
-                            : "✓ Mark Completed"}
-                        </button>
-                      )}
-
-                      {/* Three-dot menu */}
-                      <div className="relative">
-                        <button
-                          type="button"
-                          aria-label="Appointment options"
-                          onClick={(e) => {
-                            e.stopPropagation();
-
-                            setOpenMenuId((current) =>
-                              current === booking.id
-                                ? null
-                                : booking.id
-                            );
-                          }}
-                          className="w-11 h-11 rounded-xl border border-gray-200 bg-white text-gray-700 text-2xl font-bold hover:bg-gray-50 transition flex items-center justify-center"
-                        >
-                          ⋮
-                        </button>
-
-                        {openMenuId === booking.id && (
-                          <div
-                            className="absolute right-0 top-12 z-30 w-56 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
-                            onClick={(e) =>
-                              e.stopPropagation()
-                            }
-                          >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                setDeleteBookingId(
-                                  booking.id
-                                );
-                              }}
-                              className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                          {openMenuId === booking.id && (
+                            <div
+                              className="absolute right-0 top-12 z-30 w-56 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+                              onClick={(e) =>
+                                e.stopPropagation()
+                              }
                             >
-                              🗑️ Delete Appointment
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  setDeleteBookingId(
+                                    booking.id
+                                  );
+                                }}
+                                className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                              >
+                                🗑️ Delete Appointment
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
       </main>
 
-      {/* Delete Confirmation Modal */}
       {deleteBookingId && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
