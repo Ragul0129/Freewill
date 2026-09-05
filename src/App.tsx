@@ -23,9 +23,14 @@ function App() {
   return (
     <Routes>
       {/* Public Pages */}
-      <Route path="/" element={<Home />} />
+
+      {/* Website opening page → Sign Up / Register */}
+      <Route path="/" element={<Register />} />
+
       <Route path="/login" element={<Login />} />
+
       <Route path="/register" element={<Register />} />
+
       <Route path="/home" element={<Home />} />
 
       <Route
@@ -65,6 +70,7 @@ function App() {
       />
 
       {/* User */}
+
       <Route
         path="/dashboard"
         element={
@@ -84,6 +90,7 @@ function App() {
       />
 
       {/* Expert */}
+
       <Route
         path="/expert-dashboard"
         element={
@@ -112,6 +119,7 @@ function App() {
       />
 
       {/* Admin */}
+
       <Route
         path="/admin-dashboard"
         element={
@@ -121,8 +129,8 @@ function App() {
         }
       />
 
-      {/* Unknown route */}
-      <Route path="*" element={<Home />} />
+      {/* Unknown route → Sign Up */}
+      <Route path="*" element={<Register />} />
     </Routes>
   );
 }
