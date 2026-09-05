@@ -1,6 +1,5 @@
-import type { FormEvent } from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -8,583 +7,757 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-type FocusMode = "none" | "email" | "password";
-
-export default function Login() {
+function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const [focusMode, setFocusMode] = useState<FocusMode>("none");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+  const [focusedField, setFocusedField] = useState<
+    "email" | "password" | null
+  >(null);
+
+  const passwordMode =
+    focusedField === "password" || password.length > 0;
+
+  const emailMode =
+    focusedField === "email" || email.length > 0;
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setErrorMessage("");
+    setError("");
 
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage("Please enter your email and password.");
+    if (!email || !password) {
+      setError("Please enter your email and password.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      setLoading(true);
+      const { data, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (error) {
-        setErrorMessage(error.message);
+      if (loginError) {
+        setError(loginError.message);
+        setLoading(false);
         return;
       }
 
       if (!data.user) {
-        setErrorMessage("Login failed. Please try again.");
+        setError("Login failed. Please try again.");
+        setLoading(false);
         return;
       }
 
-      navigate("/home");
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrorMessage("Something went wrong. Please try again.");
+      const { data: profile, error: profileError } =
+        await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+      if (profileError) {
+        console.error(profileError);
+        navigate("/home");
+        return;
+      }
+
+      if (profile?.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (profile?.role === "expert") {
+        navigate("/expert-dashboard");
+      } else {
+        navigate("/home");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#020b20] text-white">
-      {/* ANIMATED BACKGROUND */}
+    <div className="freewill-login">
 
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[8%] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
+      {/* =====================================================
+          NIGHT SKY BACKGROUND
+      ====================================================== */}
 
-        <div className="absolute left-[5%] top-[25%] h-[260px] w-[260px] rounded-full bg-cyan-500/10 blur-[90px]" />
+      <div className="sky">
 
-        <div className="absolute right-[5%] top-[35%] h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[100px]" />
+        <div className="big-glow" />
 
         {/* Stars */}
-        <div className="absolute left-[8%] top-[12%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.7)]" />
-        <div className="absolute left-[18%] top-[22%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.6)]" />
-        <div className="absolute left-[30%] top-[7%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_12px_4px_rgba(255,255,255,0.7)]" />
-        <div className="absolute left-[42%] top-[17%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.7)]" />
-        <div className="absolute left-[57%] top-[9%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_12px_4px_rgba(255,255,255,0.7)]" />
-        <div className="absolute left-[72%] top-[19%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.6)]" />
-        <div className="absolute left-[84%] top-[10%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_12px_4px_rgba(255,255,255,0.7)]" />
-        <div className="absolute left-[92%] top-[29%] h-1 w-1 animate-pulse rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.6)]" />
-
-        <div className="absolute left-[12%] top-[42%] h-1 w-1 animate-pulse rounded-full bg-white/80" />
-        <div className="absolute left-[26%] top-[35%] h-1 w-1 animate-pulse rounded-full bg-white/70" />
-        <div className="absolute left-[68%] top-[38%] h-1 w-1 animate-pulse rounded-full bg-white/80" />
-        <div className="absolute left-[89%] top-[47%] h-1 w-1 animate-pulse rounded-full bg-white/70" />
+        <span className="star s1" />
+        <span className="star s2" />
+        <span className="star s3" />
+        <span className="star s4" />
+        <span className="star s5" />
+        <span className="star s6" />
+        <span className="star s7" />
+        <span className="star s8" />
+        <span className="star s9" />
+        <span className="star s10" />
+        <span className="star s11" />
+        <span className="star s12" />
+        <span className="star s13" />
+        <span className="star s14" />
+        <span className="star s15" />
 
         {/* Shooting stars */}
-        <div className="shooting-star shooting-star-one" />
-        <div className="shooting-star shooting-star-two" />
-        <div className="shooting-star shooting-star-three" />
+        <div className="shooting-star shooting-one" />
+        <div className="shooting-star shooting-two" />
+
+        {/* Soft floating particles */}
+        <span className="particle p1" />
+        <span className="particle p2" />
+        <span className="particle p3" />
+        <span className="particle p4" />
+        <span className="particle p5" />
+
       </div>
 
-      {/* TOP NAV */}
+      {/* =====================================================
+          BACK BUTTON
+      ====================================================== */}
 
-      <div className="relative z-30 mx-auto flex max-w-6xl px-5 pt-8">
-        <Link
-          to="/"
-          className="group flex items-center gap-2 text-[15px] font-medium text-blue-200 transition hover:text-white"
+      <button
+        type="button"
+        className="back-button"
+        onClick={() => navigate("/")}
+      >
+        ← Back to FREEWILL
+      </button>
+
+      {/* =====================================================
+          MAIN
+      ====================================================== */}
+
+      <div className="login-main">
+
+        {/* =====================================================
+            FOX CHARACTER
+        ====================================================== */}
+
+        <div
+          className={`fox-stage ${
+            emailMode ? "email-mode" : ""
+          } ${passwordMode ? "password-mode" : ""}`}
         >
-          <span className="text-xl transition-transform duration-300 group-hover:-translate-x-1">
-            ←
-          </span>
-          Back to FREEWILL
-        </Link>
-      </div>
 
-      {/* MAIN */}
+          <div className="fox-aura" />
 
-      <main className="relative z-20 mx-auto flex min-h-[calc(100vh-70px)] max-w-5xl items-center justify-center px-4 pb-20 pt-14">
-        <div className="relative w-full max-w-[720px]">
-          {/* FOX MASCOT */}
+          <div className="fox-character">
 
-          <div className="relative z-30 flex justify-center">
-            <div
-              className={`fox-container ${
-                focusMode === "email"
-                  ? "fox-email-focus"
-                  : focusMode === "password"
-                    ? "fox-password-focus"
-                    : ""
-              }`}
-            >
-              <div className="absolute inset-0 -z-10 rounded-full bg-blue-400/20 blur-3xl" />
-
-              <div className="fox-mascot">
-                <div className="fox-ear fox-ear-left">
-                  <div className="fox-ear-inner" />
-                </div>
-
-                <div className="fox-ear fox-ear-right">
-                  <div className="fox-ear-inner" />
-                </div>
-
-                <div className="fox-head">
-                  <div className="fox-face-white" />
-
-                  <div className="fox-eye fox-eye-left">
-                    <div className="fox-eye-pupil">
-                      <div className="fox-eye-light" />
-                    </div>
-                  </div>
-
-                  <div className="fox-eye fox-eye-right">
-                    <div className="fox-eye-pupil">
-                      <div className="fox-eye-light" />
-                    </div>
-                  </div>
-
-                  <div className="fox-cheek fox-cheek-left" />
-                  <div className="fox-cheek fox-cheek-right" />
-
-                  <div className="fox-nose" />
-
-                  <div className="fox-mouth">
-                    <span />
-                    <span />
-                  </div>
-                </div>
-
-                <div className="fox-body">
-                  <div className="fox-paw fox-paw-left">
-                    <div className="paw-dot paw-dot-one" />
-                    <div className="paw-dot paw-dot-two" />
-                    <div className="paw-dot paw-dot-three" />
-                    <div className="paw-main" />
-                  </div>
-
-                  <div className="fox-paw fox-paw-right">
-                    <div className="paw-dot paw-dot-one" />
-                    <div className="paw-dot paw-dot-two" />
-                    <div className="paw-dot paw-dot-three" />
-                    <div className="paw-main" />
-                  </div>
-                </div>
-              </div>
+            {/* Ears */}
+            <div className="fox-ear fox-ear-left">
+              <div className="fox-ear-inner" />
             </div>
+
+            <div className="fox-ear fox-ear-right">
+              <div className="fox-ear-inner" />
+            </div>
+
+            {/* Head */}
+            <div className="fox-head">
+
+              {/* forehead white marking */}
+              <div className="fox-forehead" />
+
+              {/* left eye */}
+              <div className="fox-eye fox-eye-left">
+                <div className="eye-ball">
+                  <div className="eye-pupil" />
+                  <div className="eye-shine" />
+                </div>
+
+                <div className="closed-eye-line" />
+              </div>
+
+              {/* right eye */}
+              <div className="fox-eye fox-eye-right">
+                <div className="eye-ball">
+                  <div className="eye-pupil" />
+                  <div className="eye-shine" />
+                </div>
+
+                <div className="closed-eye-line" />
+              </div>
+
+              {/* eyebrows */}
+              <div className="fox-brow fox-brow-left" />
+              <div className="fox-brow fox-brow-right" />
+
+              {/* muzzle */}
+              <div className="fox-muzzle fox-muzzle-left" />
+              <div className="fox-muzzle fox-muzzle-right" />
+
+              {/* nose */}
+              <div className="fox-nose" />
+
+              {/* mouth */}
+              <div className="fox-mouth">
+                <span className="mouth-left" />
+                <span className="mouth-right" />
+              </div>
+
+              {/* cheeks */}
+              <div className="fox-cheek fox-cheek-left" />
+              <div className="fox-cheek fox-cheek-right" />
+
+            </div>
+
+            {/* Body */}
+            <div className="fox-body">
+              <div className="fox-belly" />
+            </div>
+
+            {/* Paws */}
+            <div className="fox-paw fox-paw-left">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div className="fox-paw fox-paw-right">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            {/* Keyboard */}
+            <div className="mini-keyboard">
+
+              <div className="keyboard-row">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+
+              <div className="keyboard-row">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+
+              <div className="keyboard-row">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+
+              <div className="space-key" />
+
+            </div>
+
+          </div>
+        </div>
+
+        {/* =====================================================
+            LOGIN CARD
+        ====================================================== */}
+
+        <div className="login-card">
+
+          <div className="brand">
+            FREEWILL
           </div>
 
-          {/* LOGIN CARD */}
+          <div className="brand-sub">
+            HUMAN EMPOWERMENT
+          </div>
 
-          <section className="relative z-20 -mt-2 rounded-[34px] border border-blue-300/30 bg-[#07152d]/90 px-6 pb-8 pt-14 shadow-[0_0_70px_rgba(36,119,255,0.12)] backdrop-blur-xl sm:px-10 md:px-14">
-            <div className="pointer-events-none absolute inset-0 rounded-[34px] bg-gradient-to-b from-blue-400/5 via-transparent to-cyan-400/5" />
+          <h1>Welcome Back</h1>
 
-            <div className="relative">
-              {/* BRAND */}
+          <p className="login-description">
+            Login to your FREEWILL account
+          </p>
 
-              <div className="text-center">
-                <div className="text-[17px] font-bold uppercase tracking-[0.42em] text-[#eab34a] sm:text-[20px]">
-                  FREEWILL
-                </div>
+          <form onSubmit={handleLogin}>
 
-                <div className="mt-2 flex items-center justify-center gap-3 text-[10px] font-semibold uppercase tracking-[0.34em] text-[#f2c86b] sm:text-xs">
-                  <span>•</span>
-                  <span>Human Empowerment</span>
-                  <span>•</span>
-                </div>
+            {/* EMAIL */}
 
-                <h1 className="mt-7 text-4xl font-black tracking-tight text-white sm:text-5xl">
-                  Welcome Back
-                </h1>
+            <div className="field">
 
-                <p className="mt-3 text-base text-blue-100/70 sm:text-lg">
-                  Login to your FREEWILL account
-                </p>
-              </div>
+              <label>Email Address</label>
 
-              {/* FORM */}
-
-              <form
-                onSubmit={handleLogin}
-                className="mt-10 space-y-6"
+              <div
+                className={`input-box ${
+                  focusedField === "email"
+                    ? "active"
+                    : ""
+                }`}
               >
-                {/* EMAIL */}
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-semibold text-white sm:text-base"
-                  >
-                    Email Address
-                  </label>
-
-                  <div
-                    className={`relative rounded-2xl border transition-all duration-300 ${
-                      focusMode === "email"
-                        ? "border-blue-400 bg-blue-500/[0.08] shadow-[0_0_25px_rgba(59,130,246,0.18)]"
-                        : "border-blue-200/20 bg-white/[0.035]"
-                    }`}
-                  >
-                    <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-blue-200/70">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                      >
-                        <rect
-                          x="3"
-                          y="5"
-                          width="18"
-                          height="14"
-                          rx="2"
-                        />
-                        <path d="m3 7 9 6 9-6" />
-                      </svg>
-                    </div>
-
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setFocusMode("email")}
-                      onBlur={() => setFocusMode("none")}
-                      placeholder="Enter your email"
-                      autoComplete="email"
-                      className="w-full rounded-2xl bg-transparent py-4 pl-14 pr-5 text-base text-white outline-none placeholder:text-blue-100/45 sm:py-5 sm:text-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* PASSWORD */}
-
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-sm font-semibold text-white sm:text-base"
-                  >
-                    Password
-                  </label>
-
-                  <div
-                    className={`relative rounded-2xl border transition-all duration-300 ${
-                      focusMode === "password"
-                        ? "border-blue-400 bg-blue-500/[0.08] shadow-[0_0_25px_rgba(59,130,246,0.18)]"
-                        : "border-blue-200/20 bg-white/[0.035]"
-                    }`}
-                  >
-                    <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-blue-200/70">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                      >
-                        <rect
-                          x="4"
-                          y="10"
-                          width="16"
-                          height="11"
-                          rx="2"
-                        />
-                        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                      </svg>
-                    </div>
-
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onFocus={() => setFocusMode("password")}
-                      onBlur={() => setFocusMode("none")}
-                      placeholder="Enter your password"
-                      autoComplete="current-password"
-                      className="w-full rounded-2xl bg-transparent py-4 pl-14 pr-14 text-base text-white outline-none placeholder:text-blue-100/45 sm:py-5 sm:text-lg"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-5 top-1/2 -translate-y-1/2 text-blue-200/70 transition hover:text-white"
-                      aria-label={
-                        showPassword
-                          ? "Hide password"
-                          : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <svg
-                          width="23"
-                          height="23"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                        >
-                          <path d="M3 3l18 18" />
-                          <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" />
-                          <path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5 0 8.7 4 10 8-0.5 1.5-1.4 2.9-2.5 4" />
-                          <path d="M6.6 6.7C4.8 7.9 3.5 9.7 2 12c1.3 4 5 8 10 8 1.1 0 2.2-.2 3.2-.6" />
-                        </svg>
-                      ) : (
-                        <svg
-                          width="23"
-                          height="23"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                        >
-                          <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                          <circle cx="12" cy="12" r="2.5" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* OPTIONS */}
-
-                <div className="flex items-center justify-between gap-4">
-                  <label className="flex cursor-pointer items-center gap-3 text-sm text-blue-100/70">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) =>
-                        setRememberMe(e.target.checked)
-                      }
-                      className="h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-200/40 bg-transparent checked:border-blue-400 checked:bg-blue-500"
-                    />
-
-                    <span>Remember me</span>
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setErrorMessage(
-                        "Please use the password reset option configured for your FREEWILL account."
-                      )
-                    }
-                    className="text-sm font-medium text-blue-300 transition hover:text-blue-100"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-
-                {/* ERROR */}
-
-                {errorMessage && (
-                  <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    {errorMessage}
-                  </div>
-                )}
-
-                {/* LOGIN BUTTON */}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="group relative w-full overflow-hidden rounded-2xl border border-blue-300/40 bg-gradient-to-r from-blue-500 to-blue-700 py-4 text-lg font-bold text-white shadow-[0_0_35px_rgba(37,99,235,0.28)] transition-all duration-300 hover:scale-[1.01] hover:from-blue-400 hover:to-blue-600 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-5 sm:text-xl"
-                >
-                  <span className="relative z-10">
-                    {loading ? "Signing in..." : "Login  →"}
-                  </span>
-
-                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                </button>
-              </form>
-
-              {/* DIVIDER */}
-
-              <div className="my-8 flex items-center gap-4">
-                <div className="h-px flex-1 bg-blue-200/10" />
-
-                <span className="text-sm text-blue-100/45">
-                  or continue with
+                <span className="field-icon">
+                  ✉
                 </span>
 
-                <div className="h-px flex-1 bg-blue-200/10" />
-              </div>
-
-              {/* SOCIAL BUTTONS */}
-
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setErrorMessage(
-                      "Google sign-in can be connected later through Supabase."
-                    )
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
                   }
-                  className="flex items-center justify-center gap-3 rounded-2xl border border-blue-200/15 bg-white/[0.025] px-4 py-3.5 text-base font-semibold text-white transition hover:border-blue-300/30 hover:bg-white/[0.06]"
-                >
-                  <span className="text-lg font-bold text-white">
-                    G
-                  </span>
-                  Google
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setErrorMessage(
-                      "Apple sign-in can be connected later through Supabase."
-                    )
+                  onFocus={() =>
+                    setFocusedField("email")
                   }
-                  className="flex items-center justify-center gap-3 rounded-2xl border border-blue-200/15 bg-white/[0.025] px-4 py-3.5 text-base font-semibold text-white transition hover:border-blue-300/30 hover:bg-white/[0.06]"
-                >
-                  <span className="text-xl"></span>
-                  Apple
-                </button>
+                  onBlur={() =>
+                    setFocusedField(null)
+                  }
+                  autoComplete="email"
+                />
+
               </div>
 
-              {/* REGISTER */}
-
-              <div className="mt-8 text-center text-base text-blue-100/60">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="font-semibold text-blue-300 transition hover:text-white"
-                >
-                  Create Account
-                </Link>
-              </div>
             </div>
-          </section>
-        </div>
-      </main>
 
-      {/* ANIMATED WAVES */}
+            {/* PASSWORD */}
 
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-[260px] overflow-hidden">
-        <svg
-          className="absolute bottom-0 h-full w-[160%] animate-wave-one"
-          viewBox="0 0 1600 300"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient
-              id="waveGradient1"
-              x1="0"
-              x2="1"
-              y1="0"
-              y2="0"
+            <div className="field">
+
+              <label>Password</label>
+
+              <div
+                className={`input-box ${
+                  focusedField === "password"
+                    ? "active"
+                    : ""
+                }`}
+              >
+
+                <span className="field-icon">
+                  🔒
+                </span>
+
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  onFocus={() =>
+                    setFocusedField("password")
+                  }
+                  onBlur={() =>
+                    setFocusedField(null)
+                  }
+                  autoComplete="current-password"
+                />
+
+              </div>
+
+            </div>
+
+            {/* ERROR */}
+
+            {error && (
+              <div className="error-box">
+                <span>!</span>
+                {error}
+              </div>
+            )}
+
+            {/* LOGIN */}
+
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
             >
-              <stop
-                offset="0%"
-                stopColor="#0ea5e9"
-                stopOpacity="0.05"
-              />
 
-              <stop
-                offset="50%"
-                stopColor="#38bdf8"
-                stopOpacity="0.45"
-              />
+              {loading ? (
+                <>
+                  <span className="spinner" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Login
+                  <span className="login-arrow">
+                    →
+                  </span>
+                </>
+              )}
 
-              <stop
-                offset="100%"
-                stopColor="#2563eb"
-                stopOpacity="0.08"
-              />
-            </linearGradient>
-          </defs>
+            </button>
 
-          <path
-            d="M0 210 C180 120 330 270 520 190 C720 105 850 280 1040 190 C1230 100 1390 245 1600 160 L1600 300 L0 300 Z"
-            fill="url(#waveGradient1)"
-          />
+          </form>
 
-          <path
-            d="M0 210 C180 120 330 270 520 190 C720 105 850 280 1040 190 C1230 100 1390 245 1600 160"
-            fill="none"
-            stroke="#38bdf8"
-            strokeOpacity="0.35"
-            strokeWidth="2"
-          />
-        </svg>
+          <div className="divider">
+            <span />
+            <p>or continue with</p>
+            <span />
+          </div>
 
-        <svg
-          className="absolute bottom-[-35px] h-full w-[160%] animate-wave-two"
-          viewBox="0 0 1600 300"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 220 C220 300 360 125 580 205 C790 280 940 120 1130 205 C1320 285 1460 150 1600 200 L1600 300 L0 300 Z"
-            fill="none"
-            stroke="#60a5fa"
-            strokeOpacity="0.25"
-            strokeWidth="2"
-          />
+          {/* Social buttons — visual only */}
 
-          <path
-            d="M0 245 C200 155 390 285 610 205 C830 125 1010 270 1210 195 C1370 135 1490 225 1600 180"
-            fill="none"
-            stroke="#22d3ee"
-            strokeOpacity="0.22"
-            strokeWidth="1.5"
-          />
-        </svg>
+          <div className="social-row">
+
+            <button
+              type="button"
+              className="social-button"
+              onClick={() =>
+                setError(
+                  "Google sign-in is not enabled yet."
+                )
+              }
+            >
+              <span className="google-icon">
+                G
+              </span>
+              Google
+            </button>
+
+            <button
+              type="button"
+              className="social-button"
+              onClick={() =>
+                setError(
+                  "Apple sign-in is not enabled yet."
+                )
+              }
+            >
+              <span className="apple-icon">
+                
+              </span>
+              Apple
+            </button>
+
+          </div>
+
+          <div className="create-account">
+            Don't have an account?{" "}
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/register")
+              }
+            >
+              Create Account
+            </button>
+          </div>
+
+          <div className="privacy-note">
+            🔒 Your account information is protected
+          </div>
+
+        </div>
+
       </div>
 
-      {/* STYLES */}
+      {/* =====================================================
+          OCEAN WAVES
+      ====================================================== */}
+
+      <div className="ocean">
+
+        <div className="wave wave-back" />
+        <div className="wave wave-middle" />
+        <div className="wave wave-front" />
+
+        <div className="water-glow" />
+
+      </div>
+
+      {/* =====================================================
+          CSS
+      ====================================================== */}
 
       <style>{`
-        .shooting-star {
+
+        * {
+          box-sizing: border-box;
+        }
+
+        .freewill-login {
+          min-height: 100vh;
+          width: 100%;
+          position: relative;
+          overflow-x: hidden;
+          overflow-y: auto;
+
+          background:
+            radial-gradient(
+              circle at 50% 15%,
+              #243d61 0%,
+              #172a47 24%,
+              #101d34 52%,
+              #091323 100%
+            );
+
+          color: white;
+
+          font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+        }
+
+        /* =====================================================
+           SKY
+        ====================================================== */
+
+        .sky {
           position: absolute;
-          width: 2px;
-          height: 2px;
-          background: white;
-          border-radius: 999px;
-          box-shadow:
-            0 0 8px 2px rgba(255,255,255,0.9),
-            -90px 35px 25px 1px rgba(96,165,250,0.15);
-          opacity: 0;
-          transform: rotate(-35deg);
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
         }
 
-        .shooting-star-one {
-          top: 17%;
-          left: 17%;
-          animation: shootingStar 7s linear infinite;
+        .big-glow {
+          position: absolute;
+          width: 520px;
+          height: 520px;
+
+          top: -230px;
+          left: 50%;
+          transform: translateX(-50%);
+
+          border-radius: 50%;
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(101, 165, 230, 0.20) 0%,
+              rgba(101, 165, 230, 0.07) 40%,
+              transparent 72%
+            );
+
+          animation:
+            skyGlow 7s ease-in-out infinite;
         }
 
-        .shooting-star-two {
-          top: 25%;
-          left: 73%;
-          animation: shootingStar 9s linear 2.5s infinite;
-        }
+        @keyframes skyGlow {
 
-        .shooting-star-three {
-          top: 8%;
-          left: 52%;
-          animation: shootingStar 11s linear 5s infinite;
-        }
-
-        @keyframes shootingStar {
-          0% {
-            opacity: 0;
-            transform: translate(0,0) rotate(-35deg);
+          0%,
+          100% {
+            transform:
+              translateX(-50%)
+              scale(1);
+            opacity: 0.75;
           }
 
-          5% {
+          50% {
+            transform:
+              translateX(-50%)
+              scale(1.12);
             opacity: 1;
+          }
+        }
+
+        /* =====================================================
+           STARS
+        ====================================================== */
+
+        .star {
+          position: absolute;
+
+          width: 3px;
+          height: 3px;
+
+          border-radius: 50%;
+
+          background: #ffffff;
+
+          box-shadow:
+            0 0 7px
+            rgba(180, 220, 255, 0.95);
+
+          animation:
+            starTwinkle
+            3s
+            ease-in-out
+            infinite;
+        }
+
+        .s1 {
+          top: 8%;
+          left: 12%;
+        }
+
+        .s2 {
+          top: 13%;
+          left: 27%;
+          animation-delay: .7s;
+        }
+
+        .s3 {
+          top: 9%;
+          right: 18%;
+          animation-delay: 1.4s;
+        }
+
+        .s4 {
+          top: 22%;
+          right: 8%;
+          animation-delay: 2s;
+        }
+
+        .s5 {
+          top: 31%;
+          left: 8%;
+          animation-delay: .4s;
+        }
+
+        .s6 {
+          top: 27%;
+          left: 23%;
+          animation-delay: 1.7s;
+        }
+
+        .s7 {
+          top: 36%;
+          right: 17%;
+          animation-delay: 2.3s;
+        }
+
+        .s8 {
+          top: 16%;
+          right: 35%;
+          animation-delay: 1s;
+        }
+
+        .s9 {
+          top: 44%;
+          left: 14%;
+          animation-delay: 2.5s;
+        }
+
+        .s10 {
+          top: 41%;
+          right: 7%;
+          animation-delay: .9s;
+        }
+
+        .s11 {
+          top: 52%;
+          left: 27%;
+          animation-delay: 1.9s;
+        }
+
+        .s12 {
+          top: 56%;
+          right: 29%;
+          animation-delay: .2s;
+        }
+
+        .s13 {
+          top: 67%;
+          left: 7%;
+          animation-delay: 1.2s;
+        }
+
+        .s14 {
+          top: 63%;
+          right: 10%;
+          animation-delay: 2.7s;
+        }
+
+        .s15 {
+          top: 72%;
+          right: 36%;
+          animation-delay: .5s;
+        }
+
+        @keyframes starTwinkle {
+
+          0%,
+          100% {
+            opacity: .25;
+            transform: scale(.7);
+          }
+
+          50% {
+            opacity: 1;
+            transform: scale(1.45);
+          }
+        }
+
+        /* =====================================================
+           SHOOTING STARS
+        ====================================================== */
+
+        .shooting-star {
+          position: absolute;
+
+          width: 85px;
+          height: 1px;
+
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.8),
+              transparent
+            );
+
+          transform: rotate(-28deg);
+
+          opacity: 0;
+
+          animation:
+            shooting
+            7s
+            linear
+            infinite;
+        }
+
+        .shooting-one {
+          top: 20%;
+          left: -100px;
+        }
+
+        .shooting-two {
+          top: 38%;
+          left: -100px;
+          animation-delay: 3.5s;
+        }
+
+        @keyframes shooting {
+
+          0% {
+            transform:
+              translateX(0)
+              rotate(-28deg);
+            opacity: 0;
+          }
+
+          8% {
+            opacity: .8;
           }
 
           18% {
+            transform:
+              translateX(500px)
+              rotate(-28deg);
             opacity: 0;
-            transform: translate(-170px,100px) rotate(-35deg);
           }
 
           100% {
@@ -592,327 +765,1601 @@ export default function Login() {
           }
         }
 
-        .fox-container {
+        /* =====================================================
+           PARTICLES
+        ====================================================== */
+
+        .particle {
+          position: absolute;
+
+          width: 4px;
+          height: 4px;
+
+          border-radius: 50%;
+
+          background: #72b8db;
+
+          opacity: .4;
+
+          animation:
+            floatParticle
+            6s
+            ease-in-out
+            infinite;
+        }
+
+        .p1 {
+          left: 17%;
+          top: 38%;
+        }
+
+        .p2 {
+          right: 22%;
+          top: 31%;
+          animation-delay: 1s;
+        }
+
+        .p3 {
+          left: 32%;
+          top: 22%;
+          animation-delay: 2s;
+        }
+
+        .p4 {
+          right: 11%;
+          top: 51%;
+          animation-delay: 3s;
+        }
+
+        .p5 {
+          left: 8%;
+          top: 57%;
+          animation-delay: 4s;
+        }
+
+        @keyframes floatParticle {
+
+          0%,
+          100% {
+            transform:
+              translateY(0)
+              scale(1);
+          }
+
+          50% {
+            transform:
+              translateY(-25px)
+              scale(1.5);
+          }
+        }
+
+        /* =====================================================
+           BACK BUTTON
+        ====================================================== */
+
+        .back-button {
           position: relative;
-          width: 190px;
-          height: 190px;
+          z-index: 20;
+
+          display: block;
+
+          margin:
+            0
+            auto;
+
+          padding-top: 34px;
+
+          border: none;
+          background: transparent;
+
+          color: #c6d7eb;
+
+          font-size: 16px;
+          font-weight: 700;
+
+          cursor: pointer;
+
           transition:
-            transform 500ms cubic-bezier(.2,.8,.2,1),
-            filter 500ms ease;
-          animation: foxFloat 4s ease-in-out infinite;
+            color .25s ease,
+            transform .25s ease;
         }
 
-        .fox-container.fox-email-focus {
-          transform: translateY(7px) scale(0.98);
-          filter: brightness(1.05);
+        .back-button:hover {
+          color: white;
+          transform: translateX(-4px);
         }
 
-        .fox-container.fox-password-focus {
-          transform: translateY(8px) scale(0.98);
+        /* =====================================================
+           MAIN
+        ====================================================== */
+
+        .login-main {
+          position: relative;
+          z-index: 10;
+
+          min-height:
+            calc(100vh - 70px);
+
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+
+          padding:
+            15px
+            20px
+            130px;
         }
 
-        .fox-container.fox-password-focus .fox-eye {
-          transform: scaleY(0.15);
+        /* =====================================================
+           FOX STAGE
+        ====================================================== */
+
+        .fox-stage {
+          position: relative;
+
+          width: 260px;
+          height: 210px;
+
+          margin-bottom: -32px;
+
+          z-index: 15;
+
+          transition:
+            transform .45s ease;
+        }
+
+        .fox-stage.email-mode {
+          transform:
+            translateY(4px)
+            scale(1.02);
+        }
+
+        .fox-stage.password-mode {
+          transform:
+            translateY(2px)
+            scale(1.01);
+        }
+
+        .fox-aura {
+          position: absolute;
+
+          width: 220px;
+          height: 220px;
+
+          left: 20px;
+          top: -10px;
+
+          border-radius: 50%;
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(99, 184, 230, .17),
+              transparent 68%
+            );
+
+          filter: blur(8px);
+
+          animation:
+            foxAura
+            4s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes foxAura {
+
+          0%,
+          100% {
+            transform: scale(.95);
+            opacity: .55;
+          }
+
+          50% {
+            transform: scale(1.08);
+            opacity: .9;
+          }
+        }
+
+        .fox-character {
+          position: relative;
+
+          width: 260px;
+          height: 210px;
+
+          animation:
+            foxFloat
+            4s
+            ease-in-out
+            infinite;
         }
 
         @keyframes foxFloat {
-          0%, 100% {
+
+          0%,
+          100% {
             transform: translateY(0);
           }
 
           50% {
-            transform: translateY(-7px);
+            transform: translateY(-5px);
           }
         }
 
-        .fox-mascot {
-          position: absolute;
-          left: 50%;
-          top: 0;
-          width: 175px;
-          height: 175px;
-          transform: translateX(-50%);
-        }
-
-        .fox-head {
-          position: absolute;
-          left: 23px;
-          top: 24px;
-          width: 129px;
-          height: 118px;
-          border-radius: 48% 48% 45% 45%;
-          background:
-            radial-gradient(circle at 50% 25%, #ff9d52 0 10%, transparent 11%),
-            linear-gradient(145deg, #ff8b3d, #e85b20 75%);
-          box-shadow:
-            inset -10px -10px 18px rgba(115,31,8,0.22),
-            0 15px 30px rgba(0,0,0,0.28);
-          z-index: 3;
-        }
+        /* =====================================================
+           FOX EARS
+        ====================================================== */
 
         .fox-ear {
           position: absolute;
-          top: 3px;
-          width: 54px;
-          height: 68px;
-          background: linear-gradient(145deg, #ff9144, #dc4e1c);
-          clip-path: polygon(50% 0, 100% 100%, 0 100%);
-          z-index: 2;
+
+          top: 12px;
+
+          width: 76px;
+          height: 86px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #d8894e,
+              #a95732
+            );
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+
+          z-index: 1;
         }
 
         .fox-ear-left {
-          left: 23px;
-          transform: rotate(-9deg);
+          left: 47px;
+
+          transform: rotate(-10deg);
         }
 
         .fox-ear-right {
-          right: 23px;
-          transform: rotate(9deg);
+          right: 47px;
+
+          transform: rotate(10deg);
         }
 
         .fox-ear-inner {
           position: absolute;
-          left: 50%;
-          top: 13px;
-          width: 24px;
-          height: 36px;
-          transform: translateX(-50%);
-          background: #ffd7c5;
-          clip-path: polygon(50% 0, 100% 100%, 0 100%);
+
+          width: 42px;
+          height: 51px;
+
+          top: 14px;
+          left: 17px;
+
+          background: #f3b6a0;
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
         }
 
-        .fox-face-white {
+        /* =====================================================
+           FOX HEAD
+        ====================================================== */
+
+        .fox-head {
           position: absolute;
-          left: 22px;
-          bottom: 7px;
-          width: 85px;
-          height: 69px;
-          border-radius: 50% 50% 48% 48%;
-          background: linear-gradient(180deg, #fffaf7, #f2e9e5);
+
+          width: 157px;
+          height: 133px;
+
+          top: 43px;
+          left: 51px;
+
+          border-radius:
+            48%
+            48%
+            45%
+            45%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #e18a4d,
+              #b85e32
+            );
+
+          box-shadow:
+            inset
+            0 -12px 22px
+            rgba(63, 25, 16, .18),
+
+            0 15px 35px
+            rgba(0,0,0,.28);
+
+          z-index: 4;
         }
+
+        .fox-forehead {
+          position: absolute;
+
+          width: 49px;
+          height: 67px;
+
+          top: 0;
+          left: 54px;
+
+          background: #f8f3eb;
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+        }
+
+        /* =====================================================
+           EYES
+        ====================================================== */
 
         .fox-eye {
           position: absolute;
-          top: 45px;
-          width: 25px;
-          height: 29px;
-          border-radius: 50%;
-          background: #eaf5ff;
-          transition: transform 350ms ease;
-          overflow: hidden;
-          box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+
+          top: 54px;
+
+          width: 34px;
+          height: 27px;
+
+          z-index: 8;
+
+          transition:
+            transform .35s ease;
         }
 
         .fox-eye-left {
-          left: 31px;
+          left: 29px;
         }
 
         .fox-eye-right {
-          right: 31px;
+          right: 29px;
         }
 
-        .fox-eye-pupil {
-          position: absolute;
-          left: 5px;
-          top: 4px;
-          width: 16px;
-          height: 20px;
+        .eye-ball {
+          position: relative;
+
+          width: 34px;
+          height: 25px;
+
           border-radius: 50%;
-          background: #153c70;
+
+          background: white;
+
+          overflow: hidden;
+
+          box-shadow:
+            0 0 10px
+            rgba(165,215,255,.18);
         }
 
-        .fox-eye-light {
+        .eye-pupil {
           position: absolute;
-          left: 4px;
-          top: 3px;
+
+          width: 14px;
+          height: 17px;
+
+          top: 4px;
+          left: 10px;
+
+          border-radius: 50%;
+
+          background:
+            radial-gradient(
+              circle at 35% 25%,
+              #5caee4 0%,
+              #28628c 35%,
+              #111d2d 65%
+            );
+
+          transition:
+            transform .35s ease,
+            opacity .25s ease;
+        }
+
+        .eye-shine {
+          position: absolute;
+
           width: 5px;
           height: 5px;
+
+          top: 6px;
+          left: 15px;
+
           border-radius: 50%;
+
           background: white;
+
+          z-index: 2;
         }
 
-        .fox-cheek {
+        .email-mode .eye-pupil {
+          transform:
+            translateX(8px);
+        }
+
+        .email-mode .fox-eye-left {
+          transform: rotate(-4deg);
+        }
+
+        .email-mode .fox-eye-right {
+          transform: rotate(4deg);
+        }
+
+        /* CLOSED EYES */
+
+        .password-mode .eye-ball {
+          height: 5px;
+
+          margin-top: 10px;
+
+          background: transparent;
+
+          border-bottom:
+            3px solid
+            #573123;
+
+          border-radius: 0;
+        }
+
+        .password-mode .eye-pupil,
+        .password-mode .eye-shine {
+          opacity: 0;
+        }
+
+        .closed-eye-line {
+          display: none;
+        }
+
+        /* =====================================================
+           BROWS
+        ====================================================== */
+
+        .fox-brow {
           position: absolute;
-          bottom: 30px;
-          width: 18px;
-          height: 10px;
+
+          top: 44px;
+
+          width: 26px;
+          height: 5px;
+
           border-radius: 50%;
-          background: #ffb39a;
+
+          background:
+            rgba(87,43,27,.55);
         }
 
-        .fox-cheek-left {
-          left: 21px;
+        .fox-brow-left {
+          left: 28px;
+          transform: rotate(-8deg);
         }
 
-        .fox-cheek-right {
-          right: 21px;
+        .fox-brow-right {
+          right: 28px;
+          transform: rotate(8deg);
         }
+
+        /* =====================================================
+           MUZZLE
+        ====================================================== */
+
+        .fox-muzzle {
+          position: absolute;
+
+          width: 72px;
+          height: 66px;
+
+          bottom: 1px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #faf6ee,
+              #ebe3d9
+            );
+
+          border-radius: 50%;
+
+          z-index: 6;
+        }
+
+        .fox-muzzle-left {
+          left: 11px;
+        }
+
+        .fox-muzzle-right {
+          right: 11px;
+        }
+
+        /* =====================================================
+           NOSE
+        ====================================================== */
 
         .fox-nose {
           position: absolute;
-          left: 50%;
-          bottom: 34px;
-          width: 19px;
-          height: 14px;
-          transform: translateX(-50%);
-          border-radius: 50% 50% 55% 55%;
-          background: #18202b;
+
+          width: 21px;
+          height: 16px;
+
+          left: 68px;
+          top: 82px;
+
+          background:
+            #2a2020;
+
+          border-radius:
+            48%
+            48%
+            55%
+            55%;
+
+          z-index: 10;
         }
+
+        /* =====================================================
+           MOUTH
+        ====================================================== */
 
         .fox-mouth {
           position: absolute;
-          left: 50%;
-          bottom: 22px;
-          width: 38px;
-          height: 15px;
-          transform: translateX(-50%);
+
+          left: 77px;
+          top: 94px;
+
+          width: 4px;
+          height: 16px;
+
+          background: #472820;
+
+          border-radius: 4px;
+
+          z-index: 10;
         }
 
-        .fox-mouth span {
+        .mouth-left,
+        .mouth-right {
           position: absolute;
-          top: 0;
-          width: 19px;
+
+          width: 22px;
+          height: 10px;
+
+          border-bottom:
+            2px solid
+            #472820;
+
+          border-radius: 50%;
+        }
+
+        .mouth-left {
+          left: -18px;
+          top: 4px;
+        }
+
+        .mouth-right {
+          right: -18px;
+          top: 4px;
+        }
+
+        /* =====================================================
+           CHEEKS
+        ====================================================== */
+
+        .fox-cheek {
+          position: absolute;
+
+          width: 18px;
           height: 11px;
-          border-bottom: 2px solid #242c35;
+
+          top: 82px;
+
+          background:
+            rgba(242,125,102,.38);
+
+          border-radius: 50%;
+
+          z-index: 9;
         }
 
-        .fox-mouth span:first-child {
-          left: 0;
-          border-radius: 0 0 0 14px;
-          transform: rotate(7deg);
+        .fox-cheek-left {
+          left: 17px;
         }
 
-        .fox-mouth span:last-child {
-          right: 0;
-          border-radius: 0 0 14px 0;
-          transform: rotate(-7deg);
+        .fox-cheek-right {
+          right: 17px;
         }
+
+        /* =====================================================
+           BODY
+        ====================================================== */
 
         .fox-body {
           position: absolute;
-          left: 39px;
-          bottom: 1px;
-          width: 98px;
-          height: 60px;
-          border-radius: 50% 50% 40% 40%;
-          background: linear-gradient(145deg, #ff8740, #c94819);
-          box-shadow: inset -8px -10px 15px rgba(90,20,4,0.2);
-          z-index: 1;
+
+          width: 110px;
+          height: 72px;
+
+          left: 75px;
+          bottom: 7px;
+
+          border-radius:
+            50%
+            50%
+            25%
+            25%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #bd6335,
+              #944521
+            );
+
+          z-index: 3;
         }
+
+        .fox-belly {
+          position: absolute;
+
+          width: 63px;
+          height: 56px;
+
+          left: 24px;
+          top: 12px;
+
+          border-radius: 50%;
+
+          background:
+            #f8f3eb;
+        }
+
+        /* =====================================================
+           PAWS
+        ====================================================== */
 
         .fox-paw {
           position: absolute;
-          top: 8px;
-          width: 47px;
-          height: 43px;
+
+          width: 43px;
+          height: 27px;
+
+          bottom: 24px;
+
           border-radius: 50%;
-          background: linear-gradient(145deg, #7f4b3a, #493029);
-          border: 2px solid rgba(255,255,255,0.1);
+
+          background:
+            linear-gradient(
+              145deg,
+              #bf6335,
+              #954622
+            );
+
+          z-index: 12;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          gap: 3px;
         }
 
         .fox-paw-left {
-          left: -5px;
+          left: 48px;
+
+          transform: rotate(15deg);
         }
 
         .fox-paw-right {
-          right: -5px;
+          right: 48px;
+
+          transform: rotate(-15deg);
         }
 
-        .paw-dot {
-          position: absolute;
+        .fox-paw span {
+          width: 5px;
+          height: 7px;
+
           border-radius: 50%;
-          background: #e7d9d2;
+
+          background:
+            #f2c2ad;
         }
 
-        .paw-dot-one {
-          left: 10px;
-          top: 7px;
-          width: 8px;
-          height: 8px;
-        }
+        /* =====================================================
+           KEYBOARD
+        ====================================================== */
 
-        .paw-dot-two {
-          left: 21px;
-          top: 5px;
-          width: 8px;
-          height: 8px;
-        }
-
-        .paw-dot-three {
-          right: 8px;
-          top: 9px;
-          width: 8px;
-          height: 8px;
-        }
-
-        .paw-main {
+        .mini-keyboard {
           position: absolute;
-          left: 50%;
-          bottom: 6px;
-          width: 22px;
-          height: 17px;
-          transform: translateX(-50%);
+
+          width: 118px;
+          height: 42px;
+
+          left: 71px;
+          bottom: 0;
+
+          padding: 6px;
+
+          border-radius: 8px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #263b55,
+              #15263b
+            );
+
+          border:
+            1px solid
+            rgba(155,200,235,.35);
+
+          box-shadow:
+            0 8px 18px
+            rgba(0,0,0,.4);
+
+          z-index: 11;
+
+          transform:
+            perspective(80px)
+            rotateX(12deg);
+        }
+
+        .keyboard-row {
+          display: flex;
+
+          gap: 3px;
+
+          margin-bottom: 3px;
+        }
+
+        .keyboard-row i {
+          display: block;
+
+          width: 12px;
+          height: 6px;
+
+          border-radius: 2px;
+
+          background:
+            #b9cce0;
+
+          opacity: .85;
+        }
+
+        .space-key {
+          width: 48px;
+          height: 5px;
+
+          margin:
+            0
+            auto;
+
+          border-radius: 4px;
+
+          background:
+            #b9cce0;
+        }
+
+        /* =====================================================
+           LOGIN CARD
+        ====================================================== */
+
+        .login-card {
+          position: relative;
+
+          width:
+            min(100%, 540px);
+
+          padding:
+            38px
+            38px
+            30px;
+
+          border-radius: 30px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(24,39,63,.92),
+              rgba(12,24,42,.95)
+            );
+
+          border:
+            1px solid
+            rgba(151,190,224,.22);
+
+          box-shadow:
+            0 30px 80px
+            rgba(0,0,0,.45),
+
+            inset
+            0 1px 0
+            rgba(255,255,255,.06);
+
+          backdrop-filter:
+            blur(20px);
+
+          -webkit-backdrop-filter:
+            blur(20px);
+
+          text-align: center;
+        }
+
+        .brand {
+          color: #d8b35d;
+
+          font-size: 22px;
+
+          font-weight: 800;
+
+          letter-spacing: 5px;
+
+          margin-bottom: 3px;
+        }
+
+        .brand-sub {
+          color: #93a9bf;
+
+          font-size: 11px;
+
+          font-weight: 700;
+
+          letter-spacing: 3px;
+
+          margin-bottom: 18px;
+        }
+
+        .login-card h1 {
+          margin: 0;
+
+          color: #f5f8fb;
+
+          font-size:
+            clamp(
+              39px,
+              7vw,
+              54px
+            );
+
+          line-height: 1.05;
+
+          font-weight: 800;
+
+          letter-spacing: -1.5px;
+        }
+
+        .login-description {
+          margin:
+            13px
+            0
+            30px;
+
+          color: #aab8c9;
+
+          font-size: 18px;
+        }
+
+        /* =====================================================
+           FIELDS
+        ====================================================== */
+
+        .field {
+          text-align: left;
+
+          margin-bottom: 21px;
+        }
+
+        .field label {
+          display: block;
+
+          color: #d3deea;
+
+          font-size: 15px;
+
+          font-weight: 700;
+
+          margin-bottom: 8px;
+        }
+
+        .input-box {
+          position: relative;
+
+          display: flex;
+          align-items: center;
+
+          width: 100%;
+          height: 64px;
+
+          border-radius: 17px;
+
+          border:
+            1.5px solid
+            rgba(144,168,193,.25);
+
+          background:
+            rgba(255,255,255,.045);
+
+          transition:
+            border-color .25s ease,
+            box-shadow .25s ease,
+            background .25s ease;
+        }
+
+        .input-box.active {
+          border-color:
+            rgba(87,169,230,.85);
+
+          background:
+            rgba(80,145,195,.08);
+
+          box-shadow:
+            0 0 0 4px
+            rgba(66,151,215,.10),
+
+            0 0 24px
+            rgba(66,151,215,.08);
+        }
+
+        .field-icon {
+          width: 50px;
+
+          text-align: center;
+
+          color: #8da9c2;
+
+          font-size: 18px;
+
+          opacity: .9;
+        }
+
+        .input-box input {
+          flex: 1;
+
+          height: 100%;
+
+          border: none;
+
+          outline: none;
+
+          background: transparent;
+
+          color: #f2f7fb;
+
+          font-size: 17px;
+
+          padding:
+            0
+            17px
+            0
+            0;
+        }
+
+        .input-box input::placeholder {
+          color: #72869c;
+        }
+
+        /* =====================================================
+           ERROR
+        ====================================================== */
+
+        .error-box {
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
+
+          text-align: left;
+
+          color: #ffb7ae;
+
+          background:
+            rgba(179,61,53,.12);
+
+          border:
+            1px solid
+            rgba(229,104,92,.25);
+
+          border-radius: 12px;
+
+          padding:
+            11px
+            13px;
+
+          margin-bottom: 17px;
+
+          font-size: 13px;
+        }
+
+        .error-box span {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 20px;
+          height: 20px;
+
           border-radius: 50%;
-          background: #d9c9c2;
+
+          background: #c74e43;
+
+          color: white;
+
+          font-weight: 800;
         }
 
-        .animate-wave-one {
-          animation: waveMoveOne 13s ease-in-out infinite alternate;
+        /* =====================================================
+           LOGIN BUTTON
+        ====================================================== */
+
+        .login-button {
+          width: 100%;
+
+          height: 66px;
+
+          border: none;
+
+          border-radius: 17px;
+
+          background:
+            linear-gradient(
+              135deg,
+              #377fd4,
+              #235db3
+            );
+
+          color: white;
+
+          font-size: 19px;
+
+          font-weight: 800;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 13px 30px
+            rgba(35,93,179,.30);
+
+          transition:
+            transform .25s ease,
+            box-shadow .25s ease;
         }
 
-        .animate-wave-two {
-          animation: waveMoveTwo 17s ease-in-out infinite alternate;
+        .login-button:hover:not(:disabled) {
+          transform:
+            translateY(-2px);
+
+          box-shadow:
+            0 17px 35px
+            rgba(35,93,179,.40);
         }
 
-        @keyframes waveMoveOne {
-          0% {
-            transform: translateX(0) translateY(4px);
+        .login-button:active:not(:disabled) {
+          transform:
+            translateY(0);
+        }
+
+        .login-button:disabled {
+          opacity: .7;
+
+          cursor:
+            not-allowed;
+        }
+
+        .login-arrow {
+          margin-left: 9px;
+
+          font-size: 23px;
+        }
+
+        .spinner {
+          display: inline-block;
+
+          width: 18px;
+          height: 18px;
+
+          border:
+            3px solid
+            rgba(255,255,255,.3);
+
+          border-top-color: white;
+
+          border-radius: 50%;
+
+          margin-right: 8px;
+
+          vertical-align: -3px;
+
+          animation:
+            spin
+            .8s
+            linear
+            infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform:
+              rotate(360deg);
           }
+        }
 
+        /* =====================================================
+           DIVIDER
+        ====================================================== */
+
+        .divider {
+          display: flex;
+
+          align-items: center;
+
+          gap: 12px;
+
+          margin:
+            25px
+            0
+            18px;
+        }
+
+        .divider span {
+          flex: 1;
+
+          height: 1px;
+
+          background:
+            rgba(157,177,198,.15);
+        }
+
+        .divider p {
+          margin: 0;
+
+          color: #718398;
+
+          font-size: 13px;
+
+          white-space: nowrap;
+        }
+
+        /* =====================================================
+           SOCIAL
+        ====================================================== */
+
+        .social-row {
+          display: grid;
+
+          grid-template-columns:
+            1fr
+            1fr;
+
+          gap: 12px;
+        }
+
+        .social-button {
+          height: 54px;
+
+          border-radius: 14px;
+
+          border:
+            1px solid
+            rgba(144,168,193,.22);
+
+          background:
+            rgba(255,255,255,.035);
+
+          color: #e1e9f1;
+
+          font-size: 16px;
+
+          font-weight: 700;
+
+          cursor: pointer;
+
+          transition:
+            background .25s ease,
+            border-color .25s ease,
+            transform .25s ease;
+        }
+
+        .social-button:hover {
+          background:
+            rgba(255,255,255,.075);
+
+          border-color:
+            rgba(151,190,224,.35);
+
+          transform:
+            translateY(-1px);
+        }
+
+        .google-icon {
+          margin-right: 9px;
+
+          color: #4285f4;
+
+          font-weight: 900;
+        }
+
+        .apple-icon {
+          margin-right: 8px;
+
+          color: white;
+
+          font-size: 20px;
+        }
+
+        /* =====================================================
+           CREATE ACCOUNT
+        ====================================================== */
+
+        .create-account {
+          margin-top: 24px;
+
+          color: #8293a6;
+
+          font-size: 15px;
+        }
+
+        .create-account button {
+          border: none;
+
+          background: transparent;
+
+          padding: 0;
+
+          color: #65a9e7;
+
+          font-size: inherit;
+
+          font-weight: 800;
+
+          cursor: pointer;
+        }
+
+        .create-account button:hover {
+          text-decoration: underline;
+        }
+
+        /* =====================================================
+           PRIVACY
+        ====================================================== */
+
+        .privacy-note {
+          margin-top: 20px;
+
+          color: #607389;
+
+          font-size: 11px;
+
+          letter-spacing: .2px;
+        }
+
+        /* =====================================================
+           OCEAN
+        ====================================================== */
+
+        .ocean {
+          position: fixed;
+
+          left: 0;
+          right: 0;
+          bottom: 0;
+
+          height: 190px;
+
+          z-index: 2;
+
+          pointer-events: none;
+
+          overflow: hidden;
+        }
+
+        .wave {
+          position: absolute;
+
+          left: -10%;
+
+          width: 120%;
+
+          border-radius:
+            50% 50% 0 0;
+
+          border-top:
+            2px solid
+            rgba(96,180,220,.25);
+        }
+
+        .wave-back {
+          height: 130px;
+
+          bottom: -100px;
+
+          background:
+            rgba(18,62,91,.35);
+
+          animation:
+            waveBack
+            10s
+            ease-in-out
+            infinite;
+        }
+
+        .wave-middle {
+          height: 105px;
+
+          bottom: -83px;
+
+          background:
+            rgba(15,75,104,.30);
+
+          animation:
+            waveMiddle
+            8s
+            ease-in-out
+            infinite
+            reverse;
+        }
+
+        .wave-front {
+          height: 80px;
+
+          bottom: -63px;
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(35,115,145,.30),
+              rgba(8,34,58,.70)
+            );
+
+          animation:
+            waveFront
+            6s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes waveBack {
+
+          0%,
           100% {
-            transform: translateX(-15%) translateY(-8px);
+            transform:
+              translateX(-3%)
+              rotate(1deg);
+          }
+
+          50% {
+            transform:
+              translateX(3%)
+              rotate(-1deg);
           }
         }
 
-        @keyframes waveMoveTwo {
-          0% {
-            transform: translateX(-10%);
-          }
+        @keyframes waveMiddle {
 
+          0%,
           100% {
-            transform: translateX(5%);
+            transform:
+              translateX(3%)
+              rotate(-1deg);
+          }
+
+          50% {
+            transform:
+              translateX(-3%)
+              rotate(1deg);
           }
         }
+
+        @keyframes waveFront {
+
+          0%,
+          100% {
+            transform:
+              translateX(-2%);
+          }
+
+          50% {
+            transform:
+              translateX(2%);
+          }
+        }
+
+        .water-glow {
+          position: absolute;
+
+          width: 100%;
+
+          height: 90px;
+
+          bottom: 0;
+
+          background:
+            linear-gradient(
+              180deg,
+              transparent,
+              rgba(27,96,128,.15)
+            );
+
+          filter: blur(3px);
+        }
+
+        /* =====================================================
+           MOBILE
+        ====================================================== */
 
         @media (max-width: 640px) {
-          .fox-container {
-            width: 155px;
-            height: 155px;
+
+          .back-button {
+            padding-top: 23px;
+
+            font-size: 14px;
           }
 
-          .fox-mascot {
-            transform: translateX(-50%) scale(0.84);
-            transform-origin: top center;
+          .login-main {
+            padding:
+              5px
+              13px
+              100px;
           }
 
-          .fox-container.fox-email-focus {
-            transform: translateY(5px) scale(0.96);
+          .fox-stage {
+            width: 230px;
+            height: 185px;
+
+            margin-bottom: -34px;
+
+            transform: scale(.87);
           }
 
-          .fox-container.fox-password-focus {
-            transform: translateY(6px) scale(0.96);
+          .fox-stage.email-mode {
+            transform:
+              scale(.87)
+              translateY(4px);
+          }
+
+          .fox-stage.password-mode {
+            transform:
+              scale(.87)
+              translateY(2px);
+          }
+
+          .login-card {
+            width: 100%;
+
+            padding:
+              31px
+              19px
+              27px;
+
+            border-radius: 27px;
+          }
+
+          .brand {
+            font-size: 18px;
+
+            letter-spacing: 4px;
+          }
+
+          .brand-sub {
+            font-size: 9px;
+
+            letter-spacing: 2.5px;
+
+            margin-bottom: 15px;
+          }
+
+          .login-card h1 {
+            font-size: 39px;
+          }
+
+          .login-description {
+            font-size: 16px;
+
+            margin-bottom: 26px;
+          }
+
+          .field {
+            margin-bottom: 18px;
+          }
+
+          .input-box {
+            height: 60px;
+
+            border-radius: 15px;
+          }
+
+          .field label {
+            font-size: 14px;
+          }
+
+          .input-box input {
+            font-size: 16px;
+          }
+
+          .login-button {
+            height: 61px;
+
+            border-radius: 15px;
+
+            font-size: 18px;
+          }
+
+          .social-button {
+            height: 51px;
+
+            font-size: 14px;
+          }
+
+          .create-account {
+            font-size: 14px;
+          }
+
+          .ocean {
+            height: 130px;
           }
         }
+
+        @media (max-width: 380px) {
+
+          .login-card {
+            padding:
+              28px
+              15px
+              24px;
+          }
+
+          .login-card h1 {
+            font-size: 35px;
+          }
+
+          .fox-stage {
+            transform: scale(.78);
+            margin-bottom: -48px;
+          }
+
+          .fox-stage.email-mode {
+            transform:
+              scale(.78)
+              translateY(4px);
+          }
+
+          .fox-stage.password-mode {
+            transform:
+              scale(.78)
+              translateY(2px);
+          }
+        }
+
+        /* =====================================================
+           REDUCED MOTION
+        ====================================================== */
 
         @media (prefers-reduced-motion: reduce) {
-          .shooting-star,
-          .fox-container,
-          .animate-wave-one,
-          .animate-wave-two {
-            animation: none !important;
+
+          *,
+          *::before,
+          *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
           }
+
         }
+
       `}</style>
     </div>
   );
 }
+
+export default Login;
