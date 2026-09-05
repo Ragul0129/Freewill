@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import type { FormEvent } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -50,13 +51,6 @@ export default function Login() {
         return;
       }
 
-      /*
-       * FREEWILL currently sends all successfully
-       * authenticated users to the common Home page.
-       *
-       * Role-based menu/dashboard remains handled
-       * inside the Home page.
-       */
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
@@ -68,12 +62,9 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#020b20] text-white">
-      {/* =========================================================
-          ANIMATED BACKGROUND
-      ========================================================== */}
+      {/* ANIMATED BACKGROUND */}
 
       <div className="absolute inset-0 overflow-hidden">
-        {/* Deep blue atmospheric glow */}
         <div className="absolute left-1/2 top-[8%] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
 
         <div className="absolute left-[5%] top-[25%] h-[260px] w-[260px] rounded-full bg-cyan-500/10 blur-[90px]" />
@@ -101,9 +92,7 @@ export default function Login() {
         <div className="shooting-star shooting-star-three" />
       </div>
 
-      {/* =========================================================
-          TOP NAV
-      ========================================================== */}
+      {/* TOP NAV */}
 
       <div className="relative z-30 mx-auto flex max-w-6xl px-5 pt-8">
         <Link
@@ -117,15 +106,11 @@ export default function Login() {
         </Link>
       </div>
 
-      {/* =========================================================
-          MAIN
-      ========================================================== */}
+      {/* MAIN */}
 
       <main className="relative z-20 mx-auto flex min-h-[calc(100vh-70px)] max-w-5xl items-center justify-center px-4 pb-20 pt-14">
         <div className="relative w-full max-w-[720px]">
-          {/* =====================================================
-              FOX MASCOT
-          ====================================================== */}
+          {/* FOX MASCOT */}
 
           <div className="relative z-30 flex justify-center">
             <div
@@ -137,10 +122,8 @@ export default function Login() {
                     : ""
               }`}
             >
-              {/* Glow behind fox */}
               <div className="absolute inset-0 -z-10 rounded-full bg-blue-400/20 blur-3xl" />
 
-              {/* Fox */}
               <div className="fox-mascot">
                 <div className="fox-ear fox-ear-left">
                   <div className="fox-ear-inner" />
@@ -195,18 +178,13 @@ export default function Login() {
             </div>
           </div>
 
-          {/* =====================================================
-              LOGIN CARD
-          ====================================================== */}
+          {/* LOGIN CARD */}
 
           <section className="relative z-20 -mt-2 rounded-[34px] border border-blue-300/30 bg-[#07152d]/90 px-6 pb-8 pt-14 shadow-[0_0_70px_rgba(36,119,255,0.12)] backdrop-blur-xl sm:px-10 md:px-14">
-            {/* Card glow border */}
             <div className="pointer-events-none absolute inset-0 rounded-[34px] bg-gradient-to-b from-blue-400/5 via-transparent to-cyan-400/5" />
 
             <div className="relative">
-              {/* =================================================
-                  BRAND
-              ================================================== */}
+              {/* BRAND */}
 
               <div className="text-center">
                 <div className="text-[17px] font-bold uppercase tracking-[0.42em] text-[#eab34a] sm:text-[20px]">
@@ -228,15 +206,14 @@ export default function Login() {
                 </p>
               </div>
 
-              {/* =================================================
-                  FORM
-              ================================================== */}
+              {/* FORM */}
 
               <form
                 onSubmit={handleLogin}
                 className="mt-10 space-y-6"
               >
                 {/* EMAIL */}
+
                 <div>
                   <label
                     htmlFor="email"
@@ -252,7 +229,6 @@ export default function Login() {
                         : "border-blue-200/20 bg-white/[0.035]"
                     }`}
                   >
-                    {/* Mail icon */}
                     <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-blue-200/70">
                       <svg
                         width="22"
@@ -288,6 +264,7 @@ export default function Login() {
                 </div>
 
                 {/* PASSWORD */}
+
                 <div>
                   <label
                     htmlFor="password"
@@ -303,7 +280,6 @@ export default function Login() {
                         : "border-blue-200/20 bg-white/[0.035]"
                     }`}
                   >
-                    {/* Lock icon */}
                     <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-blue-200/70">
                       <svg
                         width="22"
@@ -336,7 +312,6 @@ export default function Login() {
                       className="w-full rounded-2xl bg-transparent py-4 pl-14 pr-14 text-base text-white outline-none placeholder:text-blue-100/45 sm:py-5 sm:text-lg"
                     />
 
-                    {/* Show / hide */}
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
@@ -379,6 +354,7 @@ export default function Login() {
                 </div>
 
                 {/* OPTIONS */}
+
                 <div className="flex items-center justify-between gap-4">
                   <label className="flex cursor-pointer items-center gap-3 text-sm text-blue-100/70">
                     <input
@@ -407,6 +383,7 @@ export default function Login() {
                 </div>
 
                 {/* ERROR */}
+
                 {errorMessage && (
                   <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     {errorMessage}
@@ -414,6 +391,7 @@ export default function Login() {
                 )}
 
                 {/* LOGIN BUTTON */}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -427,21 +405,19 @@ export default function Login() {
                 </button>
               </form>
 
-              {/* =================================================
-                  DIVIDER
-              ================================================== */}
+              {/* DIVIDER */}
 
               <div className="my-8 flex items-center gap-4">
                 <div className="h-px flex-1 bg-blue-200/10" />
+
                 <span className="text-sm text-blue-100/45">
                   or continue with
                 </span>
+
                 <div className="h-px flex-1 bg-blue-200/10" />
               </div>
 
-              {/* =================================================
-                  SOCIAL BUTTONS
-              ================================================== */}
+              {/* SOCIAL BUTTONS */}
 
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -473,9 +449,7 @@ export default function Login() {
                 </button>
               </div>
 
-              {/* =================================================
-                  REGISTER
-              ================================================== */}
+              {/* REGISTER */}
 
               <div className="mt-8 text-center text-base text-blue-100/60">
                 Don't have an account?{" "}
@@ -491,9 +465,7 @@ export default function Login() {
         </div>
       </main>
 
-      {/* =========================================================
-          ANIMATED WAVES
-      ========================================================== */}
+      {/* ANIMATED WAVES */}
 
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-[260px] overflow-hidden">
         <svg
@@ -509,9 +481,23 @@ export default function Login() {
               y1="0"
               y2="0"
             >
-              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.05" />
-              <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="0.08" />
+              <stop
+                offset="0%"
+                stopColor="#0ea5e9"
+                stopOpacity="0.05"
+              />
+
+              <stop
+                offset="50%"
+                stopColor="#38bdf8"
+                stopOpacity="0.45"
+              />
+
+              <stop
+                offset="100%"
+                stopColor="#2563eb"
+                stopOpacity="0.08"
+              />
             </linearGradient>
           </defs>
 
@@ -552,9 +538,7 @@ export default function Login() {
         </svg>
       </div>
 
-      {/* =========================================================
-          STYLES
-      ========================================================== */}
+      {/* STYLES */}
 
       <style>{`
         .shooting-star {
