@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -7,17 +7,20 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+type FocusedField = "email" | "password" | null;
+
 function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [focusedField, setFocusedField] = useState<FocusedField>(null);
 
-  const [focusedField, setFocusedField] = useState<
-    "email" | "password" | null
-  >(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
   const passwordMode =
     focusedField === "password" || password.length > 0;
@@ -25,491 +28,523 @@ function Login() {
   const emailMode =
     focusedField === "email" || email.length > 0;
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const particles = useMemo(() => {
+    return Array.from({ length: 34 }, (_, index) => ({
+      id: index,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 8}s`,
+      duration: `${6 + Math.random() * 8}s`,
+      size: `${1 + Math.random() * 3}px`,
+      opacity: 0.2 + Math.random() * 0.55,
+    }));
+  }, []);
 
-    setError("");
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      const x = (event.clientX / window.innerWidth - 0.5) * 2;
+      const y = (event.clientY / window.innerHeight - 0.5) * 2;
 
-    if (!email || !password) {
-      setError("Please enter your email and password.");
+      setMouse({
+        x: Math.max(-1, Math.min(1, x)),
+        y: Math.max(-1, Math.min(1, y)),
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!email.trim() || !password) {
+      setErrorMessage("Please enter your email and password.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error: loginError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-      if (loginError) {
-        setError(loginError.message);
-        setLoading(false);
+      if (error) {
+        setErrorMessage(error.message);
         return;
       }
 
       if (!data.user) {
-        setError("Login failed. Please try again.");
-        setLoading(false);
+        setErrorMessage("Unable to sign in. Please try again.");
         return;
       }
 
-      const { data: profile, error: profileError } =
-        await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .maybeSingle();
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
 
       if (profileError) {
-        console.error(profileError);
-        navigate("/home");
-        return;
+        console.error("Profile error:", profileError);
       }
 
-      if (profile?.role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (profile?.role === "expert") {
-        navigate("/expert-dashboard");
-      } else {
-        navigate("/home");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
+      setSuccessMessage("Welcome back to FREEWILL ✦");
+
+      setTimeout(() => {
+        if (profile?.role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (profile?.role === "expert") {
+          navigate("/expert-dashboard");
+        } else {
+          navigate("/home");
+        }
+      }, 700);
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="freewill-login">
+    <div
+      className={`freewill-login ${
+        passwordMode ? "password-active" : ""
+      } ${emailMode ? "email-active" : ""}`}
+      onClick={() => {
+        if (!loading) {
+          setErrorMessage("");
+        }
+      }}
+    >
+      {/* =========================================================
+          BACKGROUND
+      ========================================================= */}
 
-      {/* =====================================================
-          NIGHT SKY BACKGROUND
-      ====================================================== */}
+      <div className="ocean-background">
+        <div className="moon-glow" />
+        <div className="ambient-light ambient-one" />
+        <div className="ambient-light ambient-two" />
+        <div className="ambient-light ambient-three" />
 
-      <div className="sky">
-
-        <div className="big-glow" />
-
-        {/* Stars */}
-        <span className="star s1" />
-        <span className="star s2" />
-        <span className="star s3" />
-        <span className="star s4" />
-        <span className="star s5" />
-        <span className="star s6" />
-        <span className="star s7" />
-        <span className="star s8" />
-        <span className="star s9" />
-        <span className="star s10" />
-        <span className="star s11" />
-        <span className="star s12" />
-        <span className="star s13" />
-        <span className="star s14" />
-        <span className="star s15" />
-
-        {/* Shooting stars */}
-        <div className="shooting-star shooting-one" />
-        <div className="shooting-star shooting-two" />
-
-        {/* Soft floating particles */}
-        <span className="particle p1" />
-        <span className="particle p2" />
-        <span className="particle p3" />
-        <span className="particle p4" />
-        <span className="particle p5" />
-
-      </div>
-
-      {/* =====================================================
-          BACK BUTTON
-      ====================================================== */}
-
-      <button
-        type="button"
-        className="back-button"
-        onClick={() => navigate("/")}
-      >
-        ← Back to FREEWILL
-      </button>
-
-      {/* =====================================================
-          MAIN
-      ====================================================== */}
-
-      <div className="login-main">
-
-        {/* =====================================================
-            FOX CHARACTER
-        ====================================================== */}
-
-        <div
-          className={`fox-stage ${
-            emailMode ? "email-mode" : ""
-          } ${passwordMode ? "password-mode" : ""}`}
-        >
-
-          <div className="fox-aura" />
-
-          <div className="fox-character">
-
-            {/* Ears */}
-            <div className="fox-ear fox-ear-left">
-              <div className="fox-ear-inner" />
-            </div>
-
-            <div className="fox-ear fox-ear-right">
-              <div className="fox-ear-inner" />
-            </div>
-
-            {/* Head */}
-            <div className="fox-head">
-
-              {/* forehead white marking */}
-              <div className="fox-forehead" />
-
-              {/* left eye */}
-              <div className="fox-eye fox-eye-left">
-                <div className="eye-ball">
-                  <div className="eye-pupil" />
-                  <div className="eye-shine" />
-                </div>
-
-                <div className="closed-eye-line" />
-              </div>
-
-              {/* right eye */}
-              <div className="fox-eye fox-eye-right">
-                <div className="eye-ball">
-                  <div className="eye-pupil" />
-                  <div className="eye-shine" />
-                </div>
-
-                <div className="closed-eye-line" />
-              </div>
-
-              {/* eyebrows */}
-              <div className="fox-brow fox-brow-left" />
-              <div className="fox-brow fox-brow-right" />
-
-              {/* muzzle */}
-              <div className="fox-muzzle fox-muzzle-left" />
-              <div className="fox-muzzle fox-muzzle-right" />
-
-              {/* nose */}
-              <div className="fox-nose" />
-
-              {/* mouth */}
-              <div className="fox-mouth">
-                <span className="mouth-left" />
-                <span className="mouth-right" />
-              </div>
-
-              {/* cheeks */}
-              <div className="fox-cheek fox-cheek-left" />
-              <div className="fox-cheek fox-cheek-right" />
-
-            </div>
-
-            {/* Body */}
-            <div className="fox-body">
-              <div className="fox-belly" />
-            </div>
-
-            {/* Paws */}
-            <div className="fox-paw fox-paw-left">
-              <span />
-              <span />
-              <span />
-            </div>
-
-            <div className="fox-paw fox-paw-right">
-              <span />
-              <span />
-              <span />
-            </div>
-
-            {/* Keyboard */}
-            <div className="mini-keyboard">
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="space-key" />
-
-            </div>
-
-          </div>
+        <div className="stars">
+          {particles.map((particle) => (
+            <span
+              key={particle.id}
+              className="star"
+              style={{
+                left: particle.left,
+                animationDelay: particle.delay,
+                animationDuration: particle.duration,
+                width: particle.size,
+                height: particle.size,
+                opacity: particle.opacity,
+              }}
+            />
+          ))}
         </div>
-
-        {/* =====================================================
-            LOGIN CARD
-        ====================================================== */}
-
-        <div className="login-card">
-
-          <div className="brand">
-            FREEWILL
-          </div>
-
-          <div className="brand-sub">
-            HUMAN EMPOWERMENT
-          </div>
-
-          <h1>Welcome Back</h1>
-
-          <p className="login-description">
-            Login to your FREEWILL account
-          </p>
-
-          <form onSubmit={handleLogin}>
-
-            {/* EMAIL */}
-
-            <div className="field">
-
-              <label>Email Address</label>
-
-              <div
-                className={`input-box ${
-                  focusedField === "email"
-                    ? "active"
-                    : ""
-                }`}
-              >
-
-                <span className="field-icon">
-                  ✉
-                </span>
-
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
-                  onFocus={() =>
-                    setFocusedField("email")
-                  }
-                  onBlur={() =>
-                    setFocusedField(null)
-                  }
-                  autoComplete="email"
-                />
-
-              </div>
-
-            </div>
-
-            {/* PASSWORD */}
-
-            <div className="field">
-
-              <label>Password</label>
-
-              <div
-                className={`input-box ${
-                  focusedField === "password"
-                    ? "active"
-                    : ""
-                }`}
-              >
-
-                <span className="field-icon">
-                  🔒
-                </span>
-
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
-                  onFocus={() =>
-                    setFocusedField("password")
-                  }
-                  onBlur={() =>
-                    setFocusedField(null)
-                  }
-                  autoComplete="current-password"
-                />
-
-              </div>
-
-            </div>
-
-            {/* ERROR */}
-
-            {error && (
-              <div className="error-box">
-                <span>!</span>
-                {error}
-              </div>
-            )}
-
-            {/* LOGIN */}
-
-            <button
-              type="submit"
-              className="login-button"
-              disabled={loading}
-            >
-
-              {loading ? (
-                <>
-                  <span className="spinner" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Login
-                  <span className="login-arrow">
-                    →
-                  </span>
-                </>
-              )}
-
-            </button>
-
-          </form>
-
-          <div className="divider">
-            <span />
-            <p>or continue with</p>
-            <span />
-          </div>
-
-          {/* Social buttons — visual only */}
-
-          <div className="social-row">
-
-            <button
-              type="button"
-              className="social-button"
-              onClick={() =>
-                setError(
-                  "Google sign-in is not enabled yet."
-                )
-              }
-            >
-              <span className="google-icon">
-                G
-              </span>
-              Google
-            </button>
-
-            <button
-              type="button"
-              className="social-button"
-              onClick={() =>
-                setError(
-                  "Apple sign-in is not enabled yet."
-                )
-              }
-            >
-              <span className="apple-icon">
-                
-              </span>
-              Apple
-            </button>
-
-          </div>
-
-          <div className="create-account">
-            Don't have an account?{" "}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/register")
-              }
-            >
-              Create Account
-            </button>
-          </div>
-
-          <div className="privacy-note">
-            🔒 Your account information is protected
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* =====================================================
-          OCEAN WAVES
-      ====================================================== */}
-
-      <div className="ocean">
 
         <div className="wave wave-back" />
         <div className="wave wave-middle" />
         <div className="wave wave-front" />
 
-        <div className="water-glow" />
-
+        <div className="water-reflection" />
       </div>
 
-      {/* =====================================================
-          CSS
-      ====================================================== */}
+      {/* =========================================================
+          TOP BRAND
+      ========================================================= */}
+
+      <div className="top-brand">
+        <div className="brand-symbol">
+          F
+        </div>
+
+        <div>
+          <div className="brand-name">FREEWILL</div>
+          <div className="brand-subtitle">HUMAN EMPOWERMENT</div>
+        </div>
+      </div>
+
+      {/* =========================================================
+          MAIN CONTENT
+      ========================================================= */}
+
+      <div className="login-stage">
+
+        {/* =====================================================
+            3D HUSKY
+        ===================================================== */}
+
+        <div
+          className={`husky-wrapper ${
+            passwordMode ? "husky-sleep" : ""
+          }`}
+          style={{
+            transform: `
+              perspective(1000px)
+              rotateY(${mouse.x * 8}deg)
+              rotateX(${mouse.y * -5}deg)
+              translateY(${passwordMode ? 8 : 0}px)
+            `,
+          }}
+        >
+          <div className="husky-shadow" />
+
+          <div className="husky">
+
+            {/* Back ears */}
+            <div className="ear ear-left">
+              <div className="ear-inner" />
+            </div>
+
+            <div className="ear ear-right">
+              <div className="ear-inner" />
+            </div>
+
+            {/* Head */}
+            <div className="husky-head">
+
+              {/* forehead highlight */}
+              <div className="forehead-light" />
+
+              {/* White face stripe */}
+              <div className="face-stripe" />
+
+              {/* Left eye */}
+              <div className="husky-eye eye-left">
+                <div className="eye-white">
+                  <div
+                    className="pupil"
+                    style={{
+                      transform:
+                        passwordMode
+                          ? "translate(-50%, -50%) scaleY(0.08)"
+                          : `translate(
+                              calc(-50% + ${mouse.x * 5}px),
+                              calc(-50% + ${mouse.y * 3}px)
+                            )`,
+                    }}
+                  />
+                </div>
+
+                <div className="eyelid" />
+              </div>
+
+              {/* Right eye */}
+              <div className="husky-eye eye-right">
+                <div className="eye-white">
+                  <div
+                    className="pupil"
+                    style={{
+                      transform:
+                        passwordMode
+                          ? "translate(-50%, -50%) scaleY(0.08)"
+                          : `translate(
+                              calc(-50% + ${mouse.x * 5}px),
+                              calc(-50% + ${mouse.y * 3}px)
+                            )`,
+                    }}
+                  />
+                </div>
+
+                <div className="eyelid" />
+              </div>
+
+              {/* Nose */}
+              <div className="husky-nose">
+                <div className="nose-shine" />
+              </div>
+
+              {/* Muzzle */}
+              <div className="muzzle muzzle-left" />
+              <div className="muzzle muzzle-right" />
+
+              {/* Mouth */}
+              <div className="mouth">
+                <span />
+              </div>
+
+              {/* Cheeks */}
+              <div className="cheek cheek-left" />
+              <div className="cheek cheek-right" />
+            </div>
+
+            {/* Neck */}
+            <div className="husky-neck" />
+
+            {/* Body */}
+            <div className="husky-body">
+              <div className="body-highlight" />
+
+              {/* Collar */}
+              <div className="husky-collar">
+                <div className="collar-tag">F</div>
+              </div>
+            </div>
+
+            {/* Floating glow */}
+            <div className="husky-aura" />
+          </div>
+
+          {/* 3D floating label */}
+          <div className="husky-label">
+            <span className="label-dot" />
+            <span>
+              {passwordMode
+                ? "Privacy mode"
+                : emailMode
+                ? "I'm listening..."
+                : "Welcome back"}
+            </span>
+          </div>
+        </div>
+
+        {/* =====================================================
+            LOGIN CARD
+        ===================================================== */}
+
+        <div
+          className="login-card"
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            transform: `
+              perspective(1400px)
+              rotateY(${mouse.x * -2.5}deg)
+              rotateX(${mouse.y * 1.5}deg)
+            `,
+          }}
+        >
+          <div className="glass-shine" />
+
+          <div className="card-content">
+
+            <div className="welcome-text">
+              <span className="small-line">
+                YOUR SPACE • YOUR JOURNEY
+              </span>
+
+              <h1>
+                Welcome
+                <br />
+                <span>back.</span>
+              </h1>
+
+              <p>
+                Continue your journey towards
+                <br />
+                a calmer and stronger self.
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin}>
+
+              {/* Email */}
+
+              <div
+                className={`field ${
+                  focusedField === "email"
+                    ? "field-focused"
+                    : ""
+                }`}
+              >
+                <div className="field-icon">
+                  @
+                </div>
+
+                <div className="field-body">
+                  <label>Email address</label>
+
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) =>
+                      setEmail(event.target.value)
+                    }
+                    onFocus={() => {
+                      setFocusedField("email");
+                      setErrorMessage("");
+                    }}
+                    onBlur={() => setFocusedField(null)}
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="field-glow" />
+              </div>
+
+              {/* Password */}
+
+              <div
+                className={`field ${
+                  focusedField === "password"
+                    ? "field-focused"
+                    : ""
+                }`}
+              >
+                <div className="field-icon password-icon">
+                  •••
+                </div>
+
+                <div className="field-body">
+                  <label>Password</label>
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) =>
+                      setPassword(event.target.value)
+                    }
+                    onFocus={() => {
+                      setFocusedField("password");
+                      setErrorMessage("");
+                    }}
+                    onBlur={() => setFocusedField(null)}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="field-glow" />
+              </div>
+
+              <div className="form-options">
+                <label className="remember">
+                  <input type="checkbox" />
+                  <span className="custom-checkbox">
+                    ✓
+                  </span>
+                  Remember me
+                </label>
+
+                <button
+                  type="button"
+                  className="forgot"
+                  onClick={() => {
+                    alert(
+                      "Please contact FREEWILL support to reset your password."
+                    );
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Error */}
+
+              {errorMessage && (
+                <div className="message error-message">
+                  <span>!</span>
+                  {errorMessage}
+                </div>
+              )}
+
+              {/* Success */}
+
+              {successMessage && (
+                <div className="message success-message">
+                  <span>✓</span>
+                  {successMessage}
+                </div>
+              )}
+
+              {/* Login button */}
+
+              <button
+                type="submit"
+                className={`login-button ${
+                  loading ? "button-loading" : ""
+                }`}
+                disabled={loading}
+              >
+                <span className="button-text">
+                  {loading
+                    ? "Entering your space..."
+                    : "Enter FREEWILL"}
+                </span>
+
+                {!loading && (
+                  <span className="button-arrow">
+                    →
+                  </span>
+                )}
+
+                {loading && (
+                  <span className="spinner" />
+                )}
+              </button>
+            </form>
+
+            <div className="register-area">
+              <span>New to FREEWILL?</span>
+
+              <Link to="/register">
+                Create your account
+                <span className="register-arrow">
+                  ↗
+                </span>
+              </Link>
+            </div>
+
+            <div className="security-note">
+              <span className="lock-icon">⌁</span>
+              Your personal space is protected
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================
+          FOOTER
+      ========================================================= */}
+
+      <div className="login-footer">
+        <span>© FREEWILL Human Empowerment</span>
+
+        <span className="footer-divider">•</span>
+
+        <span>Understand Yourself · Empower Your Mind</span>
+      </div>
+
+      {/* =========================================================
+          STYLES
+      ========================================================= */}
 
       <style>{`
-
         * {
           box-sizing: border-box;
         }
 
         .freewill-login {
+          position: relative;
           min-height: 100vh;
           width: 100%;
-          position: relative;
-          overflow-x: hidden;
-          overflow-y: auto;
-
+          overflow: hidden;
+          color: white;
           background:
             radial-gradient(
-              circle at 50% 15%,
-              #243d61 0%,
-              #172a47 24%,
-              #101d34 52%,
-              #091323 100%
+              circle at 50% 25%,
+              rgba(38, 108, 122, 0.24),
+              transparent 32%
+            ),
+            linear-gradient(
+              180deg,
+              #02070c 0%,
+              #03131b 42%,
+              #021016 100%
             );
-
-          color: white;
-
           font-family:
             Inter,
             ui-sans-serif,
@@ -520,1371 +555,1432 @@ function Login() {
             sans-serif;
         }
 
-        /* =====================================================
-           SKY
-        ====================================================== */
+        /* ================================
+           OCEAN
+        ================================= */
 
-        .sky {
+        .ocean-background {
           position: absolute;
           inset: 0;
           overflow: hidden;
           pointer-events: none;
         }
 
-        .big-glow {
+        .moon-glow {
           position: absolute;
-          width: 520px;
-          height: 520px;
-
-          top: -230px;
+          width: 430px;
+          height: 430px;
           left: 50%;
+          top: -260px;
           transform: translateX(-50%);
-
           border-radius: 50%;
-
           background:
             radial-gradient(
               circle,
-              rgba(101, 165, 230, 0.20) 0%,
-              rgba(101, 165, 230, 0.07) 40%,
-              transparent 72%
+              rgba(176, 240, 246, 0.18) 0%,
+              rgba(58, 174, 190, 0.08) 38%,
+              transparent 70%
             );
-
-          animation:
-            skyGlow 7s ease-in-out infinite;
+          filter: blur(10px);
         }
 
-        @keyframes skyGlow {
-
-          0%,
-          100% {
-            transform:
-              translateX(-50%)
-              scale(1);
-            opacity: 0.75;
-          }
-
-          50% {
-            transform:
-              translateX(-50%)
-              scale(1.12);
-            opacity: 1;
-          }
-        }
-
-        /* =====================================================
-           STARS
-        ====================================================== */
-
-        .star {
+        .ambient-light {
           position: absolute;
-
-          width: 3px;
-          height: 3px;
-
           border-radius: 50%;
-
-          background: #ffffff;
-
-          box-shadow:
-            0 0 7px
-            rgba(180, 220, 255, 0.95);
-
-          animation:
-            starTwinkle
-            3s
-            ease-in-out
-            infinite;
+          filter: blur(80px);
+          opacity: 0.25;
+          animation: ambientFloat 9s ease-in-out infinite alternate;
         }
 
-        .s1 {
-          top: 8%;
-          left: 12%;
-        }
-
-        .s2 {
-          top: 13%;
-          left: 27%;
-          animation-delay: .7s;
-        }
-
-        .s3 {
-          top: 9%;
-          right: 18%;
-          animation-delay: 1.4s;
-        }
-
-        .s4 {
-          top: 22%;
-          right: 8%;
-          animation-delay: 2s;
-        }
-
-        .s5 {
-          top: 31%;
-          left: 8%;
-          animation-delay: .4s;
-        }
-
-        .s6 {
-          top: 27%;
-          left: 23%;
-          animation-delay: 1.7s;
-        }
-
-        .s7 {
-          top: 36%;
-          right: 17%;
-          animation-delay: 2.3s;
-        }
-
-        .s8 {
-          top: 16%;
-          right: 35%;
-          animation-delay: 1s;
-        }
-
-        .s9 {
-          top: 44%;
-          left: 14%;
-          animation-delay: 2.5s;
-        }
-
-        .s10 {
-          top: 41%;
-          right: 7%;
-          animation-delay: .9s;
-        }
-
-        .s11 {
-          top: 52%;
-          left: 27%;
-          animation-delay: 1.9s;
-        }
-
-        .s12 {
-          top: 56%;
-          right: 29%;
-          animation-delay: .2s;
-        }
-
-        .s13 {
-          top: 67%;
-          left: 7%;
-          animation-delay: 1.2s;
-        }
-
-        .s14 {
-          top: 63%;
-          right: 10%;
-          animation-delay: 2.7s;
-        }
-
-        .s15 {
-          top: 72%;
-          right: 36%;
-          animation-delay: .5s;
-        }
-
-        @keyframes starTwinkle {
-
-          0%,
-          100% {
-            opacity: .25;
-            transform: scale(.7);
-          }
-
-          50% {
-            opacity: 1;
-            transform: scale(1.45);
-          }
-        }
-
-        /* =====================================================
-           SHOOTING STARS
-        ====================================================== */
-
-        .shooting-star {
-          position: absolute;
-
-          width: 85px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              90deg,
-              transparent,
-              rgba(255,255,255,.8),
-              transparent
-            );
-
-          transform: rotate(-28deg);
-
-          opacity: 0;
-
-          animation:
-            shooting
-            7s
-            linear
-            infinite;
-        }
-
-        .shooting-one {
+        .ambient-one {
+          width: 320px;
+          height: 320px;
+          left: -120px;
           top: 20%;
-          left: -100px;
+          background: #0e6575;
         }
 
-        .shooting-two {
-          top: 38%;
-          left: -100px;
-          animation-delay: 3.5s;
-        }
-
-        @keyframes shooting {
-
-          0% {
-            transform:
-              translateX(0)
-              rotate(-28deg);
-            opacity: 0;
-          }
-
-          8% {
-            opacity: .8;
-          }
-
-          18% {
-            transform:
-              translateX(500px)
-              rotate(-28deg);
-            opacity: 0;
-          }
-
-          100% {
-            opacity: 0;
-          }
-        }
-
-        /* =====================================================
-           PARTICLES
-        ====================================================== */
-
-        .particle {
-          position: absolute;
-
-          width: 4px;
-          height: 4px;
-
-          border-radius: 50%;
-
-          background: #72b8db;
-
-          opacity: .4;
-
-          animation:
-            floatParticle
-            6s
-            ease-in-out
-            infinite;
-        }
-
-        .p1 {
-          left: 17%;
-          top: 38%;
-        }
-
-        .p2 {
-          right: 22%;
-          top: 31%;
-          animation-delay: 1s;
-        }
-
-        .p3 {
-          left: 32%;
-          top: 22%;
+        .ambient-two {
+          width: 380px;
+          height: 380px;
+          right: -160px;
+          top: 40%;
+          background: #125e70;
           animation-delay: 2s;
         }
 
-        .p4 {
-          right: 11%;
-          top: 51%;
-          animation-delay: 3s;
-        }
-
-        .p5 {
-          left: 8%;
-          top: 57%;
+        .ambient-three {
+          width: 300px;
+          height: 300px;
+          left: 40%;
+          bottom: -200px;
+          background: #0d4e5c;
           animation-delay: 4s;
         }
 
-        @keyframes floatParticle {
+        @keyframes ambientFloat {
+          from {
+            transform: translate3d(
+              -15px,
+              -10px,
+              0
+            );
+          }
 
+          to {
+            transform: translate3d(
+              18px,
+              15px,
+              0
+            );
+          }
+        }
+
+        /* ================================
+           STARS
+        ================================= */
+
+        .stars {
+          position: absolute;
+          inset: 0;
+        }
+
+        .star {
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(216, 250, 255, 0.9);
+          box-shadow:
+            0 0 8px rgba(164, 241, 255, 0.55);
+          animation:
+            starFloat
+            8s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes starFloat {
           0%,
           100% {
             transform:
               translateY(0)
-              scale(1);
+              scale(0.8);
           }
 
           50% {
             transform:
               translateY(-25px)
-              scale(1.5);
+              scale(1.35);
           }
         }
 
-        /* =====================================================
-           BACK BUTTON
-        ====================================================== */
+        /* ================================
+           WAVES
+        ================================= */
 
-        .back-button {
-          position: relative;
-          z-index: 20;
-
-          display: block;
-
-          margin:
-            0
-            auto;
-
-          padding-top: 34px;
-
-          border: none;
-          background: transparent;
-
-          color: #c6d7eb;
-
-          font-size: 16px;
-          font-weight: 700;
-
-          cursor: pointer;
-
-          transition:
-            color .25s ease,
-            transform .25s ease;
-        }
-
-        .back-button:hover {
-          color: white;
-          transform: translateX(-4px);
-        }
-
-        /* =====================================================
-           MAIN
-        ====================================================== */
-
-        .login-main {
-          position: relative;
-          z-index: 10;
-
-          min-height:
-            calc(100vh - 70px);
-
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-
-          padding:
-            15px
-            20px
-            130px;
-        }
-
-        /* =====================================================
-           FOX STAGE
-        ====================================================== */
-
-        .fox-stage {
-          position: relative;
-
-          width: 260px;
-          height: 210px;
-
-          margin-bottom: -32px;
-
-          z-index: 15;
-
-          transition:
-            transform .45s ease;
-        }
-
-        .fox-stage.email-mode {
-          transform:
-            translateY(4px)
-            scale(1.02);
-        }
-
-        .fox-stage.password-mode {
-          transform:
-            translateY(2px)
-            scale(1.01);
-        }
-
-        .fox-aura {
+        .wave {
           position: absolute;
+          left: -10%;
+          width: 120%;
+          height: 260px;
+          bottom: -75px;
+          border-radius: 50% 50% 0 0;
+          transform-origin: center;
+        }
 
-          width: 220px;
-          height: 220px;
-
-          left: 20px;
-          top: -10px;
-
-          border-radius: 50%;
-
+        .wave-back {
           background:
-            radial-gradient(
-              circle,
-              rgba(99, 184, 230, .17),
-              transparent 68%
+            linear-gradient(
+              180deg,
+              rgba(29, 122, 137, 0.13),
+              rgba(3, 32, 40, 0.9)
             );
-
-          filter: blur(8px);
-
+          filter: blur(1px);
           animation:
-            foxAura
-            4s
+            waveMoveBack
+            12s
             ease-in-out
             infinite;
         }
 
-        @keyframes foxAura {
+        .wave-middle {
+          bottom: -110px;
+          background:
+            linear-gradient(
+              180deg,
+              rgba(25, 104, 119, 0.19),
+              rgba(2, 24, 31, 0.95)
+            );
+          animation:
+            waveMove
+            9s
+            ease-in-out
+            infinite;
+        }
 
+        .wave-front {
+          bottom: -155px;
+          background:
+            linear-gradient(
+              180deg,
+              rgba(14, 74, 87, 0.28),
+              #020b10
+            );
+          animation:
+            waveMoveFront
+            14s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes waveMove {
           0%,
           100% {
-            transform: scale(.95);
-            opacity: .55;
+            transform:
+              translateX(-2%)
+              rotate(-1deg);
+          }
+
+          50% {
+            transform:
+              translateX(3%)
+              rotate(1deg);
+          }
+        }
+
+        @keyframes waveMoveBack {
+          0%,
+          100% {
+            transform:
+              translateX(2%)
+              rotate(1deg);
+          }
+
+          50% {
+            transform:
+              translateX(-3%)
+              rotate(-1deg);
+          }
+        }
+
+        @keyframes waveMoveFront {
+          0%,
+          100% {
+            transform:
+              translateX(2%)
+              rotate(-1deg);
+          }
+
+          50% {
+            transform:
+              translateX(-2%)
+              rotate(1deg);
+          }
+        }
+
+        .water-reflection {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 38%;
+          background:
+            linear-gradient(
+              180deg,
+              transparent,
+              rgba(3, 29, 36, 0.3),
+              rgba(1, 10, 15, 0.95)
+            );
+        }
+
+        /* ================================
+           BRAND
+        ================================= */
+
+        .top-brand {
+          position: absolute;
+          top: 28px;
+          left: 34px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          z-index: 20;
+        }
+
+        .brand-symbol {
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: Georgia, serif;
+          font-size: 21px;
+          color: #d9f9f7;
+          background:
+            linear-gradient(
+              145deg,
+              rgba(255,255,255,0.16),
+              rgba(255,255,255,0.035)
+            );
+          border:
+            1px solid rgba(255,255,255,0.17);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.18),
+            0 10px 30px rgba(0,0,0,0.25);
+          backdrop-filter: blur(15px);
+        }
+
+        .brand-name {
+          letter-spacing: 4px;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .brand-subtitle {
+          margin-top: 2px;
+          font-size: 7px;
+          letter-spacing: 2.2px;
+          color: rgba(211,239,242,0.58);
+        }
+
+        /* ================================
+           STAGE
+        ================================= */
+
+        .login-stage {
+          position: relative;
+          z-index: 10;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 65px;
+          padding:
+            100px
+            50px
+            80px;
+        }
+
+        /* ================================
+           HUSKY
+        ================================= */
+
+        .husky-wrapper {
+          position: relative;
+          width: 355px;
+          height: 450px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transform-style: preserve-3d;
+          transition:
+            transform
+            0.35s
+            cubic-bezier(.2,.8,.2,1);
+          flex-shrink: 0;
+        }
+
+        .husky-shadow {
+          position: absolute;
+          width: 230px;
+          height: 55px;
+          bottom: 50px;
+          left: 50%;
+          transform:
+            translateX(-50%)
+            rotateX(70deg);
+          background: rgba(0,0,0,0.65);
+          border-radius: 50%;
+          filter: blur(22px);
+        }
+
+        .husky {
+          position: relative;
+          width: 245px;
+          height: 340px;
+          transform-style: preserve-3d;
+          animation:
+            huskyFloat
+            4.8s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes huskyFloat {
+          0%,
+          100% {
+            transform:
+              translateY(0)
+              rotateZ(0deg);
+          }
+
+          50% {
+            transform:
+              translateY(-12px)
+              rotateZ(0.6deg);
+          }
+        }
+
+        .husky-aura {
+          position: absolute;
+          width: 250px;
+          height: 250px;
+          left: -2px;
+          top: 15px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(103, 223, 229, 0.11),
+              transparent 68%
+            );
+          filter: blur(12px);
+          animation:
+            auraPulse
+            3s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes auraPulse {
+          0%,
+          100% {
+            transform: scale(0.92);
+            opacity: 0.55;
           }
 
           50% {
             transform: scale(1.08);
-            opacity: .9;
+            opacity: 1;
           }
         }
 
-        .fox-character {
-          position: relative;
+        .husky-head {
+          position: absolute;
+          z-index: 6;
+          width: 205px;
+          height: 190px;
+          left: 20px;
+          top: 35px;
+          border-radius:
+            46%
+            46%
+            48%
+            48%;
+          background:
+            linear-gradient(
+              145deg,
+              #e9edf0 0%,
+              #cbd2d6 38%,
+              #8b969e 100%
+            );
+          box-shadow:
+            inset 13px 14px 20px rgba(255,255,255,0.42),
+            inset -15px -18px 25px rgba(21,31,36,0.4),
+            0 24px 40px rgba(0,0,0,0.4);
+          transform:
+            translateZ(40px);
+        }
 
-          width: 260px;
-          height: 210px;
+        .forehead-light {
+          position: absolute;
+          width: 70px;
+          height: 60px;
+          left: 68px;
+          top: 2px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              ellipse,
+              rgba(255,255,255,0.55),
+              transparent 70%
+            );
+          filter: blur(8px);
+        }
 
+        .face-stripe {
+          position: absolute;
+          left: 78px;
+          top: 8px;
+          width: 52px;
+          height: 137px;
+          background:
+            linear-gradient(
+              180deg,
+              #f8fafb,
+              #dce3e5
+            );
+          clip-path:
+            polygon(
+              38% 0%,
+              72% 0%,
+              100% 100%,
+              0% 100%
+            );
+          opacity: 0.95;
+        }
+
+        .ear {
+          position: absolute;
+          z-index: 3;
+          width: 100px;
+          height: 135px;
+          top: 8px;
+          background:
+            linear-gradient(
+              145deg,
+              #9aa5ac,
+              #303b42
+            );
+          box-shadow:
+            inset 8px 7px 14px rgba(255,255,255,0.18),
+            inset -10px -12px 18px rgba(0,0,0,0.5),
+            0 18px 30px rgba(0,0,0,0.35);
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 85%,
+              82% 100%,
+              50% 72%,
+              18% 100%,
+              0% 85%
+            );
+        }
+
+        .ear-left {
+          left: -7px;
+          transform:
+            rotate(-13deg)
+            translateZ(10px);
+        }
+
+        .ear-right {
+          right: -7px;
+          transform:
+            rotate(13deg)
+            translateZ(10px);
+        }
+
+        .ear-inner {
+          position: absolute;
+          inset: 22px;
+          background:
+            linear-gradient(
+              145deg,
+              #4e3038,
+              #15191d
+            );
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 85%,
+              50% 67%,
+              0% 85%
+            );
+          opacity: 0.9;
+        }
+
+        /* Eyes */
+
+        .husky-eye {
+          position: absolute;
+          z-index: 10;
+          top: 75px;
+          width: 58px;
+          height: 43px;
+          border-radius: 50%;
+          background:
+            linear-gradient(
+              145deg,
+              #263238,
+              #080c0f
+            );
+          box-shadow:
+            inset 4px 4px 8px rgba(255,255,255,0.12),
+            0 6px 12px rgba(0,0,0,0.45);
+          overflow: hidden;
+        }
+
+        .eye-left {
+          left: 27px;
+          transform: rotate(-5deg);
+        }
+
+        .eye-right {
+          right: 27px;
+          transform: rotate(5deg);
+        }
+
+        .eye-white {
+          position: absolute;
+          inset: 5px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle at 48% 42%,
+              #e8ffff,
+              #b9d5d8 62%,
+              #71868b 100%
+            );
+          overflow: hidden;
+        }
+
+        .pupil {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle at 35% 30%,
+              #36434a 0%,
+              #050708 55%,
+              #000 100%
+            );
+          transition:
+            transform
+            0.25s
+            ease;
+        }
+
+        .pupil::after {
+          content: "";
+          position: absolute;
+          width: 5px;
+          height: 5px;
+          left: 4px;
+          top: 3px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.9);
+          filter: blur(0.3px);
+        }
+
+        .eyelid {
+          position: absolute;
+          z-index: 12;
+          left: -4px;
+          right: -4px;
+          top: 20px;
+          height: 48px;
+          border-radius: 50%;
+          background:
+            linear-gradient(
+              180deg,
+              #aeb8bd,
+              #667279
+            );
+          transform:
+            translateY(-52px);
+          transition:
+            transform
+            0.42s
+            cubic-bezier(.65,-0.2,.25,1.2);
+        }
+
+        .password-active .eyelid {
+          transform:
+            translateY(0);
+        }
+
+        .password-active .husky-eye {
           animation:
-            foxFloat
+            sleepyBlink
+            3s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes sleepyBlink {
+          0%,
+          100% {
+            transform: scaleY(1);
+          }
+
+          50% {
+            transform: scaleY(0.88);
+          }
+        }
+
+        /* Nose */
+
+        .husky-nose {
+          position: absolute;
+          z-index: 15;
+          left: 81px;
+          top: 119px;
+          width: 43px;
+          height: 31px;
+          border-radius:
+            45%
+            45%
+            55%
+            55%;
+          background:
+            radial-gradient(
+              circle at 35% 25%,
+              #65727a,
+              #161b1e 55%,
+              #030506 100%
+            );
+          box-shadow:
+            inset 5px 5px 7px rgba(255,255,255,0.14),
+            0 8px 12px rgba(0,0,0,0.45);
+        }
+
+        .nose-shine {
+          position: absolute;
+          left: 10px;
+          top: 5px;
+          width: 10px;
+          height: 5px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.45);
+          filter: blur(1px);
+        }
+
+        .muzzle {
+          position: absolute;
+          z-index: 12;
+          width: 64px;
+          height: 48px;
+          top: 124px;
+          border-radius: 50%;
+          background:
+            linear-gradient(
+              145deg,
+              #f1f3f4,
+              #b7c0c4
+            );
+          box-shadow:
+            inset 5px 5px 8px rgba(255,255,255,0.35),
+            inset -5px -7px 9px rgba(50,60,65,0.22);
+        }
+
+        .muzzle-left {
+          left: 42px;
+        }
+
+        .muzzle-right {
+          right: 42px;
+        }
+
+        .mouth {
+          position: absolute;
+          z-index: 16;
+          left: 84px;
+          top: 148px;
+          width: 38px;
+          height: 25px;
+          border-bottom:
+            3px solid
+            rgba(27,31,33,0.75);
+          border-radius: 0 0 50% 50%;
+        }
+
+        .mouth span {
+          position: absolute;
+          width: 17px;
+          height: 5px;
+          left: 10px;
+          bottom: -4px;
+          border-radius: 50%;
+          background: #73535c;
+        }
+
+        .cheek {
+          position: absolute;
+          width: 45px;
+          height: 30px;
+          top: 145px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              ellipse,
+              rgba(255,255,255,0.32),
+              transparent
+            );
+          filter: blur(4px);
+        }
+
+        .cheek-left {
+          left: 20px;
+        }
+
+        .cheek-right {
+          right: 20px;
+        }
+
+        /* Body */
+
+        .husky-neck {
+          position: absolute;
+          z-index: 2;
+          left: 62px;
+          top: 192px;
+          width: 122px;
+          height: 75px;
+          background:
+            linear-gradient(
+              90deg,
+              #5d6870,
+              #dfe5e7,
+              #667279
+            );
+          border-radius: 50%;
+          filter: drop-shadow(
+            0 15px 15px rgba(0,0,0,0.3)
+          );
+        }
+
+        .husky-body {
+          position: absolute;
+          z-index: 1;
+          left: 35px;
+          top: 225px;
+          width: 175px;
+          height: 125px;
+          border-radius:
+            48%
+            48%
+            35%
+            35%;
+          background:
+            linear-gradient(
+              145deg,
+              #dfe4e6,
+              #89949a 45%,
+              #3c474d
+            );
+          box-shadow:
+            inset 10px 12px 20px rgba(255,255,255,0.2),
+            inset -15px -18px 25px rgba(0,0,0,0.35),
+            0 20px 30px rgba(0,0,0,0.4);
+        }
+
+        .body-highlight {
+          position: absolute;
+          left: 42px;
+          top: 8px;
+          width: 85px;
+          height: 65px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              ellipse,
+              rgba(255,255,255,0.35),
+              transparent
+            );
+          filter: blur(8px);
+        }
+
+        .husky-collar {
+          position: absolute;
+          left: 15px;
+          right: 15px;
+          top: -3px;
+          height: 23px;
+          border-radius: 50%;
+          background:
+            linear-gradient(
+              180deg,
+              #68d5d4,
+              #166b76
+            );
+          box-shadow:
+            0 5px 12px rgba(0,0,0,0.35);
+        }
+
+        .collar-tag {
+          position: absolute;
+          left: 50%;
+          top: 9px;
+          transform: translateX(-50%);
+          width: 27px;
+          height: 27px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: Georgia, serif;
+          font-size: 14px;
+          color: #fff;
+          background:
+            radial-gradient(
+              circle at 35% 30%,
+              #f8f3c4,
+              #b69d48 60%,
+              #69551c
+            );
+          box-shadow:
+            0 5px 12px rgba(0,0,0,0.45);
+        }
+
+        .husky-label {
+          position: absolute;
+          bottom: 17px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding:
+            8px
+            14px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          white-space: nowrap;
+          font-size: 11px;
+          color: rgba(227,248,249,0.72);
+          background:
+            rgba(4,22,28,0.45);
+          border:
+            1px solid
+            rgba(194,242,244,0.1);
+          backdrop-filter: blur(12px);
+          box-shadow:
+            0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .label-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #69d5d1;
+          box-shadow:
+            0 0 10px #69d5d1;
+          animation:
+            labelPulse
+            1.8s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes labelPulse {
+          0%,
+          100% {
+            opacity: 0.5;
+          }
+
+          50% {
+            opacity: 1;
+          }
+        }
+
+        /* ================================
+           LOGIN CARD
+        ================================= */
+
+        .login-card {
+          position: relative;
+          width: 430px;
+          max-width: 100%;
+          border-radius: 30px;
+          overflow: hidden;
+          background:
+            linear-gradient(
+              145deg,
+              rgba(255,255,255,0.13),
+              rgba(255,255,255,0.045)
+            );
+          border:
+            1px solid
+            rgba(255,255,255,0.14);
+          box-shadow:
+            0 35px 90px rgba(0,0,0,0.5),
+            inset 0 1px 0 rgba(255,255,255,0.18),
+            inset 0 -1px 0 rgba(255,255,255,0.04);
+          backdrop-filter:
+            blur(30px)
+            saturate(130%);
+          -webkit-backdrop-filter:
+            blur(30px)
+            saturate(130%);
+          transition:
+            transform
+            0.35s
+            cubic-bezier(.2,.8,.2,1);
+        }
+
+        .glass-shine {
+          position: absolute;
+          width: 180px;
+          height: 420px;
+          left: -180px;
+          top: -80px;
+          transform: rotate(22deg);
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,0.07),
+              transparent
+            );
+          animation:
+            glassShine
+            7s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes glassShine {
+          0%,
+          55% {
+            left: -220px;
+          }
+
+          75%,
+          100% {
+            left: 520px;
+          }
+        }
+
+        .card-content {
+          position: relative;
+          z-index: 2;
+          padding: 42px 40px 30px;
+        }
+
+        .welcome-text {
+          margin-bottom: 28px;
+        }
+
+        .small-line {
+          display: inline-block;
+          margin-bottom: 12px;
+          font-size: 8px;
+          letter-spacing: 2.5px;
+          color:
+            rgba(171,232,235,0.58);
+        }
+
+        .welcome-text h1 {
+          margin: 0;
+          font-size: 43px;
+          line-height: 0.98;
+          font-weight: 300;
+          letter-spacing: -1.8px;
+        }
+
+        .welcome-text h1 span {
+          font-weight: 650;
+          background:
+            linear-gradient(
+              90deg,
+              #eaffff,
+              #8cd8dc
+            );
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+
+        .welcome-text p {
+          margin:
+            14px
+            0
+            0;
+          color:
+            rgba(218,237,239,0.57);
+          font-size: 12px;
+          line-height: 1.7;
+        }
+
+        /* ================================
+           FIELDS
+        ================================= */
+
+        .field {
+          position: relative;
+          display: flex;
+          align-items: center;
+          min-height: 68px;
+          margin-bottom: 13px;
+          padding:
+            8px
+            15px;
+          border-radius: 17px;
+          background:
+            rgba(0,10,15,0.3);
+          border:
+            1px solid
+            rgba(255,255,255,0.075);
+          transition:
+            all
+            0.3s
+            ease;
+          overflow: hidden;
+        }
+
+        .field:hover {
+          background:
+            rgba(255,255,255,0.045);
+          border-color:
+            rgba(174,236,238,0.15);
+        }
+
+        .field-focused {
+          border-color:
+            rgba(112,220,222,0.5);
+          background:
+            rgba(5,37,43,0.42);
+          box-shadow:
+            0 0 0 3px
+            rgba(92,213,215,0.055),
+            0 10px 30px
+            rgba(0,0,0,0.16);
+        }
+
+        .field-icon {
+          width: 38px;
+          height: 38px;
+          flex-shrink: 0;
+          margin-right: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 11px;
+          color:
+            rgba(176,235,237,0.75);
+          font-size: 17px;
+          background:
+            rgba(111,211,215,0.075);
+          border:
+            1px solid
+            rgba(141,228,231,0.09);
+        }
+
+        .password-icon {
+          font-size: 9px;
+          letter-spacing: 1px;
+        }
+
+        .field-body {
+          position: relative;
+          z-index: 2;
+          flex: 1;
+        }
+
+        .field-body label {
+          display: block;
+          margin-bottom: 3px;
+          font-size: 9px;
+          letter-spacing: 0.5px;
+          color:
+            rgba(202,231,233,0.45);
+        }
+
+        .field-body input {
+          width: 100%;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #efffff;
+          font-size: 13px;
+          font-weight: 450;
+        }
+
+        .field-body input::placeholder {
+          color:
+            rgba(184,213,216,0.27);
+        }
+
+        .field-body input:disabled {
+          opacity: 0.6;
+        }
+
+        .field-glow {
+          position: absolute;
+          width: 120px;
+          height: 120px;
+          right: -50px;
+          top: -50px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(89,215,218,0.13),
+              transparent 68%
+            );
+          filter: blur(10px);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .field-focused .field-glow {
+          opacity: 1;
+        }
+
+        /* ================================
+           OPTIONS
+        ================================= */
+
+        .form-options {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin:
+            14px
+            2px
+            20px;
+        }
+
+        .remember {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          cursor: pointer;
+          color:
+            rgba(208,230,232,0.47);
+          font-size: 10px;
+        }
+
+        .remember input {
+          display: none;
+        }
+
+        .custom-checkbox {
+          width: 15px;
+          height: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border:
+            1px solid
+            rgba(171,226,228,0.2);
+          border-radius: 5px;
+          font-size: 9px;
+          color: transparent;
+          background:
+            rgba(255,255,255,0.035);
+          transition:
+            all
+            0.2s
+            ease;
+        }
+
+        .remember input:checked
+        + .custom-checkbox {
+          color: #dfffff;
+          background:
+            rgba(77,189,194,0.35);
+          border-color:
+            rgba(111,224,226,0.6);
+        }
+
+        .forgot {
+          border: 0;
+          background: transparent;
+          color:
+            rgba(151,224,226,0.7);
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .forgot:hover {
+          color: #d9ffff;
+        }
+
+        /* ================================
+           MESSAGES
+        ================================= */
+
+        .message {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 14px;
+          padding:
+            10px
+            12px;
+          border-radius: 11px;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+
+        .message span {
+          width: 17px;
+          height: 17px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        .error-message {
+          color:
+            rgba(255,211,211,0.85);
+          background:
+            rgba(145,42,52,0.16);
+          border:
+            1px solid
+            rgba(255,103,116,0.14);
+        }
+
+        .error-message span {
+          background:
+            rgba(255,86,100,0.18);
+          color:
+            #ff9fa7;
+        }
+
+        .success-message {
+          color:
+            rgba(211,255,241,0.9);
+          background:
+            rgba(30,140,111,0.15);
+          border:
+            1px solid
+            rgba(90,224,187,0.16);
+        }
+
+        .success-message span {
+          background:
+            rgba(90,224,187,0.18);
+          color:
+            #8effd9;
+        }
+
+        /* ================================
+           BUTTON
+        ================================= */
+
+        .login-button {
+          position: relative;
+          width: 100%;
+          min-height: 56px;
+          border: 0;
+          border-radius: 16px;
+          overflow: hidden;
+          cursor: pointer;
+          color: #031113;
+          font-size: 12px;
+          font-weight: 750;
+          letter-spacing: 0.3px;
+          background:
+            linear-gradient(
+              135deg,
+              #d9ffff 0%,
+              #91e4e4 48%,
+              #5cc3c8 100%
+            );
+          box-shadow:
+            0 15px 35px
+            rgba(72,203,208,0.18),
+            inset 0 1px 0
+            rgba(255,255,255,0.8);
+          transition:
+            transform
+            0.2s
+            ease,
+            box-shadow
+            0.2s
+            ease;
+        }
+
+        .login-button::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          left: -100px;
+          transform: skewX(-20deg);
+          background:
+            rgba(255,255,255,0.45);
+          animation:
+            buttonShine
             4s
             ease-in-out
             infinite;
         }
 
-        @keyframes foxFloat {
-
+        @keyframes buttonShine {
           0%,
+          55% {
+            left: -100px;
+          }
+
+          80%,
           100% {
-            transform: translateY(0);
+            left: 520px;
           }
-
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        /* =====================================================
-           FOX EARS
-        ====================================================== */
-
-        .fox-ear {
-          position: absolute;
-
-          top: 12px;
-
-          width: 76px;
-          height: 86px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #d8894e,
-              #a95732
-            );
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-
-          z-index: 1;
-        }
-
-        .fox-ear-left {
-          left: 47px;
-
-          transform: rotate(-10deg);
-        }
-
-        .fox-ear-right {
-          right: 47px;
-
-          transform: rotate(10deg);
-        }
-
-        .fox-ear-inner {
-          position: absolute;
-
-          width: 42px;
-          height: 51px;
-
-          top: 14px;
-          left: 17px;
-
-          background: #f3b6a0;
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-        }
-
-        /* =====================================================
-           FOX HEAD
-        ====================================================== */
-
-        .fox-head {
-          position: absolute;
-
-          width: 157px;
-          height: 133px;
-
-          top: 43px;
-          left: 51px;
-
-          border-radius:
-            48%
-            48%
-            45%
-            45%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #e18a4d,
-              #b85e32
-            );
-
-          box-shadow:
-            inset
-            0 -12px 22px
-            rgba(63, 25, 16, .18),
-
-            0 15px 35px
-            rgba(0,0,0,.28);
-
-          z-index: 4;
-        }
-
-        .fox-forehead {
-          position: absolute;
-
-          width: 49px;
-          height: 67px;
-
-          top: 0;
-          left: 54px;
-
-          background: #f8f3eb;
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-        }
-
-        /* =====================================================
-           EYES
-        ====================================================== */
-
-        .fox-eye {
-          position: absolute;
-
-          top: 54px;
-
-          width: 34px;
-          height: 27px;
-
-          z-index: 8;
-
-          transition:
-            transform .35s ease;
-        }
-
-        .fox-eye-left {
-          left: 29px;
-        }
-
-        .fox-eye-right {
-          right: 29px;
-        }
-
-        .eye-ball {
-          position: relative;
-
-          width: 34px;
-          height: 25px;
-
-          border-radius: 50%;
-
-          background: white;
-
-          overflow: hidden;
-
-          box-shadow:
-            0 0 10px
-            rgba(165,215,255,.18);
-        }
-
-        .eye-pupil {
-          position: absolute;
-
-          width: 14px;
-          height: 17px;
-
-          top: 4px;
-          left: 10px;
-
-          border-radius: 50%;
-
-          background:
-            radial-gradient(
-              circle at 35% 25%,
-              #5caee4 0%,
-              #28628c 35%,
-              #111d2d 65%
-            );
-
-          transition:
-            transform .35s ease,
-            opacity .25s ease;
-        }
-
-        .eye-shine {
-          position: absolute;
-
-          width: 5px;
-          height: 5px;
-
-          top: 6px;
-          left: 15px;
-
-          border-radius: 50%;
-
-          background: white;
-
-          z-index: 2;
-        }
-
-        .email-mode .eye-pupil {
-          transform:
-            translateX(8px);
-        }
-
-        .email-mode .fox-eye-left {
-          transform: rotate(-4deg);
-        }
-
-        .email-mode .fox-eye-right {
-          transform: rotate(4deg);
-        }
-
-        /* CLOSED EYES */
-
-        .password-mode .eye-ball {
-          height: 5px;
-
-          margin-top: 10px;
-
-          background: transparent;
-
-          border-bottom:
-            3px solid
-            #573123;
-
-          border-radius: 0;
-        }
-
-        .password-mode .eye-pupil,
-        .password-mode .eye-shine {
-          opacity: 0;
-        }
-
-        .closed-eye-line {
-          display: none;
-        }
-
-        /* =====================================================
-           BROWS
-        ====================================================== */
-
-        .fox-brow {
-          position: absolute;
-
-          top: 44px;
-
-          width: 26px;
-          height: 5px;
-
-          border-radius: 50%;
-
-          background:
-            rgba(87,43,27,.55);
-        }
-
-        .fox-brow-left {
-          left: 28px;
-          transform: rotate(-8deg);
-        }
-
-        .fox-brow-right {
-          right: 28px;
-          transform: rotate(8deg);
-        }
-
-        /* =====================================================
-           MUZZLE
-        ====================================================== */
-
-        .fox-muzzle {
-          position: absolute;
-
-          width: 72px;
-          height: 66px;
-
-          bottom: 1px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #faf6ee,
-              #ebe3d9
-            );
-
-          border-radius: 50%;
-
-          z-index: 6;
-        }
-
-        .fox-muzzle-left {
-          left: 11px;
-        }
-
-        .fox-muzzle-right {
-          right: 11px;
-        }
-
-        /* =====================================================
-           NOSE
-        ====================================================== */
-
-        .fox-nose {
-          position: absolute;
-
-          width: 21px;
-          height: 16px;
-
-          left: 68px;
-          top: 82px;
-
-          background:
-            #2a2020;
-
-          border-radius:
-            48%
-            48%
-            55%
-            55%;
-
-          z-index: 10;
-        }
-
-        /* =====================================================
-           MOUTH
-        ====================================================== */
-
-        .fox-mouth {
-          position: absolute;
-
-          left: 77px;
-          top: 94px;
-
-          width: 4px;
-          height: 16px;
-
-          background: #472820;
-
-          border-radius: 4px;
-
-          z-index: 10;
-        }
-
-        .mouth-left,
-        .mouth-right {
-          position: absolute;
-
-          width: 22px;
-          height: 10px;
-
-          border-bottom:
-            2px solid
-            #472820;
-
-          border-radius: 50%;
-        }
-
-        .mouth-left {
-          left: -18px;
-          top: 4px;
-        }
-
-        .mouth-right {
-          right: -18px;
-          top: 4px;
-        }
-
-        /* =====================================================
-           CHEEKS
-        ====================================================== */
-
-        .fox-cheek {
-          position: absolute;
-
-          width: 18px;
-          height: 11px;
-
-          top: 82px;
-
-          background:
-            rgba(242,125,102,.38);
-
-          border-radius: 50%;
-
-          z-index: 9;
-        }
-
-        .fox-cheek-left {
-          left: 17px;
-        }
-
-        .fox-cheek-right {
-          right: 17px;
-        }
-
-        /* =====================================================
-           BODY
-        ====================================================== */
-
-        .fox-body {
-          position: absolute;
-
-          width: 110px;
-          height: 72px;
-
-          left: 75px;
-          bottom: 7px;
-
-          border-radius:
-            50%
-            50%
-            25%
-            25%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #bd6335,
-              #944521
-            );
-
-          z-index: 3;
-        }
-
-        .fox-belly {
-          position: absolute;
-
-          width: 63px;
-          height: 56px;
-
-          left: 24px;
-          top: 12px;
-
-          border-radius: 50%;
-
-          background:
-            #f8f3eb;
-        }
-
-        /* =====================================================
-           PAWS
-        ====================================================== */
-
-        .fox-paw {
-          position: absolute;
-
-          width: 43px;
-          height: 27px;
-
-          bottom: 24px;
-
-          border-radius: 50%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #bf6335,
-              #954622
-            );
-
-          z-index: 12;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          gap: 3px;
-        }
-
-        .fox-paw-left {
-          left: 48px;
-
-          transform: rotate(15deg);
-        }
-
-        .fox-paw-right {
-          right: 48px;
-
-          transform: rotate(-15deg);
-        }
-
-        .fox-paw span {
-          width: 5px;
-          height: 7px;
-
-          border-radius: 50%;
-
-          background:
-            #f2c2ad;
-        }
-
-        /* =====================================================
-           KEYBOARD
-        ====================================================== */
-
-        .mini-keyboard {
-          position: absolute;
-
-          width: 118px;
-          height: 42px;
-
-          left: 71px;
-          bottom: 0;
-
-          padding: 6px;
-
-          border-radius: 8px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #263b55,
-              #15263b
-            );
-
-          border:
-            1px solid
-            rgba(155,200,235,.35);
-
-          box-shadow:
-            0 8px 18px
-            rgba(0,0,0,.4);
-
-          z-index: 11;
-
-          transform:
-            perspective(80px)
-            rotateX(12deg);
-        }
-
-        .keyboard-row {
-          display: flex;
-
-          gap: 3px;
-
-          margin-bottom: 3px;
-        }
-
-        .keyboard-row i {
-          display: block;
-
-          width: 12px;
-          height: 6px;
-
-          border-radius: 2px;
-
-          background:
-            #b9cce0;
-
-          opacity: .85;
-        }
-
-        .space-key {
-          width: 48px;
-          height: 5px;
-
-          margin:
-            0
-            auto;
-
-          border-radius: 4px;
-
-          background:
-            #b9cce0;
-        }
-
-        /* =====================================================
-           LOGIN CARD
-        ====================================================== */
-
-        .login-card {
-          position: relative;
-
-          width:
-            min(100%, 540px);
-
-          padding:
-            38px
-            38px
-            30px;
-
-          border-radius: 30px;
-
-          background:
-            linear-gradient(
-              145deg,
-              rgba(24,39,63,.92),
-              rgba(12,24,42,.95)
-            );
-
-          border:
-            1px solid
-            rgba(151,190,224,.22);
-
-          box-shadow:
-            0 30px 80px
-            rgba(0,0,0,.45),
-
-            inset
-            0 1px 0
-            rgba(255,255,255,.06);
-
-          backdrop-filter:
-            blur(20px);
-
-          -webkit-backdrop-filter:
-            blur(20px);
-
-          text-align: center;
-        }
-
-        .brand {
-          color: #d8b35d;
-
-          font-size: 22px;
-
-          font-weight: 800;
-
-          letter-spacing: 5px;
-
-          margin-bottom: 3px;
-        }
-
-        .brand-sub {
-          color: #93a9bf;
-
-          font-size: 11px;
-
-          font-weight: 700;
-
-          letter-spacing: 3px;
-
-          margin-bottom: 18px;
-        }
-
-        .login-card h1 {
-          margin: 0;
-
-          color: #f5f8fb;
-
-          font-size:
-            clamp(
-              39px,
-              7vw,
-              54px
-            );
-
-          line-height: 1.05;
-
-          font-weight: 800;
-
-          letter-spacing: -1.5px;
-        }
-
-        .login-description {
-          margin:
-            13px
-            0
-            30px;
-
-          color: #aab8c9;
-
-          font-size: 18px;
-        }
-
-        /* =====================================================
-           FIELDS
-        ====================================================== */
-
-        .field {
-          text-align: left;
-
-          margin-bottom: 21px;
-        }
-
-        .field label {
-          display: block;
-
-          color: #d3deea;
-
-          font-size: 15px;
-
-          font-weight: 700;
-
-          margin-bottom: 8px;
-        }
-
-        .input-box {
-          position: relative;
-
-          display: flex;
-          align-items: center;
-
-          width: 100%;
-          height: 64px;
-
-          border-radius: 17px;
-
-          border:
-            1.5px solid
-            rgba(144,168,193,.25);
-
-          background:
-            rgba(255,255,255,.045);
-
-          transition:
-            border-color .25s ease,
-            box-shadow .25s ease,
-            background .25s ease;
-        }
-
-        .input-box.active {
-          border-color:
-            rgba(87,169,230,.85);
-
-          background:
-            rgba(80,145,195,.08);
-
-          box-shadow:
-            0 0 0 4px
-            rgba(66,151,215,.10),
-
-            0 0 24px
-            rgba(66,151,215,.08);
-        }
-
-        .field-icon {
-          width: 50px;
-
-          text-align: center;
-
-          color: #8da9c2;
-
-          font-size: 18px;
-
-          opacity: .9;
-        }
-
-        .input-box input {
-          flex: 1;
-
-          height: 100%;
-
-          border: none;
-
-          outline: none;
-
-          background: transparent;
-
-          color: #f2f7fb;
-
-          font-size: 17px;
-
-          padding:
-            0
-            17px
-            0
-            0;
-        }
-
-        .input-box input::placeholder {
-          color: #72869c;
-        }
-
-        /* =====================================================
-           ERROR
-        ====================================================== */
-
-        .error-box {
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          text-align: left;
-
-          color: #ffb7ae;
-
-          background:
-            rgba(179,61,53,.12);
-
-          border:
-            1px solid
-            rgba(229,104,92,.25);
-
-          border-radius: 12px;
-
-          padding:
-            11px
-            13px;
-
-          margin-bottom: 17px;
-
-          font-size: 13px;
-        }
-
-        .error-box span {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          width: 20px;
-          height: 20px;
-
-          border-radius: 50%;
-
-          background: #c74e43;
-
-          color: white;
-
-          font-weight: 800;
-        }
-
-        /* =====================================================
-           LOGIN BUTTON
-        ====================================================== */
-
-        .login-button {
-          width: 100%;
-
-          height: 66px;
-
-          border: none;
-
-          border-radius: 17px;
-
-          background:
-            linear-gradient(
-              135deg,
-              #377fd4,
-              #235db3
-            );
-
-          color: white;
-
-          font-size: 19px;
-
-          font-weight: 800;
-
-          cursor: pointer;
-
-          box-shadow:
-            0 13px 30px
-            rgba(35,93,179,.30);
-
-          transition:
-            transform .25s ease,
-            box-shadow .25s ease;
         }
 
         .login-button:hover:not(:disabled) {
           transform:
-            translateY(-2px);
-
+            translateY(-2px)
+            scale(1.01);
           box-shadow:
-            0 17px 35px
-            rgba(35,93,179,.40);
+            0 20px 45px
+            rgba(72,203,208,0.27),
+            inset 0 1px 0
+            rgba(255,255,255,0.85);
         }
 
         .login-button:active:not(:disabled) {
           transform:
-            translateY(0);
+            translateY(1px)
+            scale(0.99);
         }
 
         .login-button:disabled {
-          opacity: .7;
-
-          cursor:
-            not-allowed;
+          cursor: not-allowed;
+          opacity: 0.75;
         }
 
-        .login-arrow {
-          margin-left: 9px;
+        .button-text {
+          position: relative;
+          z-index: 2;
+        }
 
-          font-size: 23px;
+        .button-arrow {
+          position: absolute;
+          right: 19px;
+          top: 50%;
+          transform:
+            translateY(-50%);
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9px;
+          color: #dfffff;
+          background:
+            rgba(2,25,29,0.2);
+          font-size: 18px;
+          transition:
+            transform
+            0.25s
+            ease;
+        }
+
+        .login-button:hover
+        .button-arrow {
+          transform:
+            translateY(-50%)
+            translateX(4px);
         }
 
         .spinner {
-          display: inline-block;
-
-          width: 18px;
-          height: 18px;
-
+          position: absolute;
+          right: 20px;
+          top: 50%;
+          width: 17px;
+          height: 17px;
+          transform:
+            translateY(-50%);
           border:
-            3px solid
-            rgba(255,255,255,.3);
-
-          border-top-color: white;
-
+            2px solid
+            rgba(2,35,39,0.2);
+          border-top-color:
+            #06373c;
           border-radius: 50%;
-
-          margin-right: 8px;
-
-          vertical-align: -3px;
-
           animation:
             spin
-            .8s
+            0.75s
             linear
             infinite;
         }
@@ -1892,471 +1988,279 @@ function Login() {
         @keyframes spin {
           to {
             transform:
+              translateY(-50%)
               rotate(360deg);
           }
         }
 
-        /* =====================================================
-           DIVIDER
-        ====================================================== */
+        /* ================================
+           REGISTER
+        ================================= */
 
-        .divider {
+        .register-area {
           display: flex;
-
           align-items: center;
-
-          gap: 12px;
-
-          margin:
-            25px
-            0
-            18px;
-        }
-
-        .divider span {
-          flex: 1;
-
-          height: 1px;
-
-          background:
-            rgba(157,177,198,.15);
-        }
-
-        .divider p {
-          margin: 0;
-
-          color: #718398;
-
-          font-size: 13px;
-
-          white-space: nowrap;
-        }
-
-        /* =====================================================
-           SOCIAL
-        ====================================================== */
-
-        .social-row {
-          display: grid;
-
-          grid-template-columns:
-            1fr
-            1fr;
-
-          gap: 12px;
-        }
-
-        .social-button {
-          height: 54px;
-
-          border-radius: 14px;
-
-          border:
-            1px solid
-            rgba(144,168,193,.22);
-
-          background:
-            rgba(255,255,255,.035);
-
-          color: #e1e9f1;
-
-          font-size: 16px;
-
-          font-weight: 700;
-
-          cursor: pointer;
-
-          transition:
-            background .25s ease,
-            border-color .25s ease,
-            transform .25s ease;
-        }
-
-        .social-button:hover {
-          background:
-            rgba(255,255,255,.075);
-
-          border-color:
-            rgba(151,190,224,.35);
-
-          transform:
-            translateY(-1px);
-        }
-
-        .google-icon {
-          margin-right: 9px;
-
-          color: #4285f4;
-
-          font-weight: 900;
-        }
-
-        .apple-icon {
-          margin-right: 8px;
-
-          color: white;
-
-          font-size: 20px;
-        }
-
-        /* =====================================================
-           CREATE ACCOUNT
-        ====================================================== */
-
-        .create-account {
+          justify-content: center;
+          gap: 5px;
           margin-top: 24px;
-
-          color: #8293a6;
-
-          font-size: 15px;
+          font-size: 10px;
+          color:
+            rgba(210,230,232,0.4);
         }
 
-        .create-account button {
-          border: none;
-
-          background: transparent;
-
-          padding: 0;
-
-          color: #65a9e7;
-
-          font-size: inherit;
-
-          font-weight: 800;
-
-          cursor: pointer;
+        .register-area a {
+          color:
+            rgba(167,237,238,0.85);
+          text-decoration: none;
+          font-weight: 600;
         }
 
-        .create-account button:hover {
-          text-decoration: underline;
+        .register-area a:hover {
+          color: #e3ffff;
         }
 
-        /* =====================================================
-           PRIVACY
-        ====================================================== */
-
-        .privacy-note {
-          margin-top: 20px;
-
-          color: #607389;
-
-          font-size: 11px;
-
-          letter-spacing: .2px;
+        .register-arrow {
+          display: inline-block;
+          margin-left: 3px;
+          transition:
+            transform
+            0.2s
+            ease;
         }
 
-        /* =====================================================
-           OCEAN
-        ====================================================== */
-
-        .ocean {
-          position: fixed;
-
-          left: 0;
-          right: 0;
-          bottom: 0;
-
-          height: 190px;
-
-          z-index: 2;
-
-          pointer-events: none;
-
-          overflow: hidden;
+        .register-area a:hover
+        .register-arrow {
+          transform:
+            translate(2px,-2px);
         }
 
-        .wave {
-          position: absolute;
-
-          left: -10%;
-
-          width: 120%;
-
-          border-radius:
-            50% 50% 0 0;
-
+        .security-note {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 23px;
+          padding-top: 17px;
           border-top:
-            2px solid
-            rgba(96,180,220,.25);
+            1px solid
+            rgba(255,255,255,0.06);
+          color:
+            rgba(202,229,231,0.28);
+          font-size: 8px;
+          letter-spacing: 0.3px;
         }
 
-        .wave-back {
-          height: 130px;
+        .lock-icon {
+          color:
+            rgba(120,218,220,0.65);
+          font-size: 13px;
+        }
 
-          bottom: -100px;
+        /* ================================
+           PASSWORD HUSKY
+        ================================= */
 
-          background:
-            rgba(18,62,91,.35);
-
+        .husky-sleep .husky {
           animation:
-            waveBack
-            10s
+            sleepyFloat
+            4s
             ease-in-out
             infinite;
         }
 
-        .wave-middle {
-          height: 105px;
-
-          bottom: -83px;
-
-          background:
-            rgba(15,75,104,.30);
-
-          animation:
-            waveMiddle
-            8s
-            ease-in-out
-            infinite
-            reverse;
-        }
-
-        .wave-front {
-          height: 80px;
-
-          bottom: -63px;
-
-          background:
-            linear-gradient(
-              180deg,
-              rgba(35,115,145,.30),
-              rgba(8,34,58,.70)
-            );
-
-          animation:
-            waveFront
-            6s
-            ease-in-out
-            infinite;
-        }
-
-        @keyframes waveBack {
-
+        @keyframes sleepyFloat {
           0%,
           100% {
             transform:
-              translateX(-3%)
-              rotate(1deg);
-          }
-
-          50% {
-            transform:
-              translateX(3%)
-              rotate(-1deg);
-          }
-        }
-
-        @keyframes waveMiddle {
-
-          0%,
-          100% {
-            transform:
-              translateX(3%)
-              rotate(-1deg);
-          }
-
-          50% {
-            transform:
-              translateX(-3%)
-              rotate(1deg);
-          }
-        }
-
-        @keyframes waveFront {
-
-          0%,
-          100% {
-            transform:
-              translateX(-2%);
-          }
-
-          50% {
-            transform:
-              translateX(2%);
-          }
-        }
-
-        .water-glow {
-          position: absolute;
-
-          width: 100%;
-
-          height: 90px;
-
-          bottom: 0;
-
-          background:
-            linear-gradient(
-              180deg,
-              transparent,
-              rgba(27,96,128,.15)
-            );
-
-          filter: blur(3px);
-        }
-
-        /* =====================================================
-           MOBILE
-        ====================================================== */
-
-        @media (max-width: 640px) {
-
-          .back-button {
-            padding-top: 23px;
-
-            font-size: 14px;
-          }
-
-          .login-main {
-            padding:
-              5px
-              13px
-              100px;
-          }
-
-          .fox-stage {
-            width: 230px;
-            height: 185px;
-
-            margin-bottom: -34px;
-
-            transform: scale(.87);
-          }
-
-          .fox-stage.email-mode {
-            transform:
-              scale(.87)
               translateY(4px);
           }
 
-          .fox-stage.password-mode {
+          50% {
             transform:
-              scale(.87)
-              translateY(2px);
+              translateY(11px);
+          }
+        }
+
+        .husky-sleep .husky-label {
+          color:
+            rgba(211,244,245,0.55);
+        }
+
+        /* ================================
+           FOOTER
+        ================================= */
+
+        .login-footer {
+          position: absolute;
+          z-index: 20;
+          left: 0;
+          right: 0;
+          bottom: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          color:
+            rgba(190,218,220,0.25);
+          font-size: 8px;
+          letter-spacing: 0.4px;
+          text-align: center;
+        }
+
+        .footer-divider {
+          color:
+            rgba(126,213,216,0.45);
+        }
+
+        /* ================================
+           RESPONSIVE
+        ================================= */
+
+        @media (max-width: 950px) {
+          .login-stage {
+            gap: 20px;
+            padding:
+              90px
+              25px
+              70px;
+          }
+
+          .husky-wrapper {
+            transform:
+              scale(0.82);
+            margin-right: -30px;
+          }
+
+          .login-card {
+            width: 410px;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .top-brand {
+            top: 20px;
+            left: 20px;
+          }
+
+          .login-stage {
+            min-height: auto;
+            padding:
+              85px
+              18px
+              75px;
+            flex-direction: column;
+            gap: 0;
+          }
+
+          .husky-wrapper {
+            width: 270px;
+            height: 270px;
+            transform:
+              scale(0.62);
+            margin:
+              -50px
+              0
+              -30px;
           }
 
           .login-card {
             width: 100%;
+            max-width: 430px;
+            border-radius: 26px;
+          }
 
+          .card-content {
             padding:
               31px
-              19px
-              27px;
-
-            border-radius: 27px;
-          }
-
-          .brand {
-            font-size: 18px;
-
-            letter-spacing: 4px;
-          }
-
-          .brand-sub {
-            font-size: 9px;
-
-            letter-spacing: 2.5px;
-
-            margin-bottom: 15px;
-          }
-
-          .login-card h1 {
-            font-size: 39px;
-          }
-
-          .login-description {
-            font-size: 16px;
-
-            margin-bottom: 26px;
-          }
-
-          .field {
-            margin-bottom: 18px;
-          }
-
-          .input-box {
-            height: 60px;
-
-            border-radius: 15px;
-          }
-
-          .field label {
-            font-size: 14px;
-          }
-
-          .input-box input {
-            font-size: 16px;
-          }
-
-          .login-button {
-            height: 61px;
-
-            border-radius: 15px;
-
-            font-size: 18px;
-          }
-
-          .social-button {
-            height: 51px;
-
-            font-size: 14px;
-          }
-
-          .create-account {
-            font-size: 14px;
-          }
-
-          .ocean {
-            height: 130px;
-          }
-        }
-
-        @media (max-width: 380px) {
-
-          .login-card {
-            padding:
-              28px
-              15px
+              25px
               24px;
           }
 
-          .login-card h1 {
+          .welcome-text h1 {
+            font-size: 38px;
+          }
+
+          .welcome-text p br {
+            display: none;
+          }
+
+          .login-footer {
+            bottom: 10px;
+            padding: 0 15px;
+            flex-wrap: wrap;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .top-brand {
+            transform:
+              scale(0.9);
+            transform-origin:
+              left top;
+          }
+
+          .login-stage {
+            padding:
+              78px
+              12px
+              62px;
+          }
+
+          .husky-wrapper {
+            transform:
+              scale(0.55);
+            margin:
+              -65px
+              0
+              -55px;
+          }
+
+          .login-card {
+            border-radius: 23px;
+          }
+
+          .card-content {
+            padding:
+              28px
+              20px
+              21px;
+          }
+
+          .welcome-text h1 {
             font-size: 35px;
           }
 
-          .fox-stage {
-            transform: scale(.78);
-            margin-bottom: -48px;
+          .form-options {
+            gap: 10px;
           }
 
-          .fox-stage.email-mode {
-            transform:
-              scale(.78)
-              translateY(4px);
+          .forgot {
+            font-size: 9px;
           }
 
-          .fox-stage.password-mode {
-            transform:
-              scale(.78)
-              translateY(2px);
+          .register-area {
+            flex-direction: column;
+            gap: 5px;
           }
         }
-
-        /* =====================================================
-           REDUCED MOTION
-        ====================================================== */
 
         @media (prefers-reduced-motion: reduce) {
-
-          *,
-          *::before,
-          *::after {
-            animation-duration: .01ms !important;
-            animation-iteration-count: 1 !important;
+          .wave,
+          .star,
+          .ambient-light,
+          .husky,
+          .husky-aura,
+          .glass-shine,
+          .login-button::before,
+          .label-dot {
+            animation: none !important;
           }
 
+          .login-card,
+          .husky-wrapper {
+            transition: none !important;
+          }
         }
-
       `}</style>
     </div>
   );
