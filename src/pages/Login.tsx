@@ -56,7 +56,7 @@ function Login() {
         return;
       }
 
-      const { data: profile, error: profileError } =
+      const { error: profileError } =
         await supabase
           .from("profiles")
           .select("role")
@@ -70,17 +70,8 @@ function Login() {
         startPageTransition("/home");
         return;
       }
-
-      let destination = "/home";
-
-      if (profile?.role === "admin") {
-        destination = "/admin-dashboard";
-      } else if (profile?.role === "expert") {
-        destination = "/expert-dashboard";
-      }
-
       setLoading(false);
-      startPageTransition(destination);
+startPageTransition("/home");
     } catch (error) {
       console.error("Login error:", error);
       alert("Something went wrong. Please try again.");
