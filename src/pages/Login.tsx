@@ -18,26 +18,6 @@ function Login() {
     "email" | "password" | null
   >(null);
 
-  const [mouse, setMouse] = useState({
-    x: 0,
-    y: 0,
-  });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-
-      setMouse({ x, y });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -49,10 +29,11 @@ function Login() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (error) {
         alert(error.message);
@@ -64,14 +45,15 @@ function Login() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .maybeSingle();
+      const { data: profile, error: profileError } =
+        await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle();
 
       if (profileError) {
-        console.error("Profile error:", profileError);
+        console.error(profileError);
         navigate("/home");
         return;
       }
@@ -91,24 +73,63 @@ function Login() {
     }
   };
 
-  const catStyle = {
-    transform: `
-      translate(
-        ${mouse.x * 2}px,
-        ${mouse.y * 1.5}px
-      )
-      rotateY(${mouse.x * 3}deg)
-    `,
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email first.");
+      return;
+    }
+
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Password reset link has been sent to your email.");
+    }
   };
 
   return (
     <div className="login-page">
 
       {/* =========================
-          OCEAN BACKGROUND
-         ========================= */}
+          BACKGROUND
+      ========================== */}
+
       <div className="ocean-bg">
+
         <div className="stars"></div>
+
+        {/* HEALING PARTICLES */}
+
+        <div className="healing-particles">
+          <span className="particle p1"></span>
+          <span className="particle p2"></span>
+          <span className="particle p3"></span>
+          <span className="particle p4"></span>
+          <span className="particle p5"></span>
+          <span className="particle p6"></span>
+          <span className="particle p7"></span>
+          <span className="particle p8"></span>
+          <span className="particle p9"></span>
+          <span className="particle p10"></span>
+          <span className="particle p11"></span>
+          <span className="particle p12"></span>
+          <span className="particle p13"></span>
+          <span className="particle p14"></span>
+          <span className="particle p15"></span>
+          <span className="particle p16"></span>
+          <span className="particle p17"></span>
+          <span className="particle p18"></span>
+        </div>
+
+        {/* FLOWING LIGHT STREAMS */}
+
+        <div className="healing-stream stream-one"></div>
+        <div className="healing-stream stream-two"></div>
+        <div className="healing-stream stream-three"></div>
 
         <div className="ambient ambient-one"></div>
         <div className="ambient ambient-two"></div>
@@ -117,70 +138,19 @@ function Login() {
         <div className="wave wave-one"></div>
         <div className="wave wave-two"></div>
         <div className="wave wave-three"></div>
+
       </div>
 
       {/* =========================
-          LOGIN CONTAINER
-         ========================= */}
+          LOGIN
+      ========================== */}
+
       <div className="login-container">
 
         <div className="login-card">
 
-          {/* =========================================
-              TINY MINIMAL 3D CAT
-              HIDING BEHIND FREEWILL LOGO
-             ========================================= */}
-          <div
-            className="cat-peek-wrapper"
-            style={catStyle}
-          >
-            <div className="cat-peek">
+          {/* LOGO */}
 
-              {/* Tail */}
-              <div className="cat-tail"></div>
-
-              {/* Body */}
-              <div className="cat-body"></div>
-
-              {/* Head */}
-              <div className="cat-head">
-
-                {/* Ears */}
-                <div className="cat-ear cat-ear-left">
-                  <div className="cat-ear-inner"></div>
-                </div>
-
-                <div className="cat-ear cat-ear-right">
-                  <div className="cat-ear-inner"></div>
-                </div>
-
-                {/* Eyes */}
-                <div className="cat-eye cat-eye-left">
-                  <span></span>
-                </div>
-
-                <div className="cat-eye cat-eye-right">
-                  <span></span>
-                </div>
-
-                {/* Nose */}
-                <div className="cat-nose"></div>
-
-                {/* Tiny smile */}
-                <div className="cat-mouth"></div>
-
-              </div>
-
-              {/* Tiny paws */}
-              <div className="cat-paw cat-paw-left"></div>
-              <div className="cat-paw cat-paw-right"></div>
-
-            </div>
-          </div>
-
-          {/* =========================
-              LOGO
-             ========================= */}
           <div className="logo-section">
 
             <div className="logo-circle">
@@ -193,9 +163,8 @@ function Login() {
 
           </div>
 
-          {/* =========================
-              WELCOME
-             ========================= */}
+          {/* WELCOME */}
+
           <div className="welcome-text">
 
             <h2>Welcome Back</h2>
@@ -208,12 +177,12 @@ function Login() {
 
           </div>
 
-          {/* =========================
-              FORM
-             ========================= */}
+          {/* FORM */}
+
           <form onSubmit={handleLogin}>
 
             {/* EMAIL */}
+
             <div
               className={`input-group ${
                 focusedField === "email"
@@ -251,6 +220,7 @@ function Login() {
             </div>
 
             {/* PASSWORD */}
+
             <div
               className={`input-group ${
                 focusedField === "password"
@@ -288,6 +258,7 @@ function Login() {
             </div>
 
             {/* OPTIONS */}
+
             <div className="login-options">
 
               <label className="remember">
@@ -303,56 +274,32 @@ function Login() {
               <button
                 type="button"
                 className="forgot-password"
-                onClick={async () => {
-
-                  if (!email) {
-                    alert(
-                      "Please enter your email first."
-                    );
-                    return;
-                  }
-
-                  const { error } =
-                    await supabase.auth.resetPasswordForEmail(
-                      email,
-                      {
-                        redirectTo:
-                          `${window.location.origin}/login`,
-                      }
-                    );
-
-                  if (error) {
-                    alert(error.message);
-                  } else {
-                    alert(
-                      "Password reset link has been sent to your email."
-                    );
-                  }
-
-                }}
+                onClick={handleForgotPassword}
               >
                 Forgot password?
               </button>
 
             </div>
 
-            {/* =========================================
+            {/* =========================
                 SIGN IN BUTTON
-                FLUID + RUNNING CHARACTER
-               ========================================= */}
+            ========================== */}
+
             <button
               type="submit"
+              disabled={loading}
               className={`login-button ${
                 loading
                   ? "button-loading-state"
                   : ""
               }`}
-              disabled={loading}
             >
 
               {loading ? (
+
                 <>
-                  {/* Fluid */}
+                  {/* LIQUID */}
+
                   <div className="fluid-container">
 
                     <div className="fluid-wave fluid-wave-one"></div>
@@ -363,29 +310,47 @@ function Login() {
 
                   </div>
 
-                  {/* Tiny Running Character */}
-                  <div className="running-character">
+                  {/* =========================
+                      SMALL 3D RUNNER
+                  ========================== */}
 
-                    <div className="runner-body"></div>
+                  <div className="battery-runner">
 
-                    <div className="runner-head"></div>
+                    {/* tiny shadow */}
 
-                    <div className="runner-arm runner-arm-left"></div>
+                    <div className="runner-shadow"></div>
 
-                    <div className="runner-arm runner-arm-right"></div>
+                    {/* battery body */}
 
-                    <div className="runner-leg runner-leg-left"></div>
+                    <div className="battery-body">
 
-                    <div className="runner-leg runner-leg-right"></div>
+                      <div className="battery-top"></div>
+
+                      <div className="battery-highlight"></div>
+
+                      <div className="battery-stripe"></div>
+
+                    </div>
+
+                    {/* little legs */}
+
+                    <div className="battery-leg leg-one"></div>
+                    <div className="battery-leg leg-two"></div>
+
+                    {/* little arms */}
+
+                    <div className="battery-arm arm-one"></div>
+                    <div className="battery-arm arm-two"></div>
 
                   </div>
 
-                  {/* Signing Text */}
                   <span className="signing-text">
                     Signing...
                   </span>
                 </>
+
               ) : (
+
                 <>
                   <span>
                     Sign In
@@ -395,6 +360,7 @@ function Login() {
                     →
                   </span>
                 </>
+
               )}
 
             </button>
@@ -402,6 +368,7 @@ function Login() {
           </form>
 
           {/* REGISTER */}
+
           <div className="register-section">
 
             <span>
@@ -415,11 +382,10 @@ function Login() {
           </div>
 
           {/* SECURITY */}
+
           <div className="security-text">
 
-            <span>
-              🔐
-            </span>
+            <span>🔐</span>
 
             <span>
               Your information is securely protected
@@ -436,9 +402,9 @@ function Login() {
           box-sizing: border-box;
         }
 
-        /* =========================================
-           PAGE
-           ========================================= */
+        /* =====================================
+           MAIN
+        ===================================== */
 
         .login-page {
           min-height: 100vh;
@@ -476,16 +442,14 @@ function Login() {
             sans-serif;
         }
 
-        /* =========================================
+        /* =====================================
            BACKGROUND
-           ========================================= */
+        ===================================== */
 
         .ocean-bg {
           position: absolute;
           inset: 0;
-
           overflow: hidden;
-
           pointer-events: none;
         }
 
@@ -493,7 +457,7 @@ function Login() {
           position: absolute;
           inset: 0;
 
-          opacity: .5;
+          opacity: .45;
 
           background-image:
             radial-gradient(
@@ -503,7 +467,7 @@ function Login() {
             ),
             radial-gradient(
               circle,
-              rgba(255,255,255,.45) 1px,
+              rgba(255,255,255,.40) 1px,
               transparent 1px
             );
 
@@ -516,6 +480,308 @@ function Login() {
             70px 90px;
         }
 
+        /* =====================================
+           HEALING PARTICLES
+        ===================================== */
+
+        .healing-particles {
+          position: absolute;
+          inset: 0;
+
+          overflow: hidden;
+
+          opacity: .8;
+        }
+
+        .particle {
+          position: absolute;
+
+          width: 4px;
+          height: 4px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(150,235,219,.85);
+
+          box-shadow:
+            0 0 8px
+            rgba(89,214,196,.65);
+
+          animation:
+            healingFloat
+            linear
+            infinite;
+        }
+
+        .p1 {
+          left: 8%;
+          bottom: -10px;
+          animation-duration: 8s;
+          animation-delay: -2s;
+        }
+
+        .p2 {
+          left: 15%;
+          bottom: -20px;
+          animation-duration: 11s;
+          animation-delay: -6s;
+          transform: scale(.7);
+        }
+
+        .p3 {
+          left: 23%;
+          bottom: -10px;
+          animation-duration: 9s;
+          animation-delay: -4s;
+          transform: scale(.55);
+        }
+
+        .p4 {
+          left: 31%;
+          bottom: -20px;
+          animation-duration: 12s;
+          animation-delay: -8s;
+        }
+
+        .p5 {
+          left: 39%;
+          bottom: -10px;
+          animation-duration: 10s;
+          animation-delay: -3s;
+          transform: scale(.6);
+        }
+
+        .p6 {
+          left: 47%;
+          bottom: -15px;
+          animation-duration: 13s;
+          animation-delay: -10s;
+        }
+
+        .p7 {
+          left: 55%;
+          bottom: -10px;
+          animation-duration: 9s;
+          animation-delay: -5s;
+          transform: scale(.6);
+        }
+
+        .p8 {
+          left: 64%;
+          bottom: -20px;
+          animation-duration: 12s;
+          animation-delay: -7s;
+        }
+
+        .p9 {
+          left: 71%;
+          bottom: -10px;
+          animation-duration: 10s;
+          animation-delay: -1s;
+          transform: scale(.55);
+        }
+
+        .p10 {
+          left: 79%;
+          bottom: -20px;
+          animation-duration: 14s;
+          animation-delay: -9s;
+        }
+
+        .p11 {
+          left: 87%;
+          bottom: -10px;
+          animation-duration: 9s;
+          animation-delay: -6s;
+          transform: scale(.65);
+        }
+
+        .p12 {
+          left: 93%;
+          bottom: -15px;
+          animation-duration: 12s;
+          animation-delay: -3s;
+        }
+
+        .p13 {
+          left: 18%;
+          bottom: -10px;
+          animation-duration: 15s;
+          animation-delay: -12s;
+          transform: scale(.45);
+        }
+
+        .p14 {
+          left: 36%;
+          bottom: -20px;
+          animation-duration: 11s;
+          animation-delay: -5s;
+          transform: scale(.5);
+        }
+
+        .p15 {
+          left: 59%;
+          bottom: -10px;
+          animation-duration: 14s;
+          animation-delay: -11s;
+          transform: scale(.5);
+        }
+
+        .p16 {
+          left: 76%;
+          bottom: -15px;
+          animation-duration: 10s;
+          animation-delay: -4s;
+          transform: scale(.6);
+        }
+
+        .p17 {
+          left: 45%;
+          bottom: -10px;
+          animation-duration: 16s;
+          animation-delay: -13s;
+          transform: scale(.45);
+        }
+
+        .p18 {
+          left: 68%;
+          bottom: -20px;
+          animation-duration: 13s;
+          animation-delay: -7s;
+          transform: scale(.5);
+        }
+
+        @keyframes healingFloat {
+
+          0% {
+            transform:
+              translate3d(0, 0, 0)
+              scale(.6);
+
+            opacity: 0;
+          }
+
+          10% {
+            opacity: .7;
+          }
+
+          35% {
+            transform:
+              translate3d(
+                20px,
+                -30vh,
+                0
+              )
+              scale(1);
+          }
+
+          65% {
+            transform:
+              translate3d(
+                -18px,
+                -65vh,
+                0
+              )
+              scale(.8);
+          }
+
+          90% {
+            opacity: .4;
+          }
+
+          100% {
+            transform:
+              translate3d(
+                25px,
+                -110vh,
+                0
+              )
+              scale(.2);
+
+            opacity: 0;
+          }
+        }
+
+        /* =====================================
+           HEALING LIGHT STREAMS
+        ===================================== */
+
+        .healing-stream {
+          position: absolute;
+
+          width: 2px;
+          height: 65%;
+
+          top: 110%;
+
+          border-radius: 50%;
+
+          background:
+            linear-gradient(
+              to top,
+              transparent,
+              rgba(94,211,193,.28),
+              transparent
+            );
+
+          filter: blur(1px);
+
+          opacity: .45;
+
+          animation:
+            streamFlow
+            9s
+            ease-in-out
+            infinite;
+        }
+
+        .stream-one {
+          left: 18%;
+          animation-delay: -3s;
+        }
+
+        .stream-two {
+          left: 53%;
+          animation-delay: -6s;
+        }
+
+        .stream-three {
+          left: 82%;
+          animation-delay: -1s;
+        }
+
+        @keyframes streamFlow {
+
+          0% {
+            transform:
+              translateY(0)
+              rotate(-8deg);
+
+            opacity: 0;
+          }
+
+          20% {
+            opacity: .45;
+          }
+
+          70% {
+            opacity: .22;
+          }
+
+          100% {
+            transform:
+              translateY(-145vh)
+              rotate(8deg);
+
+            opacity: 0;
+          }
+        }
+
+        /* =====================================
+           AMBIENT LIGHT
+        ===================================== */
+
         .ambient {
           position: absolute;
 
@@ -523,7 +789,7 @@ function Login() {
 
           filter: blur(80px);
 
-          opacity: .22;
+          opacity: .20;
         }
 
         .ambient-one {
@@ -555,8 +821,12 @@ function Login() {
           left: 50%;
           top: 25%;
 
-          opacity: .08;
+          opacity: .07;
         }
+
+        /* =====================================
+           WAVES
+        ===================================== */
 
         .wave {
           position: absolute;
@@ -593,13 +863,12 @@ function Login() {
           bottom: -360px;
         }
 
-        /* =========================================
-           LOGIN
-           ========================================= */
+        /* =====================================
+           CONTAINER
+        ===================================== */
 
         .login-container {
           width: 100%;
-
           max-width: 460px;
 
           padding:
@@ -609,9 +878,11 @@ function Login() {
           position: relative;
 
           z-index: 10;
-
-          perspective: 1200px;
         }
+
+        /* =====================================
+           GLASS CARD
+        ===================================== */
 
         .login-card {
           position: relative;
@@ -646,7 +917,8 @@ function Login() {
             0 35px 90px
             rgba(0,0,0,.55),
 
-            inset 0 1px 0
+            inset
+            0 1px 0
             rgba(255,255,255,.10);
 
           animation:
@@ -672,441 +944,18 @@ function Login() {
               translateY(0)
               scale(1);
           }
-
         }
 
-        /* =========================================
-           TINY CAT
-           ========================================= */
-
-        .cat-peek-wrapper {
-          position: absolute;
-
-          /*
-            Cat starts behind the logo.
-          */
-
-          top: 31px;
-
-          left: 50%;
-
-          margin-left: -34px;
-
-          width: 68px;
-          height: 58px;
-
-          z-index: 5;
-
-          pointer-events: none;
-
-          perspective: 800px;
-
-          transition:
-            transform
-            .15s
-            ease;
-        }
-
-        .cat-peek {
-          width: 68px;
-          height: 58px;
-
-          position: relative;
-
-          transform-style:
-            preserve-3d;
-
-          /*
-            Cat peeks up,
-            waits,
-            then goes back.
-          */
-
-          animation:
-            catPeek
-            5.5s
-            ease-in-out
-            infinite;
-        }
-
-        @keyframes catPeek {
-
-          0% {
-            transform:
-              translateY(18px)
-              scale(.88);
-
-            opacity: 0;
-          }
-
-          8% {
-            transform:
-              translateY(4px)
-              scale(.95);
-
-            opacity: 1;
-          }
-
-          18% {
-            transform:
-              translateY(0)
-              scale(1);
-          }
-
-          35% {
-            transform:
-              translateY(0)
-              scale(1);
-          }
-
-          48% {
-            transform:
-              translateY(5px)
-              scale(.98);
-          }
-
-          62% {
-            transform:
-              translateY(18px)
-              scale(.88);
-
-            opacity: 0;
-          }
-
-          100% {
-            transform:
-              translateY(18px)
-              scale(.88);
-
-            opacity: 0;
-          }
-        }
-
-        /* CAT BODY */
-
-        .cat-body {
-          position: absolute;
-
-          width: 36px;
-          height: 25px;
-
-          left: 16px;
-          top: 34px;
-
-          border-radius:
-            50%
-            50%
-            35%
-            35%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #e9eef0,
-              #aab8bd
-            );
-
-          box-shadow:
-            inset
-            -4px
-            -5px
-            7px
-            rgba(0,0,0,.18),
-
-            0 4px 8px
-            rgba(0,0,0,.25);
-        }
-
-        /* CAT HEAD */
-
-        .cat-head {
-          position: absolute;
-
-          width: 42px;
-          height: 37px;
-
-          left: 13px;
-          top: 13px;
-
-          border-radius:
-            48%
-            48%
-            43%
-            43%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #f2f5f5,
-              #aebbc0
-            );
-
-          box-shadow:
-            inset
-            -4px
-            -5px
-            7px
-            rgba(0,0,0,.18),
-
-            0 5px 10px
-            rgba(0,0,0,.25);
-
-          z-index: 4;
-        }
-
-        /* EARS */
-
-        .cat-ear {
-          position: absolute;
-
-          width: 18px;
-          height: 20px;
-
-          top: -9px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #dfe7e9,
-              #8d9da2
-            );
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-
-          filter:
-            drop-shadow(
-              0 2px 2px
-              rgba(0,0,0,.22)
-            );
-        }
-
-        .cat-ear-left {
-          left: 2px;
-
-          transform:
-            rotate(-7deg);
-        }
-
-        .cat-ear-right {
-          right: 2px;
-
-          transform:
-            rotate(7deg);
-        }
-
-        .cat-ear-inner {
-          position: absolute;
-
-          width: 9px;
-          height: 10px;
-
-          left: 4.5px;
-          top: 5px;
-
-          background:
-            #75888e;
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-
-          opacity: .7;
-        }
-
-        /* CAT EYES */
-
-        .cat-eye {
-          position: absolute;
-
-          width: 7px;
-          height: 8px;
-
-          top: 17px;
-
-          border-radius: 50%;
-
-          background:
-            #142126;
-
-          box-shadow:
-            0 0 4px
-            rgba(150,220,210,.35);
-
-          animation:
-            catBlink
-            5.5s
-            ease-in-out
-            infinite;
-        }
-
-        .cat-eye-left {
-          left: 10px;
-        }
-
-        .cat-eye-right {
-          right: 10px;
-        }
-
-        .cat-eye span {
-          position: absolute;
-
-          width: 2px;
-          height: 2px;
-
-          top: 1px;
-          left: 2px;
-
-          border-radius: 50%;
-
-          background:
-            rgba(255,255,255,.85);
-        }
-
-        @keyframes catBlink {
-
-          0%,42% {
-            transform:
-              scaleY(1);
-          }
-
-          45% {
-            transform:
-              scaleY(.15);
-          }
-
-          48%,100% {
-            transform:
-              scaleY(1);
-          }
-        }
-
-        /* CAT NOSE */
-
-        .cat-nose {
-          position: absolute;
-
-          width: 4px;
-          height: 3px;
-
-          left: 19px;
-          top: 26px;
-
-          background:
-            #6e858a;
-
-          border-radius:
-            50%;
-        }
-
-        /* CAT MOUTH */
-
-        .cat-mouth {
-          position: absolute;
-
-          width: 7px;
-          height: 4px;
-
-          left: 17px;
-          top: 28px;
-
-          border-bottom:
-            1px solid
-            #63787d;
-
-          border-radius:
-            0 0 10px 10px;
-        }
-
-        /* CAT TAIL */
-
-        .cat-tail {
-          position: absolute;
-
-          width: 23px;
-          height: 20px;
-
-          right: 5px;
-          top: 35px;
-
-          border:
-            5px solid
-            #9caeb2;
-
-          border-left:
-            0;
-
-          border-bottom:
-            0;
-
-          border-radius:
-            0
-            22px
-            0
-            0;
-
-          transform:
-            rotate(20deg);
-
-          z-index: 1;
-        }
-
-        /* CAT PAWS */
-
-        .cat-paw {
-          position: absolute;
-
-          width: 13px;
-          height: 9px;
-
-          top: 40px;
-
-          background:
-            #dbe3e5;
-
-          border-radius:
-            50%;
-
-          z-index: 7;
-
-          box-shadow:
-            0 2px 3px
-            rgba(0,0,0,.18);
-        }
-
-        .cat-paw-left {
-          left: 14px;
-        }
-
-        .cat-paw-right {
-          right: 14px;
-        }
-
-        /* =========================================
+        /* =====================================
            LOGO
-           ========================================= */
+        ===================================== */
 
         .logo-section {
           text-align: center;
 
           margin-bottom: 25px;
 
-          /*
-            Logo remains in front of cat.
-          */
-
-          padding-top: 55px;
-
-          position: relative;
-
-          z-index: 10;
+          padding-top: 4px;
         }
 
         .logo-circle {
@@ -1177,9 +1026,9 @@ function Login() {
           text-transform: uppercase;
         }
 
-        /* =========================================
+        /* =====================================
            WELCOME
-           ========================================= */
+        ===================================== */
 
         .welcome-text {
           text-align: center;
@@ -1189,9 +1038,7 @@ function Login() {
 
         .welcome-text h2 {
           margin:
-            0
-            0
-            7px;
+            0 0 7px;
 
           font-size: 24px;
 
@@ -1209,9 +1056,9 @@ function Login() {
           line-height: 1.6;
         }
 
-        /* =========================================
-           INPUT
-           ========================================= */
+        /* =====================================
+           INPUTS
+        ===================================== */
 
         .input-group {
           margin-bottom: 19px;
@@ -1277,17 +1124,9 @@ function Login() {
           font-size: 14px;
 
           transition:
-            border-color
-            .25s
-            ease,
-
-            box-shadow
-            .25s
-            ease,
-
-            background
-            .25s
-            ease;
+            border-color .25s ease,
+            box-shadow .25s ease,
+            background .25s ease;
         }
 
         .input-wrapper input::placeholder {
@@ -1312,9 +1151,9 @@ function Login() {
             rgba(0,0,0,.14);
         }
 
-        /* =========================================
+        /* =====================================
            OPTIONS
-           ========================================= */
+        ===================================== */
 
         .login-options {
           display: flex;
@@ -1364,9 +1203,9 @@ function Login() {
           padding: 0;
         }
 
-        /* =========================================
-           SIGN IN BUTTON
-           ========================================= */
+        /* =====================================
+           LOGIN BUTTON
+        ===================================== */
 
         .login-button {
           width: 100%;
@@ -1404,13 +1243,8 @@ function Login() {
             rgba(255,255,255,.6);
 
           transition:
-            transform
-            .2s
-            ease,
-
-            box-shadow
-            .2s
-            ease;
+            transform .2s ease,
+            box-shadow .2s ease;
 
           display: flex;
 
@@ -1450,9 +1284,9 @@ function Login() {
           font-size: 19px;
         }
 
-        /* =========================================
-           FLUID WATER FILL
-           ========================================= */
+        /* =====================================
+           LIQUID
+        ===================================== */
 
         .button-loading-state {
           background:
@@ -1507,7 +1341,7 @@ function Login() {
         .fluid-wave-one {
           animation:
             fluidRise
-            1.55s
+            2.4s
             ease-in-out
             infinite;
         }
@@ -1519,12 +1353,12 @@ function Login() {
 
           animation:
             fluidRiseTwo
-            1.9s
+            2.8s
             ease-in-out
             infinite;
 
           animation-delay:
-            -.35s;
+            -.5s;
         }
 
         .fluid-wave-three {
@@ -1534,12 +1368,12 @@ function Login() {
 
           animation:
             fluidRiseThree
-            2.25s
+            3.2s
             ease-in-out
             infinite;
 
           animation-delay:
-            -.7s;
+            -.9s;
         }
 
         @keyframes fluidRise {
@@ -1567,7 +1401,6 @@ function Login() {
 
             bottom: -132%;
           }
-
         }
 
         @keyframes fluidRiseTwo {
@@ -1595,7 +1428,6 @@ function Login() {
 
             bottom: -138%;
           }
-
         }
 
         @keyframes fluidRiseThree {
@@ -1623,266 +1455,370 @@ function Login() {
 
             bottom: -142%;
           }
-
         }
 
-        /* =========================================
-           TINY RUNNING CHARACTER
-           PUBG LOADING STYLE
-           ========================================= */
+        /* =====================================
+           SMALL 3D BATTERY RUNNER
+        ===================================== */
 
-        .running-character {
+        .battery-runner {
           position: absolute;
 
-          left: 25%;
+          left: 12%;
 
-          bottom: 8px;
+          bottom: 9px;
 
-          width: 18px;
-          height: 25px;
+          width: 22px;
+          height: 28px;
 
-          z-index: 8;
+          z-index: 20;
 
           transform-origin:
             center bottom;
 
           animation:
-            runnerMove
-            1.15s
+            batteryRun
+            3.8s
             linear
             infinite;
         }
 
-        @keyframes runnerMove {
+        @keyframes batteryRun {
 
           0% {
-            left: 18%;
+            left: 8%;
+
             transform:
-              scaleX(1)
-              translateY(0);
+              translateY(0)
+              rotate(0deg);
+          }
+
+          12% {
+            transform:
+              translateY(-1px)
+              rotate(-2deg);
           }
 
           25% {
             transform:
-              scaleX(1)
-              translateY(-1px);
+              translateY(0)
+              rotate(2deg);
           }
 
           50% {
-            left: 50%;
+            left: 45%;
 
             transform:
-              scaleX(1)
-              translateY(0);
+              translateY(-1px)
+              rotate(-1deg);
           }
 
           75% {
+            left: 70%;
+
             transform:
-              scaleX(1)
-              translateY(-1px);
+              translateY(0)
+              rotate(2deg);
           }
 
           100% {
-            left: 82%;
+            left: 94%;
 
             transform:
-              scaleX(1)
-              translateY(0);
+              translateY(-1px)
+              rotate(0deg);
           }
-
         }
 
-        /* RUNNER BODY */
+        /* shadow */
 
-        .runner-body {
+        .runner-shadow {
           position: absolute;
 
-          width: 7px;
-          height: 11px;
+          width: 15px;
+          height: 3px;
 
-          left: 6px;
-          top: 7px;
-
-          border-radius:
-            45%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #f1f7f4,
-              #9fc7bd
-            );
-
-          box-shadow:
-            0 0 5px
-            rgba(255,255,255,.4);
-        }
-
-        /* RUNNER HEAD */
-
-        .runner-head {
-          position: absolute;
-
-          width: 6px;
-          height: 6px;
-
-          left: 6.5px;
-          top: 0;
+          left: 3px;
+          bottom: 0;
 
           border-radius: 50%;
 
           background:
-            #eef5f2;
+            rgba(0,0,0,.25);
+
+          filter: blur(2px);
+
+          animation:
+            shadowPulse
+            .35s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes shadowPulse {
+
+          from {
+            transform:
+              scaleX(.75);
+          }
+
+          to {
+            transform:
+              scaleX(1);
+          }
+        }
+
+        /* battery body */
+
+        .battery-body {
+          position: absolute;
+
+          width: 14px;
+          height: 20px;
+
+          left: 4px;
+          top: 5px;
+
+          border-radius: 4px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f1f3ef,
+              #aabbb5
+            );
+
+          border:
+            1px solid
+            rgba(255,255,255,.65);
 
           box-shadow:
-            0 0 4px
-            rgba(255,255,255,.45);
+            inset
+            -3px
+            -3px
+            4px
+            rgba(0,0,0,.20),
+
+            inset
+            2px
+            2px
+            4px
+            rgba(255,255,255,.45),
+
+            0 2px 7px
+            rgba(0,0,0,.35);
         }
 
-        /* RUNNER ARMS */
+        /* battery top */
 
-        .runner-arm {
+        .battery-top {
+          position: absolute;
+
+          width: 6px;
+          height: 3px;
+
+          left: 3px;
+          top: -4px;
+
+          border-radius:
+            2px 2px 1px 1px;
+
+          background:
+            linear-gradient(
+              180deg,
+              #dce6e1,
+              #879b95
+            );
+
+          box-shadow:
+            0 1px 2px
+            rgba(0,0,0,.3);
+        }
+
+        /* battery highlight */
+
+        .battery-highlight {
           position: absolute;
 
           width: 3px;
-          height: 10px;
+          height: 11px;
 
-          top: 8px;
+          left: 2px;
+          top: 4px;
 
           border-radius: 3px;
 
           background:
-            #b8d9d1;
+            rgba(255,255,255,.55);
+
+          filter:
+            blur(.4px);
+        }
+
+        /* battery stripe */
+
+        .battery-stripe {
+          position: absolute;
+
+          width: 8px;
+          height: 3px;
+
+          left: 3px;
+          top: 10px;
+
+          border-radius: 2px;
+
+          background:
+            rgba(75,145,137,.55);
+        }
+
+        /* =====================================
+           RUNNER LEGS
+        ===================================== */
+
+        .battery-leg {
+          position: absolute;
+
+          width: 3px;
+          height: 8px;
+
+          top: 22px;
+
+          border-radius: 3px;
+
+          background:
+            #9fb8b1;
 
           transform-origin:
             top center;
         }
 
-        .runner-arm-left {
-          left: 4px;
-
-          animation:
-            armRun
-            .28s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        .runner-arm-right {
-          right: 4px;
-
-          animation:
-            armRunReverse
-            .28s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        @keyframes armRun {
-
-          from {
-            transform:
-              rotate(38deg);
-          }
-
-          to {
-            transform:
-              rotate(-42deg);
-          }
-
-        }
-
-        @keyframes armRunReverse {
-
-          from {
-            transform:
-              rotate(-42deg);
-          }
-
-          to {
-            transform:
-              rotate(38deg);
-          }
-
-        }
-
-        /* RUNNER LEGS */
-
-        .runner-leg {
-          position: absolute;
-
-          width: 3px;
-          height: 10px;
-
-          top: 16px;
-
-          border-radius: 3px;
-
-          background:
-            #a8ccc3;
-
-          transform-origin:
-            top center;
-        }
-
-        .runner-leg-left {
+        .leg-one {
           left: 6px;
 
           animation:
-            legRun
-            .28s
+            legOne
+            .32s
             ease-in-out
             infinite
             alternate;
         }
 
-        .runner-leg-right {
-          left: 9px;
+        .leg-two {
+          left: 12px;
 
           animation:
-            legRunReverse
-            .28s
+            legTwo
+            .32s
             ease-in-out
             infinite
             alternate;
         }
 
-        @keyframes legRun {
+        @keyframes legOne {
 
           from {
             transform:
-              rotate(40deg);
+              rotate(35deg);
           }
 
           to {
             transform:
-              rotate(-42deg);
+              rotate(-35deg);
           }
-
         }
 
-        @keyframes legRunReverse {
+        @keyframes legTwo {
 
           from {
             transform:
-              rotate(-42deg);
+              rotate(-35deg);
           }
 
           to {
             transform:
-              rotate(40deg);
+              rotate(35deg);
           }
-
         }
 
-        /* SIGNING */
+        /* =====================================
+           RUNNER ARMS
+        ===================================== */
+
+        .battery-arm {
+          position: absolute;
+
+          width: 3px;
+          height: 8px;
+
+          top: 9px;
+
+          border-radius: 3px;
+
+          background:
+            #a9c0ba;
+
+          transform-origin:
+            top center;
+        }
+
+        .arm-one {
+          left: 2px;
+
+          animation:
+            armOne
+            .32s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        .arm-two {
+          right: 2px;
+
+          animation:
+            armTwo
+            .32s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes armOne {
+
+          from {
+            transform:
+              rotate(35deg);
+          }
+
+          to {
+            transform:
+              rotate(-35deg);
+          }
+        }
+
+        @keyframes armTwo {
+
+          from {
+            transform:
+              rotate(-35deg);
+          }
+
+          to {
+            transform:
+              rotate(35deg);
+          }
+        }
+
+        /* =====================================
+           SIGNING
+        ===================================== */
 
         .signing-text {
           position: relative;
 
-          z-index: 12;
+          z-index: 30;
 
           color: white;
 
@@ -1894,7 +1830,7 @@ function Login() {
 
           animation:
             signingPulse
-            1.1s
+            1.4s
             ease-in-out
             infinite;
         }
@@ -1902,18 +1838,17 @@ function Login() {
         @keyframes signingPulse {
 
           0%,100% {
-            opacity: .78;
+            opacity: .75;
           }
 
           50% {
             opacity: 1;
           }
-
         }
 
-        /* =========================================
+        /* =====================================
            REGISTER
-           ========================================= */
+        ===================================== */
 
         .register-section {
           text-align: center;
@@ -1941,9 +1876,9 @@ function Login() {
           text-decoration: underline;
         }
 
-        /* =========================================
+        /* =====================================
            SECURITY
-           ========================================= */
+        ===================================== */
 
         .security-text {
           display: flex;
@@ -1962,9 +1897,9 @@ function Login() {
           font-size: 9px;
         }
 
-        /* =========================================
+        /* =====================================
            MOBILE
-           ========================================= */
+        ===================================== */
 
         @media (max-width: 520px) {
 
@@ -1985,17 +1920,6 @@ function Login() {
             border-radius: 24px;
           }
 
-          .cat-peek-wrapper {
-            top: 30px;
-
-            transform:
-              scale(.90);
-          }
-
-          .logo-section {
-            padding-top: 53px;
-          }
-
           .welcome-text h2 {
             font-size: 22px;
           }
@@ -2006,14 +1930,6 @@ function Login() {
 
           .login-card {
             padding-top: 30px;
-          }
-
-          .cat-peek-wrapper {
-            top: 7px;
-          }
-
-          .logo-section {
-            padding-top: 50px;
           }
 
           .welcome-text {
