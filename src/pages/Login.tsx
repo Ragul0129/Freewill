@@ -91,21 +91,22 @@ function Login() {
     }
   };
 
-  const characterStyle = {
+  const catStyle = {
     transform: `
       translate(
-        ${mouse.x * 4}px,
-        ${mouse.y * 2}px
+        ${mouse.x * 2}px,
+        ${mouse.y * 1.5}px
       )
-      rotateY(${mouse.x * 4}deg)
-      rotateX(${mouse.y * -2}deg)
+      rotateY(${mouse.x * 3}deg)
     `,
   };
 
   return (
     <div className="login-page">
 
-      {/* BACKGROUND */}
+      {/* =========================
+          OCEAN BACKGROUND
+         ========================= */}
       <div className="ocean-bg">
         <div className="stars"></div>
 
@@ -118,118 +119,68 @@ function Login() {
         <div className="wave wave-three"></div>
       </div>
 
-      {/* LOGIN CONTAINER */}
+      {/* =========================
+          LOGIN CONTAINER
+         ========================= */}
       <div className="login-container">
+
         <div className="login-card">
 
-          {/* ==========================================
-              SMALL CUTE DOCTOR CHARACTER
-              SITS ABOVE FREEWILL LOGO
-             ========================================== */}
+          {/* =========================================
+              TINY MINIMAL 3D CAT
+              HIDING BEHIND FREEWILL LOGO
+             ========================================= */}
           <div
-            className="doctor-character-wrapper"
-            style={characterStyle}
+            className="cat-peek-wrapper"
+            style={catStyle}
           >
-            <div className="doctor-character">
+            <div className="cat-peek">
 
-              {/* Hair */}
-              <div className="doctor-hair">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              {/* Tail */}
+              <div className="cat-tail"></div>
+
+              {/* Body */}
+              <div className="cat-body"></div>
 
               {/* Head */}
-              <div className="doctor-head">
+              <div className="cat-head">
 
-                <div className="doctor-ear ear-left"></div>
-                <div className="doctor-ear ear-right"></div>
-
-                {/* Eyes */}
-                <div
-                  className={`doctor-eye doctor-eye-left ${
-                    focusedField === "password"
-                      ? "eyes-closed"
-                      : ""
-                  }`}
-                >
-                  <span
-                    className="doctor-pupil"
-                    style={{
-                      transform:
-                        focusedField === "email"
-                          ? `translate(${mouse.x * 2}px, ${
-                              mouse.y * 1.5
-                            }px)`
-                          : "translate(0,0)",
-                    }}
-                  ></span>
+                {/* Ears */}
+                <div className="cat-ear cat-ear-left">
+                  <div className="cat-ear-inner"></div>
                 </div>
 
-                <div
-                  className={`doctor-eye doctor-eye-right ${
-                    focusedField === "password"
-                      ? "eyes-closed"
-                      : ""
-                  }`}
-                >
-                  <span
-                    className="doctor-pupil"
-                    style={{
-                      transform:
-                        focusedField === "email"
-                          ? `translate(${mouse.x * 2}px, ${
-                              mouse.y * 1.5
-                            }px)`
-                          : "translate(0,0)",
-                    }}
-                  ></span>
+                <div className="cat-ear cat-ear-right">
+                  <div className="cat-ear-inner"></div>
+                </div>
+
+                {/* Eyes */}
+                <div className="cat-eye cat-eye-left">
+                  <span></span>
+                </div>
+
+                <div className="cat-eye cat-eye-right">
+                  <span></span>
                 </div>
 
                 {/* Nose */}
-                <div className="doctor-nose"></div>
+                <div className="cat-nose"></div>
 
-                {/* Smile */}
-                <div className="doctor-smile"></div>
-              </div>
-
-              {/* Neck */}
-              <div className="doctor-neck"></div>
-
-              {/* Doctor Coat */}
-              <div className="doctor-coat">
-
-                <div className="coat-left"></div>
-                <div className="coat-right"></div>
-
-                {/* Stethoscope */}
-                <div className="stethoscope">
-
-                  <div className="stetho-tube-left"></div>
-                  <div className="stetho-tube-right"></div>
-
-                  <div className="stetho-chest">
-                    <div className="stetho-center"></div>
-                  </div>
-
-                </div>
-
-                {/* Coat Buttons */}
-                <div className="doctor-button button-one"></div>
-                <div className="doctor-button button-two"></div>
+                {/* Tiny smile */}
+                <div className="cat-mouth"></div>
 
               </div>
 
-              {/* Hands */}
-              <div className="doctor-hand hand-left"></div>
-              <div className="doctor-hand hand-right"></div>
+              {/* Tiny paws */}
+              <div className="cat-paw cat-paw-left"></div>
+              <div className="cat-paw cat-paw-right"></div>
 
             </div>
           </div>
 
-          {/* ==========================================
-              FREEWILL LOGO
-             ========================================== */}
+          {/* =========================
+              LOGO
+             ========================= */}
           <div className="logo-section">
 
             <div className="logo-circle">
@@ -242,7 +193,9 @@ function Login() {
 
           </div>
 
-          {/* WELCOME */}
+          {/* =========================
+              WELCOME
+             ========================= */}
           <div className="welcome-text">
 
             <h2>Welcome Back</h2>
@@ -255,7 +208,9 @@ function Login() {
 
           </div>
 
-          {/* FORM */}
+          {/* =========================
+              FORM
+             ========================= */}
           <form onSubmit={handleLogin}>
 
             {/* EMAIL */}
@@ -381,25 +336,51 @@ function Login() {
 
             </div>
 
-            {/* ==========================================
+            {/* =========================================
                 SIGN IN BUTTON
-                WATER / FLUID ANIMATION WHEN LOADING
-               ========================================== */}
+                FLUID + RUNNING CHARACTER
+               ========================================= */}
             <button
               type="submit"
               className={`login-button ${
-                loading ? "button-loading-state" : ""
+                loading
+                  ? "button-loading-state"
+                  : ""
               }`}
               disabled={loading}
             >
 
               {loading ? (
                 <>
-                  <div className="water-fill">
-                    <div className="water-wave"></div>
-                    <div className="water-wave water-wave-two"></div>
+                  {/* Fluid */}
+                  <div className="fluid-container">
+
+                    <div className="fluid-wave fluid-wave-one"></div>
+
+                    <div className="fluid-wave fluid-wave-two"></div>
+
+                    <div className="fluid-wave fluid-wave-three"></div>
+
                   </div>
 
+                  {/* Tiny Running Character */}
+                  <div className="running-character">
+
+                    <div className="runner-body"></div>
+
+                    <div className="runner-head"></div>
+
+                    <div className="runner-arm runner-arm-left"></div>
+
+                    <div className="runner-arm runner-arm-right"></div>
+
+                    <div className="runner-leg runner-leg-left"></div>
+
+                    <div className="runner-leg runner-leg-right"></div>
+
+                  </div>
+
+                  {/* Signing Text */}
                   <span className="signing-text">
                     Signing...
                   </span>
@@ -455,13 +436,14 @@ function Login() {
           box-sizing: border-box;
         }
 
-        /* ==========================================
+        /* =========================================
            PAGE
-           ========================================== */
+           ========================================= */
 
         .login-page {
           min-height: 100vh;
           width: 100%;
+
           position: relative;
           overflow: hidden;
 
@@ -494,20 +476,23 @@ function Login() {
             sans-serif;
         }
 
-        /* ==========================================
+        /* =========================================
            BACKGROUND
-           ========================================== */
+           ========================================= */
 
         .ocean-bg {
           position: absolute;
           inset: 0;
+
           overflow: hidden;
+
           pointer-events: none;
         }
 
         .stars {
           position: absolute;
           inset: 0;
+
           opacity: .5;
 
           background-image:
@@ -533,8 +518,11 @@ function Login() {
 
         .ambient {
           position: absolute;
+
           border-radius: 50%;
+
           filter: blur(80px);
+
           opacity: .22;
         }
 
@@ -574,6 +562,7 @@ function Login() {
           position: absolute;
 
           width: 180%;
+
           left: -40%;
 
           border-radius: 50%;
@@ -604,12 +593,13 @@ function Login() {
           bottom: -360px;
         }
 
-        /* ==========================================
-           LOGIN CARD
-           ========================================== */
+        /* =========================================
+           LOGIN
+           ========================================= */
 
         .login-container {
           width: 100%;
+
           max-width: 460px;
 
           padding:
@@ -617,6 +607,7 @@ function Login() {
             18px;
 
           position: relative;
+
           z-index: 10;
 
           perspective: 1200px;
@@ -668,6 +659,7 @@ function Login() {
 
           from {
             opacity: 0;
+
             transform:
               translateY(30px)
               scale(.97);
@@ -675,6 +667,7 @@ function Login() {
 
           to {
             opacity: 1;
+
             transform:
               translateY(0)
               scale(1);
@@ -682,239 +675,31 @@ function Login() {
 
         }
 
-        /* ==========================================
-           SMALL DOCTOR CHARACTER
-           ========================================== */
+        /* =========================================
+           TINY CAT
+           ========================================= */
 
-        .doctor-character-wrapper {
+        .cat-peek-wrapper {
           position: absolute;
 
           /*
-             CHARACTER IS ABOVE FREEWILL
+            Cat starts behind the logo.
           */
 
-          top: 8px;
+          top: 31px;
 
           left: 50%;
 
-          margin-left: -41px;
+          margin-left: -34px;
 
-          width: 82px;
-          height: 82px;
+          width: 68px;
+          height: 58px;
 
-          z-index: 30;
+          z-index: 5;
 
           pointer-events: none;
 
-          perspective: 700px;
-
-          transition:
-            transform
-            .12s
-            ease-out;
-        }
-
-        .doctor-character {
-          width: 82px;
-          height: 82px;
-
-          position: relative;
-
-          transform-style:
-            preserve-3d;
-
-          animation:
-            doctorFloat
-            3.5s
-            ease-in-out
-            infinite;
-        }
-
-        @keyframes doctorFloat {
-
-          0%,100% {
-            transform:
-              translateY(0);
-          }
-
-          50% {
-            transform:
-              translateY(-4px);
-          }
-
-        }
-
-        /* ==========================================
-           HAIR
-           ========================================== */
-
-        .doctor-hair {
-          position: absolute;
-
-          width: 58px;
-          height: 34px;
-
-          left: 12px;
-          top: 0;
-
-          z-index: 8;
-        }
-
-        .doctor-hair span {
-          position: absolute;
-
-          background:
-            linear-gradient(
-              145deg,
-              #18232a,
-              #071116
-            );
-
-          border-radius: 50%;
-        }
-
-        .doctor-hair span:nth-child(1) {
-          width: 36px;
-          height: 24px;
-
-          left: 2px;
-          top: 1px;
-
-          transform:
-            rotate(-15deg);
-        }
-
-        .doctor-hair span:nth-child(2) {
-          width: 38px;
-          height: 27px;
-
-          left: 19px;
-          top: 0;
-
-          transform:
-            rotate(13deg);
-        }
-
-        .doctor-hair span:nth-child(3) {
-          width: 21px;
-          height: 17px;
-
-          left: 20px;
-          top: 17px;
-
-          transform:
-            rotate(5deg);
-        }
-
-        /* ==========================================
-           HEAD
-           ========================================== */
-
-        .doctor-head {
-          position: absolute;
-
-          width: 52px;
-          height: 52px;
-
-          left: 15px;
-          top: 3px;
-
-          border-radius:
-            46%
-            46%
-            43%
-            43%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #ffd9bc,
-              #f2b894
-            );
-
-          box-shadow:
-            inset -5px -6px 8px
-            rgba(140,70,40,.13),
-
-            0 5px 10px
-            rgba(0,0,0,.2);
-
-          z-index: 5;
-        }
-
-        /* EARS */
-
-        .doctor-ear {
-          position: absolute;
-
-          width: 9px;
-          height: 17px;
-
-          top: 19px;
-
-          background:
-            #f1b28f;
-
-          border-radius: 50%;
-        }
-
-        .ear-left {
-          left: -6px;
-        }
-
-        .ear-right {
-          right: -6px;
-        }
-
-        /* ==========================================
-           EYES
-           ========================================== */
-
-        .doctor-eye {
-          position: absolute;
-
-          width: 9px;
-          height: 11px;
-
-          top: 26px;
-
-          background: white;
-
-          border-radius: 50%;
-
-          overflow: hidden;
-
-          box-shadow:
-            inset 0 0 2px
-            rgba(0,0,0,.25);
-
-          transition:
-            height
-            .25s
-            ease;
-        }
-
-        .doctor-eye-left {
-          left: 12px;
-        }
-
-        .doctor-eye-right {
-          right: 12px;
-        }
-
-        .doctor-pupil {
-          position: absolute;
-
-          width: 4px;
-          height: 6px;
-
-          left: 2.5px;
-          top: 2px;
-
-          border-radius: 50%;
-
-          background:
-            #182127;
+          perspective: 800px;
 
           transition:
             transform
@@ -922,281 +707,391 @@ function Login() {
             ease;
         }
 
-        /* PASSWORD EYES CLOSED */
+        .cat-peek {
+          width: 68px;
+          height: 58px;
 
-        .eyes-closed {
-          height: 2px;
+          position: relative;
 
-          top: 30px;
+          transform-style:
+            preserve-3d;
 
-          background:
-            #573d36;
+          /*
+            Cat peeks up,
+            waits,
+            then goes back.
+          */
 
-          border-radius: 100%;
+          animation:
+            catPeek
+            5.5s
+            ease-in-out
+            infinite;
         }
 
-        .eyes-closed
-        .doctor-pupil {
-          display: none;
+        @keyframes catPeek {
+
+          0% {
+            transform:
+              translateY(18px)
+              scale(.88);
+
+            opacity: 0;
+          }
+
+          8% {
+            transform:
+              translateY(4px)
+              scale(.95);
+
+            opacity: 1;
+          }
+
+          18% {
+            transform:
+              translateY(0)
+              scale(1);
+          }
+
+          35% {
+            transform:
+              translateY(0)
+              scale(1);
+          }
+
+          48% {
+            transform:
+              translateY(5px)
+              scale(.98);
+          }
+
+          62% {
+            transform:
+              translateY(18px)
+              scale(.88);
+
+            opacity: 0;
+          }
+
+          100% {
+            transform:
+              translateY(18px)
+              scale(.88);
+
+            opacity: 0;
+          }
         }
 
-        /* ==========================================
-           FACE
-           ========================================== */
+        /* CAT BODY */
 
-        .doctor-nose {
+        .cat-body {
           position: absolute;
 
-          width: 4px;
-          height: 5px;
+          width: 36px;
+          height: 25px;
 
-          left: 24px;
+          left: 16px;
           top: 34px;
 
-          border-radius: 50%;
-
-          background:
-            #d48e6f;
-        }
-
-        .doctor-smile {
-          position: absolute;
-
-          width: 12px;
-          height: 6px;
-
-          left: 20px;
-          top: 40px;
-
-          border-bottom:
-            2px solid
-            #9d5e53;
-
           border-radius:
-            0
-            0
-            20px
-            20px;
-        }
-
-        /* ==========================================
-           NECK
-           ========================================== */
-
-        .doctor-neck {
-          position: absolute;
-
-          width: 14px;
-          height: 12px;
-
-          left: 34px;
-          top: 49px;
-
-          background:
-            #efb18e;
-
-          z-index: 2;
-        }
-
-        /* ==========================================
-           WHITE DOCTOR COAT
-           ========================================== */
-
-        .doctor-coat {
-          position: absolute;
-
-          width: 64px;
-          height: 34px;
-
-          left: 9px;
-          top: 55px;
+            50%
+            50%
+            35%
+            35%;
 
           background:
             linear-gradient(
               145deg,
-              #ffffff,
-              #dce9e8
+              #e9eef0,
+              #aab8bd
             );
 
-          border-radius:
-            18px
-            18px
-            8px
-            8px;
+          box-shadow:
+            inset
+            -4px
+            -5px
+            7px
+            rgba(0,0,0,.18),
 
-          z-index: 3;
+            0 4px 8px
+            rgba(0,0,0,.25);
+        }
+
+        /* CAT HEAD */
+
+        .cat-head {
+          position: absolute;
+
+          width: 42px;
+          height: 37px;
+
+          left: 13px;
+          top: 13px;
+
+          border-radius:
+            48%
+            48%
+            43%
+            43%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f2f5f5,
+              #aebbc0
+            );
 
           box-shadow:
-            0 7px 13px
-            rgba(0,0,0,.25),
+            inset
+            -4px
+            -5px
+            7px
+            rgba(0,0,0,.18),
 
-            inset 0 2px 0
-            rgba(255,255,255,.8);
+            0 5px 10px
+            rgba(0,0,0,.25);
+
+          z-index: 4;
         }
 
-        .coat-left,
-        .coat-right {
+        /* EARS */
+
+        .cat-ear {
           position: absolute;
 
-          width: 14px;
+          width: 18px;
           height: 20px;
 
-          top: 0;
+          top: -9px;
 
           background:
-            #eef7f6;
+            linear-gradient(
+              145deg,
+              #dfe7e9,
+              #8d9da2
+            );
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+
+          filter:
+            drop-shadow(
+              0 2px 2px
+              rgba(0,0,0,.22)
+            );
         }
 
-        .coat-left {
-          left: 19px;
+        .cat-ear-left {
+          left: 2px;
 
           transform:
-            skewY(28deg);
+            rotate(-7deg);
         }
 
-        .coat-right {
-          right: 19px;
+        .cat-ear-right {
+          right: 2px;
 
           transform:
-            skewY(-28deg);
+            rotate(7deg);
         }
 
-        /* ==========================================
-           STETHOSCOPE
-           ========================================== */
-
-        .stethoscope {
-          position: absolute;
-
-          width: 24px;
-          height: 27px;
-
-          left: 20px;
-          top: 3px;
-
-          z-index: 5;
-        }
-
-        .stetho-tube-left,
-        .stetho-tube-right {
-          position: absolute;
-
-          width: 2px;
-          height: 17px;
-
-          background:
-            #4e7779;
-
-          top: 0;
-        }
-
-        .stetho-tube-left {
-          left: 4px;
-
-          transform:
-            rotate(-8deg);
-        }
-
-        .stetho-tube-right {
-          right: 4px;
-
-          transform:
-            rotate(8deg);
-        }
-
-        .stetho-chest {
+        .cat-ear-inner {
           position: absolute;
 
           width: 9px;
-          height: 9px;
+          height: 10px;
 
-          border:
-            2px solid
-            #4e7779;
-
-          border-radius: 50%;
-
-          left: 7px;
-          top: 18px;
+          left: 4.5px;
+          top: 5px;
 
           background:
-            rgba(255,255,255,.35);
+            #75888e;
+
+          clip-path:
+            polygon(
+              50% 0%,
+              100% 100%,
+              0% 100%
+            );
+
+          opacity: .7;
         }
 
-        .stetho-center {
+        /* CAT EYES */
+
+        .cat-eye {
           position: absolute;
 
-          width: 3px;
-          height: 3px;
+          width: 7px;
+          height: 8px;
 
-          background:
-            #4e7779;
+          top: 17px;
 
           border-radius: 50%;
 
-          left: 1px;
-          top: 1px;
+          background:
+            #142126;
+
+          box-shadow:
+            0 0 4px
+            rgba(150,220,210,.35);
+
+          animation:
+            catBlink
+            5.5s
+            ease-in-out
+            infinite;
         }
 
-        /* COAT BUTTONS */
+        .cat-eye-left {
+          left: 10px;
+        }
 
-        .doctor-button {
+        .cat-eye-right {
+          right: 10px;
+        }
+
+        .cat-eye span {
+          position: absolute;
+
+          width: 2px;
+          height: 2px;
+
+          top: 1px;
+          left: 2px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(255,255,255,.85);
+        }
+
+        @keyframes catBlink {
+
+          0%,42% {
+            transform:
+              scaleY(1);
+          }
+
+          45% {
+            transform:
+              scaleY(.15);
+          }
+
+          48%,100% {
+            transform:
+              scaleY(1);
+          }
+        }
+
+        /* CAT NOSE */
+
+        .cat-nose {
           position: absolute;
 
           width: 4px;
-          height: 4px;
+          height: 3px;
+
+          left: 19px;
+          top: 26px;
 
           background:
-            #76999a;
+            #6e858a;
 
-          border-radius: 50%;
-
-          left: 31px;
+          border-radius:
+            50%;
         }
 
-        .button-one {
-          top: 19px;
-        }
+        /* CAT MOUTH */
 
-        .button-two {
-          top: 26px;
-        }
-
-        /* HANDS */
-
-        .doctor-hand {
+        .cat-mouth {
           position: absolute;
 
-          width: 12px;
-          height: 15px;
+          width: 7px;
+          height: 4px;
 
-          background:
-            #ffd0ae;
+          left: 17px;
+          top: 28px;
 
-          border-radius: 50%;
+          border-bottom:
+            1px solid
+            #63787d;
 
-          z-index: 10;
-
-          top: 65px;
+          border-radius:
+            0 0 10px 10px;
         }
 
-        .hand-left {
-          left: 0;
+        /* CAT TAIL */
+
+        .cat-tail {
+          position: absolute;
+
+          width: 23px;
+          height: 20px;
+
+          right: 5px;
+          top: 35px;
+
+          border:
+            5px solid
+            #9caeb2;
+
+          border-left:
+            0;
+
+          border-bottom:
+            0;
+
+          border-radius:
+            0
+            22px
+            0
+            0;
 
           transform:
             rotate(20deg);
+
+          z-index: 1;
         }
 
-        .hand-right {
-          right: 0;
+        /* CAT PAWS */
 
-          transform:
-            rotate(-20deg);
+        .cat-paw {
+          position: absolute;
+
+          width: 13px;
+          height: 9px;
+
+          top: 40px;
+
+          background:
+            #dbe3e5;
+
+          border-radius:
+            50%;
+
+          z-index: 7;
+
+          box-shadow:
+            0 2px 3px
+            rgba(0,0,0,.18);
         }
 
-        /* ==========================================
+        .cat-paw-left {
+          left: 14px;
+        }
+
+        .cat-paw-right {
+          right: 14px;
+        }
+
+        /* =========================================
            LOGO
-           ========================================== */
+           ========================================= */
 
         .logo-section {
           text-align: center;
@@ -1204,10 +1099,14 @@ function Login() {
           margin-bottom: 25px;
 
           /*
-             SPACE RESERVED FOR CHARACTER
+            Logo remains in front of cat.
           */
 
           padding-top: 55px;
+
+          position: relative;
+
+          z-index: 10;
         }
 
         .logo-circle {
@@ -1222,6 +1121,7 @@ function Login() {
           border-radius: 18px;
 
           display: flex;
+
           align-items: center;
           justify-content: center;
 
@@ -1240,7 +1140,8 @@ function Login() {
             0 8px 25px
             rgba(0,0,0,.3),
 
-            inset 0 1px 0
+            inset
+            0 1px 0
             rgba(255,255,255,.15);
         }
 
@@ -1276,9 +1177,9 @@ function Login() {
           text-transform: uppercase;
         }
 
-        /* ==========================================
+        /* =========================================
            WELCOME
-           ========================================== */
+           ========================================= */
 
         .welcome-text {
           text-align: center;
@@ -1308,9 +1209,9 @@ function Login() {
           line-height: 1.6;
         }
 
-        /* ==========================================
-           INPUTS
-           ========================================== */
+        /* =========================================
+           INPUT
+           ========================================= */
 
         .input-group {
           margin-bottom: 19px;
@@ -1411,9 +1312,9 @@ function Login() {
             rgba(0,0,0,.14);
         }
 
-        /* ==========================================
+        /* =========================================
            OPTIONS
-           ========================================== */
+           ========================================= */
 
         .login-options {
           display: flex;
@@ -1463,9 +1364,9 @@ function Login() {
           padding: 0;
         }
 
-        /* ==========================================
+        /* =========================================
            SIGN IN BUTTON
-           ========================================== */
+           ========================================= */
 
         .login-button {
           width: 100%;
@@ -1498,7 +1399,8 @@ function Login() {
             0 10px 28px
             rgba(72,153,137,.18),
 
-            inset 0 1px 0
+            inset
+            0 1px 0
             rgba(255,255,255,.6);
 
           transition:
@@ -1531,7 +1433,8 @@ function Login() {
             0 14px 34px
             rgba(72,153,137,.25),
 
-            inset 0 1px 0
+            inset
+            0 1px 0
             rgba(255,255,255,.6);
         }
 
@@ -1547,92 +1450,109 @@ function Login() {
           font-size: 19px;
         }
 
-        /* ==========================================
-           RUNNING WATER / FLUID FILL
-           ========================================== */
+        /* =========================================
+           FLUID WATER FILL
+           ========================================= */
 
         .button-loading-state {
-          color: white;
-
           background:
             linear-gradient(
               135deg,
-              #164f57,
-              #287d79
+              #123f49,
+              #236d70
             );
+
+          color: white;
 
           box-shadow:
             0 10px 30px
             rgba(43,155,145,.25);
         }
 
-        .water-fill {
+        .fluid-container {
           position: absolute;
 
-          left: 0;
-          bottom: 0;
-
-          width: 100%;
-          height: 100%;
+          inset: 0;
 
           overflow: hidden;
 
           pointer-events: none;
         }
 
-        .water-wave {
+        .fluid-wave {
           position: absolute;
 
           width: 180%;
+
           height: 160%;
 
           left: -40%;
-          bottom: -125%;
+
+          bottom: -132%;
+
+          border-radius:
+            45%
+            55%
+            0
+            0;
 
           background:
             linear-gradient(
               180deg,
-              rgba(198,236,218,.60),
-              rgba(91,188,174,.75)
+              rgba(207,241,222,.65),
+              rgba(72,176,166,.78)
             );
+        }
 
-          border-radius:
-            45% 55%
-            0 0;
-
+        .fluid-wave-one {
           animation:
-            waterRise
-            1.6s
+            fluidRise
+            1.55s
             ease-in-out
             infinite;
         }
 
-        .water-wave-two {
-          opacity: .35;
+        .fluid-wave-two {
+          opacity: .38;
 
-          bottom: -130%;
+          bottom: -138%;
 
           animation:
-            waterRiseTwo
-            2s
+            fluidRiseTwo
+            1.9s
             ease-in-out
             infinite;
 
           animation-delay:
-            -.45s;
+            -.35s;
         }
 
-        @keyframes waterRise {
+        .fluid-wave-three {
+          opacity: .22;
+
+          bottom: -142%;
+
+          animation:
+            fluidRiseThree
+            2.25s
+            ease-in-out
+            infinite;
+
+          animation-delay:
+            -.7s;
+        }
+
+        @keyframes fluidRise {
 
           0% {
             transform:
               translateX(-8%)
               rotate(0deg);
 
-            bottom: -130%;
+            bottom: -132%;
           }
 
-          45% {
+          50% {
             transform:
               translateX(8%)
               rotate(2deg);
@@ -1645,19 +1565,19 @@ function Login() {
               translateX(-8%)
               rotate(0deg);
 
-            bottom: -130%;
+            bottom: -132%;
           }
 
         }
 
-        @keyframes waterRiseTwo {
+        @keyframes fluidRiseTwo {
 
           0% {
             transform:
               translateX(8%)
               rotate(0deg);
 
-            bottom: -132%;
+            bottom: -138%;
           }
 
           50% {
@@ -1665,7 +1585,7 @@ function Login() {
               translateX(-8%)
               rotate(-2deg);
 
-            bottom: -115%;
+            bottom: -116%;
           }
 
           100% {
@@ -1673,25 +1593,308 @@ function Login() {
               translateX(8%)
               rotate(0deg);
 
-            bottom: -132%;
+            bottom: -138%;
           }
 
         }
 
+        @keyframes fluidRiseThree {
+
+          0% {
+            transform:
+              translateX(-6%)
+              rotate(1deg);
+
+            bottom: -142%;
+          }
+
+          50% {
+            transform:
+              translateX(7%)
+              rotate(-1deg);
+
+            bottom: -120%;
+          }
+
+          100% {
+            transform:
+              translateX(-6%)
+              rotate(1deg);
+
+            bottom: -142%;
+          }
+
+        }
+
+        /* =========================================
+           TINY RUNNING CHARACTER
+           PUBG LOADING STYLE
+           ========================================= */
+
+        .running-character {
+          position: absolute;
+
+          left: 25%;
+
+          bottom: 8px;
+
+          width: 18px;
+          height: 25px;
+
+          z-index: 8;
+
+          transform-origin:
+            center bottom;
+
+          animation:
+            runnerMove
+            1.15s
+            linear
+            infinite;
+        }
+
+        @keyframes runnerMove {
+
+          0% {
+            left: 18%;
+            transform:
+              scaleX(1)
+              translateY(0);
+          }
+
+          25% {
+            transform:
+              scaleX(1)
+              translateY(-1px);
+          }
+
+          50% {
+            left: 50%;
+
+            transform:
+              scaleX(1)
+              translateY(0);
+          }
+
+          75% {
+            transform:
+              scaleX(1)
+              translateY(-1px);
+          }
+
+          100% {
+            left: 82%;
+
+            transform:
+              scaleX(1)
+              translateY(0);
+          }
+
+        }
+
+        /* RUNNER BODY */
+
+        .runner-body {
+          position: absolute;
+
+          width: 7px;
+          height: 11px;
+
+          left: 6px;
+          top: 7px;
+
+          border-radius:
+            45%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f1f7f4,
+              #9fc7bd
+            );
+
+          box-shadow:
+            0 0 5px
+            rgba(255,255,255,.4);
+        }
+
+        /* RUNNER HEAD */
+
+        .runner-head {
+          position: absolute;
+
+          width: 6px;
+          height: 6px;
+
+          left: 6.5px;
+          top: 0;
+
+          border-radius: 50%;
+
+          background:
+            #eef5f2;
+
+          box-shadow:
+            0 0 4px
+            rgba(255,255,255,.45);
+        }
+
+        /* RUNNER ARMS */
+
+        .runner-arm {
+          position: absolute;
+
+          width: 3px;
+          height: 10px;
+
+          top: 8px;
+
+          border-radius: 3px;
+
+          background:
+            #b8d9d1;
+
+          transform-origin:
+            top center;
+        }
+
+        .runner-arm-left {
+          left: 4px;
+
+          animation:
+            armRun
+            .28s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        .runner-arm-right {
+          right: 4px;
+
+          animation:
+            armRunReverse
+            .28s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes armRun {
+
+          from {
+            transform:
+              rotate(38deg);
+          }
+
+          to {
+            transform:
+              rotate(-42deg);
+          }
+
+        }
+
+        @keyframes armRunReverse {
+
+          from {
+            transform:
+              rotate(-42deg);
+          }
+
+          to {
+            transform:
+              rotate(38deg);
+          }
+
+        }
+
+        /* RUNNER LEGS */
+
+        .runner-leg {
+          position: absolute;
+
+          width: 3px;
+          height: 10px;
+
+          top: 16px;
+
+          border-radius: 3px;
+
+          background:
+            #a8ccc3;
+
+          transform-origin:
+            top center;
+        }
+
+        .runner-leg-left {
+          left: 6px;
+
+          animation:
+            legRun
+            .28s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        .runner-leg-right {
+          left: 9px;
+
+          animation:
+            legRunReverse
+            .28s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes legRun {
+
+          from {
+            transform:
+              rotate(40deg);
+          }
+
+          to {
+            transform:
+              rotate(-42deg);
+          }
+
+        }
+
+        @keyframes legRunReverse {
+
+          from {
+            transform:
+              rotate(-42deg);
+          }
+
+          to {
+            transform:
+              rotate(40deg);
+          }
+
+        }
+
+        /* SIGNING */
+
         .signing-text {
           position: relative;
 
-          z-index: 5;
+          z-index: 12;
 
           color: white;
 
+          font-weight: 700;
+
           text-shadow:
-            0 1px 4px
-            rgba(0,0,0,.35);
+            0 1px 5px
+            rgba(0,0,0,.45);
 
           animation:
             signingPulse
-            1.2s
+            1.1s
             ease-in-out
             infinite;
         }
@@ -1699,7 +1902,7 @@ function Login() {
         @keyframes signingPulse {
 
           0%,100% {
-            opacity: .75;
+            opacity: .78;
           }
 
           50% {
@@ -1708,9 +1911,9 @@ function Login() {
 
         }
 
-        /* ==========================================
+        /* =========================================
            REGISTER
-           ========================================== */
+           ========================================= */
 
         .register-section {
           text-align: center;
@@ -1738,9 +1941,9 @@ function Login() {
           text-decoration: underline;
         }
 
-        /* ==========================================
+        /* =========================================
            SECURITY
-           ========================================== */
+           ========================================= */
 
         .security-text {
           display: flex;
@@ -1759,9 +1962,9 @@ function Login() {
           font-size: 9px;
         }
 
-        /* ==========================================
+        /* =========================================
            MOBILE
-           ========================================== */
+           ========================================= */
 
         @media (max-width: 520px) {
 
@@ -1782,11 +1985,11 @@ function Login() {
             border-radius: 24px;
           }
 
-          .doctor-character-wrapper {
-            top: 8px;
+          .cat-peek-wrapper {
+            top: 30px;
 
             transform:
-              scale(.88);
+              scale(.90);
           }
 
           .logo-section {
@@ -1805,8 +2008,8 @@ function Login() {
             padding-top: 30px;
           }
 
-          .doctor-character-wrapper {
-            top: 6px;
+          .cat-peek-wrapper {
+            top: 7px;
           }
 
           .logo-section {
