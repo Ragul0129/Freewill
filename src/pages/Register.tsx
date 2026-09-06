@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -16,333 +16,237 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const [focusedField, setFocusedField] = useState<
-    "name" | "email" | "password" | "confirmPassword" | null
+    "name" | "email" | "password" | "confirm" | null
   >(null);
-
-  const passwordMode =
-    focusedField === "password" ||
-    focusedField === "confirmPassword" ||
-    password.length > 0 ||
-    confirmPassword.length > 0;
-
-  const emailMode =
-    focusedField === "email" ||
-    email.length > 0;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setError("");
-    setSuccess("");
+    if (!fullName.trim()) {
+      alert("Please enter your full name.");
+      return;
+    }
 
-    if (!fullName || !email || !password || !confirmPassword) {
-      setError("Please fill in all the fields.");
+    if (!email.trim()) {
+      alert("Please enter your email.");
+      return;
+    }
+
+    if (!password) {
+      alert("Please enter a password.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      alert("Password must be at least 6 characters.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      alert("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error: signUpError } =
-        await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-            },
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
           },
-        });
+        },
+      });
 
-      if (signUpError) {
-        setError(signUpError.message);
-        setLoading(false);
+      if (error) {
+        alert(error.message);
         return;
       }
 
       if (!data.user) {
-        setError("Registration failed. Please try again.");
-        setLoading(false);
+        alert("Registration failed. Please try again.");
         return;
       }
 
       /*
-       * Create profile when a user session is available.
-       * If email confirmation is enabled, profile creation can
-       * also be handled by your existing Supabase trigger.
+       * Create profile for the newly registered user.
+       * If your Supabase database already creates profiles
+       * automatically using a trigger, this insert is skipped
+       * when the profile already exists.
        */
-      if (data.session) {
+
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
         const { error: profileError } = await supabase
           .from("profiles")
-          .upsert(
-            {
-              id: data.user.id,
-              full_name: fullName,
-              email: email,
-              role: "user",
-            },
-            {
-              onConflict: "id",
-            }
-          );
+          .insert({
+            id: data.user.id,
+            full_name: fullName.trim(),
+            email: email.trim(),
+            role: "user",
+          });
 
         if (profileError) {
-          console.error("Profile creation error:", profileError);
+          console.error(
+            "Profile creation error:",
+            profileError
+          );
         }
       }
 
+      /*
+       * If email confirmation is enabled in Supabase,
+       * user may need to confirm email before logging in.
+       */
+
       if (!data.session) {
-        setSuccess(
-          "Account created successfully. Please check your email to verify your account."
+        alert(
+          "Account created successfully. Please check your email and confirm your account before signing in."
         );
-        setLoading(false);
+
+        navigate("/login");
         return;
       }
 
       navigate("/home");
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="freewill-register">
+    <div className="register-page">
 
-      {/* =====================================================
-          NIGHT SKY BACKGROUND
-      ====================================================== */}
+      {/* =========================================
+          HEALING BACKGROUND
+      ========================================== */}
 
-      <div className="sky">
+      <div className="ocean-bg">
 
-        <div className="big-glow" />
+        <div className="stars"></div>
 
-        {/* Stars */}
-        <span className="star s1" />
-        <span className="star s2" />
-        <span className="star s3" />
-        <span className="star s4" />
-        <span className="star s5" />
-        <span className="star s6" />
-        <span className="star s7" />
-        <span className="star s8" />
-        <span className="star s9" />
-        <span className="star s10" />
-        <span className="star s11" />
-        <span className="star s12" />
-        <span className="star s13" />
-        <span className="star s14" />
-        <span className="star s15" />
+        {/* Healing particles */}
 
-        {/* Shooting stars */}
-        <div className="shooting-star shooting-one" />
-        <div className="shooting-star shooting-two" />
+        <div className="healing-particles">
 
-        {/* Floating particles */}
-        <span className="particle p1" />
-        <span className="particle p2" />
-        <span className="particle p3" />
-        <span className="particle p4" />
-        <span className="particle p5" />
+          <span className="particle p1"></span>
+          <span className="particle p2"></span>
+          <span className="particle p3"></span>
+          <span className="particle p4"></span>
+          <span className="particle p5"></span>
+          <span className="particle p6"></span>
+          <span className="particle p7"></span>
+          <span className="particle p8"></span>
+          <span className="particle p9"></span>
+          <span className="particle p10"></span>
+          <span className="particle p11"></span>
+          <span className="particle p12"></span>
+          <span className="particle p13"></span>
+          <span className="particle p14"></span>
+          <span className="particle p15"></span>
+          <span className="particle p16"></span>
+          <span className="particle p17"></span>
+          <span className="particle p18"></span>
+          <span className="particle p19"></span>
+          <span className="particle p20"></span>
+
+        </div>
+
+        {/* Healing light streams */}
+
+        <div className="healing-stream stream-one"></div>
+        <div className="healing-stream stream-two"></div>
+        <div className="healing-stream stream-three"></div>
+        <div className="healing-stream stream-four"></div>
+
+        {/* Ambient glow */}
+
+        <div className="ambient ambient-one"></div>
+        <div className="ambient ambient-two"></div>
+        <div className="ambient ambient-three"></div>
+
+        {/* Soft waves */}
+
+        <div className="wave wave-one"></div>
+        <div className="wave wave-two"></div>
+        <div className="wave wave-three"></div>
 
       </div>
 
-      {/* =====================================================
-          BACK BUTTON
-      ====================================================== */}
+      {/* =========================================
+          REGISTER CONTAINER
+      ========================================== */}
 
-      <button
-        type="button"
-        className="back-button"
-        onClick={() => navigate("/")}
-      >
-        ← Back to FREEWILL
-      </button>
-
-      {/* =====================================================
-          MAIN
-      ====================================================== */}
-
-      <div className="register-main">
-
-        {/* =====================================================
-            FOX CHARACTER
-        ====================================================== */}
-
-        <div
-          className={`fox-stage ${
-            emailMode ? "email-mode" : ""
-          } ${passwordMode ? "password-mode" : ""}`}
-        >
-
-          <div className="fox-aura" />
-
-          <div className="fox-character">
-
-            {/* Ears */}
-            <div className="fox-ear fox-ear-left">
-              <div className="fox-ear-inner" />
-            </div>
-
-            <div className="fox-ear fox-ear-right">
-              <div className="fox-ear-inner" />
-            </div>
-
-            {/* Head */}
-            <div className="fox-head">
-
-              <div className="fox-forehead" />
-
-              {/* Left eye */}
-              <div className="fox-eye fox-eye-left">
-                <div className="eye-ball">
-                  <div className="eye-pupil" />
-                  <div className="eye-shine" />
-                </div>
-              </div>
-
-              {/* Right eye */}
-              <div className="fox-eye fox-eye-right">
-                <div className="eye-ball">
-                  <div className="eye-pupil" />
-                  <div className="eye-shine" />
-                </div>
-              </div>
-
-              {/* Eyebrows */}
-              <div className="fox-brow fox-brow-left" />
-              <div className="fox-brow fox-brow-right" />
-
-              {/* Muzzle */}
-              <div className="fox-muzzle fox-muzzle-left" />
-              <div className="fox-muzzle fox-muzzle-right" />
-
-              {/* Nose */}
-              <div className="fox-nose" />
-
-              {/* Mouth */}
-              <div className="fox-mouth">
-                <span className="mouth-left" />
-                <span className="mouth-right" />
-              </div>
-
-              {/* Cheeks */}
-              <div className="fox-cheek fox-cheek-left" />
-              <div className="fox-cheek fox-cheek-right" />
-
-            </div>
-
-            {/* Body */}
-            <div className="fox-body">
-              <div className="fox-belly" />
-            </div>
-
-            {/* Paws */}
-            <div className="fox-paw fox-paw-left">
-              <span />
-              <span />
-              <span />
-            </div>
-
-            <div className="fox-paw fox-paw-right">
-              <span />
-              <span />
-              <span />
-            </div>
-
-            {/* Keyboard */}
-            <div className="mini-keyboard">
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="keyboard-row">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-
-              <div className="space-key" />
-
-            </div>
-
-          </div>
-        </div>
-
-        {/* =====================================================
-            REGISTER CARD
-        ====================================================== */}
+      <div className="register-container">
 
         <div className="register-card">
 
-          <div className="brand">
-            FREEWILL
+          {/* =====================================
+              LOGO
+          ====================================== */}
+
+          <div className="logo-section">
+
+            <div className="logo-circle">
+              <span>F</span>
+            </div>
+
+            <h1>FREEWILL</h1>
+
+            <p>Human Empowerment</p>
+
           </div>
 
-          <div className="brand-sub">
-            HUMAN EMPOWERMENT
+          {/* =====================================
+              WELCOME
+          ====================================== */}
+
+          <div className="welcome-text">
+
+            <h2>Create Your Account</h2>
+
+            <p>
+              Begin your journey towards
+              <br />
+              better wellbeing.
+            </p>
+
           </div>
 
-          <h1>Create Account</h1>
-
-          <p className="register-description">
-            Start your FREEWILL journey today
-          </p>
+          {/* =====================================
+              FORM
+          ====================================== */}
 
           <form onSubmit={handleRegister}>
 
             {/* FULL NAME */}
 
-            <div className="field">
+            <div
+              className={`input-group ${
+                focusedField === "name"
+                  ? "input-focused"
+                  : ""
+              }`}
+            >
 
-              <label>Full Name</label>
+              <label>Full name</label>
 
-              <div
-                className={`input-box ${
-                  focusedField === "name"
-                    ? "active"
-                    : ""
-                }`}
-              >
+              <div className="input-wrapper">
 
-                <span className="field-icon">
-                  ♙
+                <span className="input-icon">
+                  ✦
                 </span>
 
                 <input
@@ -367,19 +271,19 @@ function Register() {
 
             {/* EMAIL */}
 
-            <div className="field">
+            <div
+              className={`input-group ${
+                focusedField === "email"
+                  ? "input-focused"
+                  : ""
+              }`}
+            >
 
-              <label>Email Address</label>
+              <label>Email address</label>
 
-              <div
-                className={`input-box ${
-                  focusedField === "email"
-                    ? "active"
-                    : ""
-                }`}
-              >
+              <div className="input-wrapper">
 
-                <span className="field-icon">
+                <span className="input-icon">
                   ✉
                 </span>
 
@@ -405,19 +309,19 @@ function Register() {
 
             {/* PASSWORD */}
 
-            <div className="field">
+            <div
+              className={`input-group ${
+                focusedField === "password"
+                  ? "input-focused"
+                  : ""
+              }`}
+            >
 
               <label>Password</label>
 
-              <div
-                className={`input-box ${
-                  focusedField === "password"
-                    ? "active"
-                    : ""
-                }`}
-              >
+              <div className="input-wrapper">
 
-                <span className="field-icon">
+                <span className="input-icon">
                   🔒
                 </span>
 
@@ -443,19 +347,19 @@ function Register() {
 
             {/* CONFIRM PASSWORD */}
 
-            <div className="field">
+            <div
+              className={`input-group ${
+                focusedField === "confirm"
+                  ? "input-focused"
+                  : ""
+              }`}
+            >
 
-              <label>Confirm Password</label>
+              <label>Confirm password</label>
 
-              <div
-                className={`input-box ${
-                  focusedField === "confirmPassword"
-                    ? "active"
-                    : ""
-                }`}
-              >
+              <div className="input-wrapper">
 
-                <span className="field-icon">
+                <span className="input-icon">
                   🔐
                 </span>
 
@@ -467,7 +371,7 @@ function Register() {
                     setConfirmPassword(e.target.value)
                   }
                   onFocus={() =>
-                    setFocusedField("confirmPassword")
+                    setFocusedField("confirm")
                   }
                   onBlur={() =>
                     setFocusedField(null)
@@ -479,90 +383,122 @@ function Register() {
 
             </div>
 
-            {/* ERROR */}
-
-            {error && (
-              <div className="error-box">
-                <span>!</span>
-                {error}
-              </div>
-            )}
-
-            {/* SUCCESS */}
-
-            {success && (
-              <div className="success-box">
-                <span>✓</span>
-                {success}
-              </div>
-            )}
-
-            {/* REGISTER BUTTON */}
+            {/* =====================================
+                CREATE ACCOUNT BUTTON
+            ====================================== */}
 
             <button
               type="submit"
-              className="register-button"
               disabled={loading}
+              className={`register-button ${
+                loading
+                  ? "button-loading-state"
+                  : ""
+              }`}
             >
 
               {loading ? (
+
                 <>
-                  <span className="spinner" />
-                  Creating Account...
+                  {/* LIQUID */}
+
+                  <div className="fluid-container">
+
+                    <div className="fluid-wave fluid-wave-one"></div>
+
+                    <div className="fluid-wave fluid-wave-two"></div>
+
+                    <div className="fluid-wave fluid-wave-three"></div>
+
+                  </div>
+
+                  {/* =================================
+                      TINY GLOWING RUNNER
+                  ================================= */}
+
+                  <div className="runner">
+
+                    <div className="runner-glow"></div>
+
+                    <div className="runner-body">
+
+                      <div className="runner-head"></div>
+
+                      <div className="runner-core"></div>
+
+                    </div>
+
+                    <div className="runner-leg runner-leg-one"></div>
+
+                    <div className="runner-leg runner-leg-two"></div>
+
+                    <div className="runner-arm runner-arm-one"></div>
+
+                    <div className="runner-arm runner-arm-two"></div>
+
+                  </div>
+
+                  <span className="creating-text">
+                    Creating...
+                  </span>
+
                 </>
+
               ) : (
+
                 <>
-                  Create Account
-                  <span className="register-arrow">
+                  <span>
+                    Create Account
+                  </span>
+
+                  <span className="arrow">
                     →
                   </span>
                 </>
+
               )}
 
             </button>
 
           </form>
 
-          {/* LOGIN */}
+          {/* =====================================
+              LOGIN
+          ====================================== */}
 
-          <div className="login-account">
+          <div className="login-section">
 
-            Already have an account?{" "}
+            <span>
+              Already have an account?
+            </span>
 
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </button>
+            <Link to="/login">
+              Sign in
+            </Link>
 
           </div>
 
-          <div className="privacy-note">
-            🔒 Your account information is protected
+          {/* =====================================
+              SECURITY
+          ====================================== */}
+
+          <div className="security-text">
+
+            <span>🔐</span>
+
+            <span>
+              Your information is securely protected
+            </span>
+
           </div>
 
         </div>
 
       </div>
 
-      {/* =====================================================
-          OCEAN WAVES
-      ====================================================== */}
-
-      <div className="ocean">
-
-        <div className="wave wave-back" />
-        <div className="wave wave-middle" />
-        <div className="wave wave-front" />
-
-        <div className="water-glow" />
-
-      </div>
-
-      {/* =====================================================
-          CSS
-      ====================================================== */}
+      {/* =========================================
+          STYLES
+      ========================================== */}
 
       <style>{`
 
@@ -570,24 +506,35 @@ function Register() {
           box-sizing: border-box;
         }
 
-        .freewill-register {
+        /* =====================================
+           PAGE
+        ====================================== */
+
+        .register-page {
           min-height: 100vh;
           width: 100%;
-          position: relative;
 
-          overflow-x: hidden;
-          overflow-y: auto;
+          position: relative;
+          overflow: hidden;
 
           background:
             radial-gradient(
-              circle at 50% 15%,
-              #243d61 0%,
-              #172a47 24%,
-              #101d34 52%,
-              #091323 100%
+              circle at 50% 10%,
+              rgba(26,120,125,.18),
+              transparent 36%
+            ),
+            linear-gradient(
+              145deg,
+              #02090d 0%,
+              #03151b 45%,
+              #021015 100%
             );
 
           color: white;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
           font-family:
             Inter,
@@ -599,11 +546,11 @@ function Register() {
             sans-serif;
         }
 
-        /* =====================================================
-           SKY
-        ====================================================== */
+        /* =====================================
+           BACKGROUND
+        ====================================== */
 
-        .sky {
+        .ocean-bg {
           position: absolute;
           inset: 0;
 
@@ -612,253 +559,45 @@ function Register() {
           pointer-events: none;
         }
 
-        .big-glow {
+        .stars {
           position: absolute;
+          inset: 0;
 
-          width: 520px;
-          height: 520px;
+          opacity: .35;
 
-          top: -230px;
-          left: 50%;
-
-          transform: translateX(-50%);
-
-          border-radius: 50%;
-
-          background:
+          background-image:
             radial-gradient(
               circle,
-              rgba(101,165,230,.20) 0%,
-              rgba(101,165,230,.07) 40%,
-              transparent 72%
+              rgba(255,255,255,.75) 1px,
+              transparent 1px
+            ),
+            radial-gradient(
+              circle,
+              rgba(255,255,255,.35) 1px,
+              transparent 1px
             );
 
-          animation:
-            skyGlow
-            7s
-            ease-in-out
-            infinite;
+          background-size:
+            100px 100px,
+            160px 160px;
+
+          background-position:
+            20px 30px,
+            70px 90px;
         }
 
-        @keyframes skyGlow {
+        /* =====================================
+           HEALING PARTICLES
+        ====================================== */
 
-          0%,
-          100% {
-            transform:
-              translateX(-50%)
-              scale(1);
-
-            opacity: .75;
-          }
-
-          50% {
-            transform:
-              translateX(-50%)
-              scale(1.12);
-
-            opacity: 1;
-          }
-        }
-
-        /* =====================================================
-           STARS
-        ====================================================== */
-
-        .star {
+        .healing-particles {
           position: absolute;
+          inset: 0;
 
-          width: 3px;
-          height: 3px;
+          overflow: hidden;
 
-          border-radius: 50%;
-
-          background: #fff;
-
-          box-shadow:
-            0 0 7px
-            rgba(180,220,255,.95);
-
-          animation:
-            starTwinkle
-            3s
-            ease-in-out
-            infinite;
+          perspective: 700px;
         }
-
-        .s1 {
-          top: 8%;
-          left: 12%;
-        }
-
-        .s2 {
-          top: 13%;
-          left: 27%;
-          animation-delay: .7s;
-        }
-
-        .s3 {
-          top: 9%;
-          right: 18%;
-          animation-delay: 1.4s;
-        }
-
-        .s4 {
-          top: 22%;
-          right: 8%;
-          animation-delay: 2s;
-        }
-
-        .s5 {
-          top: 31%;
-          left: 8%;
-          animation-delay: .4s;
-        }
-
-        .s6 {
-          top: 27%;
-          left: 23%;
-          animation-delay: 1.7s;
-        }
-
-        .s7 {
-          top: 36%;
-          right: 17%;
-          animation-delay: 2.3s;
-        }
-
-        .s8 {
-          top: 16%;
-          right: 35%;
-          animation-delay: 1s;
-        }
-
-        .s9 {
-          top: 44%;
-          left: 14%;
-          animation-delay: 2.5s;
-        }
-
-        .s10 {
-          top: 41%;
-          right: 7%;
-          animation-delay: .9s;
-        }
-
-        .s11 {
-          top: 52%;
-          left: 27%;
-          animation-delay: 1.9s;
-        }
-
-        .s12 {
-          top: 56%;
-          right: 29%;
-          animation-delay: .2s;
-        }
-
-        .s13 {
-          top: 67%;
-          left: 7%;
-          animation-delay: 1.2s;
-        }
-
-        .s14 {
-          top: 63%;
-          right: 10%;
-          animation-delay: 2.7s;
-        }
-
-        .s15 {
-          top: 72%;
-          right: 36%;
-          animation-delay: .5s;
-        }
-
-        @keyframes starTwinkle {
-
-          0%,
-          100% {
-            opacity: .25;
-            transform: scale(.7);
-          }
-
-          50% {
-            opacity: 1;
-            transform: scale(1.45);
-          }
-        }
-
-        /* =====================================================
-           SHOOTING STARS
-        ====================================================== */
-
-        .shooting-star {
-          position: absolute;
-
-          width: 85px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              90deg,
-              transparent,
-              rgba(255,255,255,.8),
-              transparent
-            );
-
-          transform: rotate(-28deg);
-
-          opacity: 0;
-
-          animation:
-            shooting
-            7s
-            linear
-            infinite;
-        }
-
-        .shooting-one {
-          top: 20%;
-          left: -100px;
-        }
-
-        .shooting-two {
-          top: 38%;
-          left: -100px;
-
-          animation-delay: 3.5s;
-        }
-
-        @keyframes shooting {
-
-          0% {
-            transform:
-              translateX(0)
-              rotate(-28deg);
-
-            opacity: 0;
-          }
-
-          8% {
-            opacity: .8;
-          }
-
-          18% {
-            transform:
-              translateX(500px)
-              rotate(-28deg);
-
-            opacity: 0;
-          }
-
-          100% {
-            opacity: 0;
-          }
-        }
-
-        /* =====================================================
-           PARTICLES
-        ====================================================== */
 
         .particle {
           position: absolute;
@@ -868,928 +607,654 @@ function Register() {
 
           border-radius: 50%;
 
-          background: #72b8db;
+          background:
+            radial-gradient(
+              circle at 30% 30%,
+              rgba(225,255,246,1),
+              rgba(105,226,204,.75)
+            );
 
-          opacity: .4;
+          box-shadow:
+            0 0 7px
+            rgba(88,224,202,.65),
+
+            0 0 18px
+            rgba(75,194,178,.22);
 
           animation:
-            floatParticle
-            6s
-            ease-in-out
+            healingParticle
+            linear
             infinite;
         }
 
         .p1 {
-          left: 17%;
-          top: 38%;
+          left: 5%;
+          bottom: -10px;
+          animation-duration: 13s;
         }
 
         .p2 {
-          right: 22%;
-          top: 31%;
-          animation-delay: 1s;
+          left: 11%;
+          bottom: -20px;
+          animation-duration: 17s;
+          animation-delay: -5s;
+          transform: scale(.55);
         }
 
         .p3 {
-          left: 32%;
-          top: 22%;
-          animation-delay: 2s;
+          left: 18%;
+          bottom: -10px;
+          animation-duration: 15s;
+          animation-delay: -8s;
         }
 
         .p4 {
-          right: 11%;
-          top: 51%;
-          animation-delay: 3s;
+          left: 26%;
+          bottom: -20px;
+          animation-duration: 19s;
+          animation-delay: -11s;
+          transform: scale(.65);
         }
 
         .p5 {
-          left: 8%;
-          top: 57%;
-          animation-delay: 4s;
+          left: 33%;
+          bottom: -10px;
+          animation-duration: 14s;
+          animation-delay: -4s;
         }
 
-        @keyframes floatParticle {
+        .p6 {
+          left: 40%;
+          bottom: -20px;
+          animation-duration: 18s;
+          animation-delay: -13s;
+          transform: scale(.55);
+        }
 
-          0%,
-          100% {
+        .p7 {
+          left: 47%;
+          bottom: -10px;
+          animation-duration: 16s;
+          animation-delay: -7s;
+        }
+
+        .p8 {
+          left: 54%;
+          bottom: -20px;
+          animation-duration: 20s;
+          animation-delay: -15s;
+          transform: scale(.65);
+        }
+
+        .p9 {
+          left: 61%;
+          bottom: -10px;
+          animation-duration: 15s;
+          animation-delay: -6s;
+        }
+
+        .p10 {
+          left: 68%;
+          bottom: -20px;
+          animation-duration: 18s;
+          animation-delay: -10s;
+          transform: scale(.55);
+        }
+
+        .p11 {
+          left: 75%;
+          bottom: -10px;
+          animation-duration: 14s;
+          animation-delay: -3s;
+        }
+
+        .p12 {
+          left: 82%;
+          bottom: -20px;
+          animation-duration: 21s;
+          animation-delay: -16s;
+          transform: scale(.65);
+        }
+
+        .p13 {
+          left: 89%;
+          bottom: -10px;
+          animation-duration: 17s;
+          animation-delay: -9s;
+        }
+
+        .p14 {
+          left: 95%;
+          bottom: -20px;
+          animation-duration: 15s;
+          animation-delay: -5s;
+          transform: scale(.55);
+        }
+
+        .p15 {
+          left: 22%;
+          bottom: -20px;
+          animation-duration: 22s;
+          animation-delay: -18s;
+          transform: scale(.45);
+        }
+
+        .p16 {
+          left: 44%;
+          bottom: -10px;
+          animation-duration: 19s;
+          animation-delay: -14s;
+          transform: scale(.5);
+        }
+
+        .p17 {
+          left: 57%;
+          bottom: -20px;
+          animation-duration: 23s;
+          animation-delay: -19s;
+          transform: scale(.45);
+        }
+
+        .p18 {
+          left: 73%;
+          bottom: -10px;
+          animation-duration: 20s;
+          animation-delay: -12s;
+          transform: scale(.5);
+        }
+
+        .p19 {
+          left: 84%;
+          bottom: -20px;
+          animation-duration: 24s;
+          animation-delay: -20s;
+          transform: scale(.45);
+        }
+
+        .p20 {
+          left: 38%;
+          bottom: -10px;
+          animation-duration: 18s;
+          animation-delay: -9s;
+          transform: scale(.4);
+        }
+
+        @keyframes healingParticle {
+
+          0% {
             transform:
-              translateY(0)
+              translate3d(0,0,0)
+              scale(.45);
+
+            opacity: 0;
+          }
+
+          12% {
+            opacity: .65;
+          }
+
+          30% {
+            transform:
+              translate3d(
+                24px,
+                -28vh,
+                70px
+              )
               scale(1);
           }
 
-          50% {
+          55% {
             transform:
-              translateY(-25px)
-              scale(1.5);
+              translate3d(
+                -18px,
+                -57vh,
+                20px
+              )
+              scale(.8);
+          }
+
+          78% {
+            transform:
+              translate3d(
+                30px,
+                -82vh,
+                -40px
+              )
+              scale(.6);
+          }
+
+          100% {
+            transform:
+              translate3d(
+                -10px,
+                -112vh,
+                -80px
+              )
+              scale(.2);
+
+            opacity: 0;
           }
         }
 
-        /* =====================================================
-           BACK BUTTON
-        ====================================================== */
+        /* =====================================
+           LIGHT STREAMS
+        ====================================== */
 
-        .back-button {
-          position: relative;
-          z-index: 20;
-
-          display: block;
-
-          margin: 0 auto;
-
-          padding-top: 34px;
-
-          border: none;
-
-          background: transparent;
-
-          color: #c6d7eb;
-
-          font-size: 16px;
-
-          font-weight: 700;
-
-          cursor: pointer;
-
-          transition:
-            color .25s ease,
-            transform .25s ease;
-        }
-
-        .back-button:hover {
-          color: white;
-
-          transform:
-            translateX(-4px);
-        }
-
-        /* =====================================================
-           MAIN
-        ====================================================== */
-
-        .register-main {
-          position: relative;
-
-          z-index: 10;
-
-          min-height:
-            calc(100vh - 70px);
-
-          display: flex;
-
-          flex-direction: column;
-
-          align-items: center;
-
-          justify-content: center;
-
-          padding:
-            15px
-            20px
-            130px;
-        }
-
-        /* =====================================================
-           FOX
-        ====================================================== */
-
-        .fox-stage {
-          position: relative;
-
-          width: 260px;
-          height: 210px;
-
-          margin-bottom: -32px;
-
-          z-index: 15;
-
-          transition:
-            transform .45s ease;
-        }
-
-        .fox-stage.email-mode {
-          transform:
-            translateY(4px)
-            scale(1.02);
-        }
-
-        .fox-stage.password-mode {
-          transform:
-            translateY(2px)
-            scale(1.01);
-        }
-
-        .fox-aura {
+        .healing-stream {
           position: absolute;
 
-          width: 220px;
-          height: 220px;
+          width: 2px;
+          height: 60%;
 
-          left: 20px;
-          top: -10px;
+          top: 110%;
 
           border-radius: 50%;
 
           background:
-            radial-gradient(
-              circle,
-              rgba(99,184,230,.17),
-              transparent 68%
+            linear-gradient(
+              to top,
+              transparent,
+              rgba(96,225,204,.28),
+              transparent
             );
 
-          filter: blur(8px);
+          filter: blur(1px);
 
           animation:
-            foxAura
-            4s
+            streamFlow
+            13s
             ease-in-out
             infinite;
         }
 
-        @keyframes foxAura {
+        .stream-one {
+          left: 14%;
+        }
 
-          0%,
-          100% {
-            transform: scale(.95);
-            opacity: .55;
+        .stream-two {
+          left: 37%;
+          animation-delay: -5s;
+        }
+
+        .stream-three {
+          left: 65%;
+          animation-delay: -9s;
+        }
+
+        .stream-four {
+          left: 88%;
+          animation-delay: -3s;
+        }
+
+        @keyframes streamFlow {
+
+          0% {
+            transform:
+              translateY(0)
+              rotate(-8deg);
+
+            opacity: 0;
           }
 
-          50% {
-            transform: scale(1.08);
-            opacity: .9;
+          20% {
+            opacity: .35;
+          }
+
+          65% {
+            opacity: .18;
+          }
+
+          100% {
+            transform:
+              translateY(-145vh)
+              rotate(8deg);
+
+            opacity: 0;
           }
         }
 
-        .fox-character {
-          position: relative;
+        /* =====================================
+           AMBIENT LIGHT
+        ====================================== */
 
+        .ambient {
+          position: absolute;
+
+          border-radius: 50%;
+
+          filter: blur(90px);
+
+          opacity: .16;
+        }
+
+        .ambient-one {
+          width: 320px;
+          height: 320px;
+
+          top: -140px;
+          left: -120px;
+
+          background: #0b8e89;
+        }
+
+        .ambient-two {
+          width: 360px;
+          height: 360px;
+
+          right: -170px;
+          bottom: -170px;
+
+          background: #1c5573;
+        }
+
+        .ambient-three {
           width: 260px;
-          height: 210px;
+          height: 260px;
 
-          animation:
-            foxFloat
-            4s
-            ease-in-out
-            infinite;
+          left: 45%;
+          top: 28%;
+
+          background: #42a996;
+
+          opacity: .045;
         }
 
-        @keyframes foxFloat {
+        /* =====================================
+           WAVES
+        ====================================== */
 
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        /* =====================================================
-           EARS
-        ====================================================== */
-
-        .fox-ear {
+        .wave {
           position: absolute;
 
-          top: 12px;
+          width: 180%;
 
-          width: 76px;
-          height: 86px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #d8894e,
-              #a95732
-            );
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-
-          z-index: 1;
-        }
-
-        .fox-ear-left {
-          left: 47px;
-
-          transform: rotate(-10deg);
-        }
-
-        .fox-ear-right {
-          right: 47px;
-
-          transform: rotate(10deg);
-        }
-
-        .fox-ear-inner {
-          position: absolute;
-
-          width: 42px;
-          height: 51px;
-
-          top: 14px;
-          left: 17px;
-
-          background: #f3b6a0;
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-        }
-
-        /* =====================================================
-           HEAD
-        ====================================================== */
-
-        .fox-head {
-          position: absolute;
-
-          width: 157px;
-          height: 133px;
-
-          top: 43px;
-          left: 51px;
-
-          border-radius:
-            48%
-            48%
-            45%
-            45%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #e18a4d,
-              #b85e32
-            );
-
-          box-shadow:
-            inset
-            0 -12px 22px
-            rgba(63,25,16,.18),
-
-            0 15px 35px
-            rgba(0,0,0,.28);
-
-          z-index: 4;
-        }
-
-        .fox-forehead {
-          position: absolute;
-
-          width: 49px;
-          height: 67px;
-
-          top: 0;
-          left: 54px;
-
-          background: #f8f3eb;
-
-          clip-path:
-            polygon(
-              50% 0%,
-              100% 100%,
-              0% 100%
-            );
-        }
-
-        /* =====================================================
-           EYES
-        ====================================================== */
-
-        .fox-eye {
-          position: absolute;
-
-          top: 54px;
-
-          width: 34px;
-          height: 27px;
-
-          z-index: 8;
-
-          transition:
-            transform .35s ease;
-        }
-
-        .fox-eye-left {
-          left: 29px;
-        }
-
-        .fox-eye-right {
-          right: 29px;
-        }
-
-        .eye-ball {
-          position: relative;
-
-          width: 34px;
-          height: 25px;
+          left: -40%;
 
           border-radius: 50%;
 
-          background: white;
-
-          overflow: hidden;
-
-          box-shadow:
-            0 0 10px
-            rgba(165,215,255,.18);
-
-          transition:
-            height .2s ease,
-            margin-top .2s ease,
-            background .2s ease;
-        }
-
-        .eye-pupil {
-          position: absolute;
-
-          width: 14px;
-          height: 17px;
-
-          top: 4px;
-          left: 10px;
-
-          border-radius: 50%;
-
-          background:
-            radial-gradient(
-              circle at 35% 25%,
-              #5caee4 0%,
-              #28628c 35%,
-              #111d2d 65%
-            );
-
-          transition:
-            transform .35s ease,
-            opacity .25s ease;
-        }
-
-        .eye-shine {
-          position: absolute;
-
-          width: 5px;
-          height: 5px;
-
-          top: 6px;
-          left: 15px;
-
-          border-radius: 50%;
-
-          background: white;
-
-          z-index: 2;
-        }
-
-        .email-mode .eye-pupil {
-          transform:
-            translateX(8px);
-        }
-
-        .email-mode .fox-eye-left {
-          transform:
-            rotate(-4deg);
-        }
-
-        .email-mode .fox-eye-right {
-          transform:
-            rotate(4deg);
-        }
-
-        /* =====================================================
-           CLOSED EYES
-        ====================================================== */
-
-        .password-mode .eye-ball {
-          height: 5px;
-
-          margin-top: 10px;
-
-          background: transparent;
-
-          border-bottom:
-            3px solid
-            #573123;
-
-          border-radius: 0;
-        }
-
-        .password-mode .eye-pupil,
-        .password-mode .eye-shine {
-          opacity: 0;
-        }
-
-        /* =====================================================
-           BROWS
-        ====================================================== */
-
-        .fox-brow {
-          position: absolute;
-
-          top: 44px;
-
-          width: 26px;
-          height: 5px;
-
-          border-radius: 50%;
-
-          background:
-            rgba(87,43,27,.55);
-        }
-
-        .fox-brow-left {
-          left: 28px;
-
-          transform: rotate(-8deg);
-        }
-
-        .fox-brow-right {
-          right: 28px;
-
-          transform: rotate(8deg);
-        }
-
-        /* =====================================================
-           MUZZLE
-        ====================================================== */
-
-        .fox-muzzle {
-          position: absolute;
-
-          width: 72px;
-          height: 66px;
-
-          bottom: 1px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #faf6ee,
-              #ebe3d9
-            );
-
-          border-radius: 50%;
-
-          z-index: 6;
-        }
-
-        .fox-muzzle-left {
-          left: 11px;
-        }
-
-        .fox-muzzle-right {
-          right: 11px;
-        }
-
-        /* =====================================================
-           NOSE
-        ====================================================== */
-
-        .fox-nose {
-          position: absolute;
-
-          width: 21px;
-          height: 16px;
-
-          left: 68px;
-          top: 82px;
-
-          background: #2a2020;
-
-          border-radius:
-            48%
-            48%
-            55%
-            55%;
-
-          z-index: 10;
-        }
-
-        /* =====================================================
-           MOUTH
-        ====================================================== */
-
-        .fox-mouth {
-          position: absolute;
-
-          left: 77px;
-          top: 94px;
-
-          width: 4px;
-          height: 16px;
-
-          background: #472820;
-
-          border-radius: 4px;
-
-          z-index: 10;
-        }
-
-        .mouth-left,
-        .mouth-right {
-          position: absolute;
-
-          width: 22px;
-          height: 10px;
-
-          border-bottom:
-            2px solid
-            #472820;
-
-          border-radius: 50%;
-        }
-
-        .mouth-left {
-          left: -18px;
-          top: 4px;
-        }
-
-        .mouth-right {
-          right: -18px;
-          top: 4px;
-        }
-
-        /* =====================================================
-           CHEEKS
-        ====================================================== */
-
-        .fox-cheek {
-          position: absolute;
-
-          width: 18px;
-          height: 11px;
-
-          top: 82px;
-
-          background:
-            rgba(242,125,102,.38);
-
-          border-radius: 50%;
-
-          z-index: 9;
-        }
-
-        .fox-cheek-left {
-          left: 17px;
-        }
-
-        .fox-cheek-right {
-          right: 17px;
-        }
-
-        /* =====================================================
-           BODY
-        ====================================================== */
-
-        .fox-body {
-          position: absolute;
-
-          width: 110px;
-          height: 72px;
-
-          left: 75px;
-          bottom: 7px;
-
-          border-radius:
-            50%
-            50%
-            25%
-            25%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #bd6335,
-              #944521
-            );
-
-          z-index: 3;
-        }
-
-        .fox-belly {
-          position: absolute;
-
-          width: 63px;
-          height: 56px;
-
-          left: 24px;
-          top: 12px;
-
-          border-radius: 50%;
-
-          background: #f8f3eb;
-        }
-
-        /* =====================================================
-           PAWS
-        ====================================================== */
-
-        .fox-paw {
-          position: absolute;
-
-          width: 43px;
-          height: 27px;
-
-          bottom: 24px;
-
-          border-radius: 50%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #bf6335,
-              #954622
-            );
-
-          z-index: 12;
-
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          gap: 3px;
-        }
-
-        .fox-paw-left {
-          left: 48px;
-
-          transform: rotate(15deg);
-        }
-
-        .fox-paw-right {
-          right: 48px;
-
-          transform: rotate(-15deg);
-        }
-
-        .fox-paw span {
-          width: 5px;
-          height: 7px;
-
-          border-radius: 50%;
-
-          background: #f2c2ad;
-        }
-
-        /* =====================================================
-           KEYBOARD
-        ====================================================== */
-
-        .mini-keyboard {
-          position: absolute;
-
-          width: 118px;
-          height: 42px;
-
-          left: 71px;
-          bottom: 0;
-
-          padding: 6px;
-
-          border-radius: 8px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #263b55,
-              #15263b
-            );
+          transform: rotate(-4deg);
 
           border:
             1px solid
-            rgba(155,200,235,.35);
+            rgba(110,224,209,.08);
 
           box-shadow:
-            0 8px 18px
-            rgba(0,0,0,.4);
-
-          z-index: 11;
-
-          transform:
-            perspective(80px)
-            rotateX(12deg);
+            0 0 70px
+            rgba(46,185,177,.05);
         }
 
-        .keyboard-row {
-          display: flex;
-
-          gap: 3px;
-
-          margin-bottom: 3px;
+        .wave-one {
+          height: 280px;
+          bottom: -180px;
         }
 
-        .keyboard-row i {
-          display: block;
-
-          width: 12px;
-          height: 6px;
-
-          border-radius: 2px;
-
-          background: #b9cce0;
-
-          opacity: .85;
+        .wave-two {
+          height: 390px;
+          bottom: -270px;
         }
 
-        .space-key {
-          width: 48px;
-          height: 5px;
-
-          margin: 0 auto;
-
-          border-radius: 4px;
-
-          background: #b9cce0;
+        .wave-three {
+          height: 520px;
+          bottom: -380px;
         }
 
-        /* =====================================================
-           REGISTER CARD
-        ====================================================== */
+        /* =====================================
+           CONTAINER
+        ====================================== */
+
+        .register-container {
+          width: 100%;
+          max-width: 460px;
+
+          padding:
+            24px
+            18px;
+
+          position: relative;
+
+          z-index: 10;
+        }
+
+        /* =====================================
+           GLASS CARD
+        ====================================== */
 
         .register-card {
           position: relative;
 
-          width:
-            min(100%, 540px);
+          width: 100%;
 
           padding:
-            38px
-            38px
-            30px;
+            32px
+            36px
+            27px;
 
-          border-radius: 30px;
+          border-radius: 28px;
 
           background:
             linear-gradient(
               145deg,
-              rgba(24,39,63,.92),
-              rgba(12,24,42,.95)
+              rgba(255,255,255,.105),
+              rgba(255,255,255,.035)
             );
 
           border:
             1px solid
-            rgba(151,190,224,.22);
+            rgba(255,255,255,.13);
+
+          backdrop-filter:
+            blur(28px);
+
+          -webkit-backdrop-filter:
+            blur(28px);
 
           box-shadow:
-            0 30px 80px
-            rgba(0,0,0,.45),
+            0 35px 90px
+            rgba(0,0,0,.55),
 
             inset
             0 1px 0
-            rgba(255,255,255,.06);
+            rgba(255,255,255,.10);
 
-          backdrop-filter:
-            blur(20px);
+          animation:
+            cardEnter
+            .8s
+            ease-out;
+        }
 
-          -webkit-backdrop-filter:
-            blur(20px);
+        @keyframes cardEnter {
 
+          from {
+            opacity: 0;
+
+            transform:
+              translateY(30px)
+              scale(.97);
+          }
+
+          to {
+            opacity: 1;
+
+            transform:
+              translateY(0)
+              scale(1);
+          }
+        }
+
+        /* =====================================
+           LOGO
+        ====================================== */
+
+        .logo-section {
           text-align: center;
+
+          margin-bottom: 19px;
         }
 
-        .brand {
-          color: #d8b35d;
+        .logo-circle {
+          width: 48px;
+          height: 48px;
 
-          font-size: 22px;
-
-          font-weight: 800;
-
-          letter-spacing: 5px;
-
-          margin-bottom: 3px;
-        }
-
-        .brand-sub {
-          color: #93a9bf;
-
-          font-size: 11px;
-
-          font-weight: 700;
-
-          letter-spacing: 3px;
-
-          margin-bottom: 18px;
-        }
-
-        .register-card h1 {
-          margin: 0;
-
-          color: #f5f8fb;
-
-          font-size:
-            clamp(
-              39px,
-              7vw,
-              54px
-            );
-
-          line-height: 1.05;
-
-          font-weight: 800;
-
-          letter-spacing: -1.5px;
-        }
-
-        .register-description {
           margin:
-            13px
             0
-            30px;
+            auto
+            10px;
 
-          color: #aab8c9;
-
-          font-size: 18px;
-        }
-
-        /* =====================================================
-           FIELDS
-        ====================================================== */
-
-        .field {
-          text-align: left;
-
-          margin-bottom: 17px;
-        }
-
-        .field label {
-          display: block;
-
-          color: #d3deea;
-
-          font-size: 15px;
-
-          font-weight: 700;
-
-          margin-bottom: 8px;
-        }
-
-        .input-box {
-          position: relative;
+          border-radius: 16px;
 
           display: flex;
 
           align-items: center;
-
-          width: 100%;
-
-          height: 60px;
-
-          border-radius: 17px;
-
-          border:
-            1.5px solid
-            rgba(144,168,193,.25);
+          justify-content: center;
 
           background:
-            rgba(255,255,255,.045);
+            linear-gradient(
+              145deg,
+              rgba(70,194,177,.35),
+              rgba(204,171,80,.20)
+            );
+
+          border:
+            1px solid
+            rgba(255,255,255,.16);
+
+          box-shadow:
+            0 8px 25px
+            rgba(0,0,0,.3),
+
+            inset
+            0 1px 0
+            rgba(255,255,255,.15);
+        }
+
+        .logo-circle span {
+          font-size: 22px;
+
+          font-weight: 700;
+
+          color:
+            #d8c276;
+        }
+
+        .logo-section h1 {
+          margin: 0;
+
+          font-size: 23px;
+
+          letter-spacing: 4px;
+
+          font-weight: 700;
+        }
+
+        .logo-section p {
+          margin: 4px 0 0;
+
+          color:
+            rgba(255,255,255,.52);
+
+          font-size: 10px;
+
+          letter-spacing: 2px;
+
+          text-transform: uppercase;
+        }
+
+        /* =====================================
+           WELCOME
+        ====================================== */
+
+        .welcome-text {
+          text-align: center;
+
+          margin-bottom: 21px;
+        }
+
+        .welcome-text h2 {
+          margin:
+            0 0 6px;
+
+          font-size: 22px;
+
+          font-weight: 600;
+        }
+
+        .welcome-text p {
+          margin: 0;
+
+          color:
+            rgba(255,255,255,.53);
+
+          font-size: 12px;
+
+          line-height: 1.55;
+        }
+
+        /* =====================================
+           INPUT
+        ====================================== */
+
+        .input-group {
+          margin-bottom: 13px;
+        }
+
+        .input-group label {
+          display: block;
+
+          margin-bottom: 6px;
+
+          font-size: 11px;
+
+          color:
+            rgba(255,255,255,.62);
+
+          font-weight: 500;
+        }
+
+        .input-wrapper {
+          position: relative;
+        }
+
+        .input-icon {
+          position: absolute;
+
+          left: 14px;
+          top: 50%;
+
+          transform:
+            translateY(-50%);
+
+          opacity: .48;
+
+          font-size: 13px;
+
+          z-index: 2;
+        }
+
+        .input-wrapper input {
+          width: 100%;
+
+          height: 46px;
+
+          padding:
+            0
+            14px
+            0
+            41px;
+
+          border-radius: 13px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.10);
+
+          background:
+            rgba(0,0,0,.20);
+
+          color: white;
+
+          outline: none;
+
+          font-size: 13px;
 
           transition:
             border-color .25s ease,
@@ -1797,621 +1262,769 @@ function Register() {
             background .25s ease;
         }
 
-        .input-box.active {
+        .input-wrapper input::placeholder {
+          color:
+            rgba(255,255,255,.30);
+        }
+
+        .input-focused
+        .input-wrapper
+        input {
           border-color:
-            rgba(87,169,230,.85);
+            rgba(92,206,193,.55);
 
           background:
-            rgba(80,145,195,.08);
+            rgba(20,90,94,.12);
 
           box-shadow:
-            0 0 0 4px
-            rgba(66,151,215,.10),
+            0 0 0 3px
+            rgba(76,184,174,.07),
 
-            0 0 24px
-            rgba(66,151,215,.08);
+            0 8px 20px
+            rgba(0,0,0,.14);
         }
 
-        .field-icon {
-          width: 50px;
-
-          text-align: center;
-
-          color: #8da9c2;
-
-          font-size: 18px;
-
-          opacity: .9;
-        }
-
-        .input-box input {
-          flex: 1;
-
-          height: 100%;
-
-          border: none;
-
-          outline: none;
-
-          background: transparent;
-
-          color: #f2f7fb;
-
-          font-size: 17px;
-
-          padding:
-            0
-            17px
-            0
-            0;
-        }
-
-        .input-box input::placeholder {
-          color: #72869c;
-        }
-
-        /* =====================================================
-           ERROR
-        ====================================================== */
-
-        .error-box {
-          display: flex;
-
-          align-items: center;
-
-          gap: 9px;
-
-          text-align: left;
-
-          color: #ffb7ae;
-
-          background:
-            rgba(179,61,53,.12);
-
-          border:
-            1px solid
-            rgba(229,104,92,.25);
-
-          border-radius: 12px;
-
-          padding:
-            11px
-            13px;
-
-          margin-bottom: 17px;
-
-          font-size: 13px;
-        }
-
-        .error-box span {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          width: 20px;
-          height: 20px;
-
-          border-radius: 50%;
-
-          background: #c74e43;
-
-          color: white;
-
-          font-weight: 800;
-
-          flex-shrink: 0;
-        }
-
-        /* =====================================================
-           SUCCESS
-        ====================================================== */
-
-        .success-box {
-          display: flex;
-
-          align-items: center;
-
-          gap: 9px;
-
-          text-align: left;
-
-          color: #bce8cf;
-
-          background:
-            rgba(61,145,94,.12);
-
-          border:
-            1px solid
-            rgba(86,184,120,.25);
-
-          border-radius: 12px;
-
-          padding:
-            11px
-            13px;
-
-          margin-bottom: 17px;
-
-          font-size: 13px;
-        }
-
-        .success-box span {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          width: 20px;
-          height: 20px;
-
-          border-radius: 50%;
-
-          background: #3d9960;
-
-          color: white;
-
-          font-weight: 800;
-
-          flex-shrink: 0;
-        }
-
-        /* =====================================================
+        /* =====================================
            REGISTER BUTTON
-        ====================================================== */
+        ====================================== */
 
         .register-button {
           width: 100%;
 
-          height: 66px;
+          height: 50px;
 
-          border: none;
+          border: 0;
 
-          border-radius: 17px;
+          border-radius: 15px;
+
+          cursor: pointer;
+
+          color:
+            #071113;
+
+          font-size: 13px;
+
+          font-weight: 700;
+
+          letter-spacing: .2px;
 
           background:
             linear-gradient(
               135deg,
-              #377fd4,
-              #235db3
+              #b9d9c8,
+              #d9c57a
             );
 
-          color: white;
-
-          font-size: 19px;
-
-          font-weight: 800;
-
-          cursor: pointer;
-
           box-shadow:
-            0 13px 30px
-            rgba(35,93,179,.30);
+            0 10px 28px
+            rgba(72,153,137,.18),
+
+            inset
+            0 1px 0
+            rgba(255,255,255,.6);
 
           transition:
-            transform .25s ease,
-            box-shadow .25s ease;
+            transform .2s ease,
+            box-shadow .2s ease;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          gap: 10px;
+
+          position: relative;
+
+          overflow: hidden;
+
+          margin-top: 17px;
         }
 
-        .register-button:hover:not(:disabled) {
+        .register-button:hover {
           transform:
             translateY(-2px);
 
           box-shadow:
-            0 17px 35px
-            rgba(35,93,179,.40);
-        }
+            0 14px 34px
+            rgba(72,153,137,.25),
 
-        .register-button:active:not(:disabled) {
-          transform:
-            translateY(0);
+            inset
+            0 1px 0
+            rgba(255,255,255,.6);
         }
 
         .register-button:disabled {
-          opacity: .7;
+          cursor:
+            not-allowed;
 
-          cursor: not-allowed;
+          transform:
+            none;
         }
 
-        .register-arrow {
-          margin-left: 9px;
-
-          font-size: 23px;
+        .arrow {
+          font-size: 18px;
         }
 
-        .spinner {
-          display: inline-block;
+        /* =====================================
+           LOADING BUTTON
+        ====================================== */
 
-          width: 18px;
-          height: 18px;
+        .button-loading-state {
+          background:
+            linear-gradient(
+              135deg,
+              #123f49,
+              #236d70
+            );
 
-          border:
-            3px solid
-            rgba(255,255,255,.3);
+          color: white;
 
-          border-top-color: white;
+          box-shadow:
+            0 10px 30px
+            rgba(43,155,145,.28);
+        }
 
-          border-radius: 50%;
+        /* =====================================
+           FLUID
+        ====================================== */
 
-          margin-right: 8px;
+        .fluid-container {
+          position: absolute;
 
-          vertical-align: -3px;
+          inset: 0;
+
+          overflow: hidden;
+
+          pointer-events: none;
+        }
+
+        .fluid-wave {
+          position: absolute;
+
+          width: 180%;
+
+          height: 160%;
+
+          left: -40%;
+
+          bottom: -136%;
+
+          border-radius:
+            45%
+            55%
+            0
+            0;
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(207,241,222,.72),
+              rgba(66,171,160,.82)
+            );
+        }
+
+        .fluid-wave-one {
+          animation:
+            fluidRise
+            3.8s
+            ease-in-out
+            infinite;
+        }
+
+        .fluid-wave-two {
+          opacity: .35;
 
           animation:
-            spin
-            .8s
+            fluidRiseTwo
+            4.5s
+            ease-in-out
+            infinite;
+
+          animation-delay:
+            -.7s;
+        }
+
+        .fluid-wave-three {
+          opacity: .18;
+
+          animation:
+            fluidRiseThree
+            5s
+            ease-in-out
+            infinite;
+
+          animation-delay:
+            -1.2s;
+        }
+
+        @keyframes fluidRise {
+
+          0% {
+            transform:
+              translateX(-7%)
+              rotate(0deg);
+
+            bottom: -136%;
+          }
+
+          50% {
+            transform:
+              translateX(7%)
+              rotate(2deg);
+
+            bottom: -113%;
+          }
+
+          100% {
+            transform:
+              translateX(-7%)
+              rotate(0deg);
+
+            bottom: -136%;
+          }
+        }
+
+        @keyframes fluidRiseTwo {
+
+          0% {
+            transform:
+              translateX(7%)
+              rotate(0deg);
+
+            bottom: -140%;
+          }
+
+          50% {
+            transform:
+              translateX(-7%)
+              rotate(-2deg);
+
+            bottom: -118%;
+          }
+
+          100% {
+            transform:
+              translateX(7%)
+              rotate(0deg);
+
+            bottom: -140%;
+          }
+        }
+
+        @keyframes fluidRiseThree {
+
+          0% {
+            transform:
+              translateX(-6%)
+              rotate(1deg);
+
+            bottom: -144%;
+          }
+
+          50% {
+            transform:
+              translateX(6%)
+              rotate(-1deg);
+
+            bottom: -121%;
+          }
+
+          100% {
+            transform:
+              translateX(-6%)
+              rotate(1deg);
+
+            bottom: -144%;
+          }
+        }
+
+        /* =====================================
+           TINY 3D RUNNER
+        ====================================== */
+
+        .runner {
+          position: absolute;
+
+          left: 5%;
+
+          bottom: 8px;
+
+          width: 22px;
+          height: 28px;
+
+          z-index: 30;
+
+          animation:
+            runnerMove
+            6.5s
             linear
             infinite;
         }
 
-        @keyframes spin {
+        @keyframes runnerMove {
 
-          to {
-            transform: rotate(360deg);
+          0% {
+            left: 5%;
+
+            transform:
+              translateY(0)
+              scale(.88);
           }
 
+          20% {
+            transform:
+              translateY(-1px)
+              scale(.92);
+          }
+
+          40% {
+            left: 35%;
+
+            transform:
+              translateY(0)
+              scale(.88);
+          }
+
+          60% {
+            left: 57%;
+
+            transform:
+              translateY(-1px)
+              scale(.92);
+          }
+
+          80% {
+            left: 78%;
+
+            transform:
+              translateY(0)
+              scale(.88);
+          }
+
+          100% {
+            left: 96%;
+
+            transform:
+              translateY(-1px)
+              scale(.92);
+          }
         }
 
-        /* =====================================================
-           LOGIN LINK
-        ====================================================== */
+        /* =====================================
+           RUNNER GLOW
+        ====================================== */
 
-        .login-account {
-          margin-top: 22px;
+        .runner-glow {
+          position: absolute;
 
-          color: #8293a6;
+          width: 25px;
+          height: 25px;
 
-          font-size: 15px;
+          left: -2px;
+          top: 2px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(214,255,239,.30);
+
+          filter:
+            blur(7px);
+
+          animation:
+            runnerGlow
+            1.8s
+            ease-in-out
+            infinite;
         }
 
-        .login-account button {
-          border: none;
+        @keyframes runnerGlow {
 
-          background: transparent;
+          0%,100% {
+            opacity: .4;
 
-          padding: 0;
+            transform:
+              scale(.75);
+          }
 
-          color: #65a9e7;
+          50% {
+            opacity: .95;
 
-          font-size: inherit;
-
-          font-weight: 800;
-
-          cursor: pointer;
+            transform:
+              scale(1.12);
+          }
         }
 
-        .login-account button:hover {
-          text-decoration: underline;
+        /* =====================================
+           RUNNER BODY
+        ====================================== */
+
+        .runner-body {
+          position: absolute;
+
+          left: 7px;
+          top: 8px;
+
+          width: 9px;
+          height: 14px;
+
+          border-radius: 5px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f0fff9,
+              #7fb6aa
+            );
+
+          box-shadow:
+            inset
+            2px
+            2px
+            3px
+            rgba(255,255,255,.45),
+
+            inset
+            -2px
+            -2px
+            3px
+            rgba(0,0,0,.20);
         }
 
-        /* =====================================================
-           PRIVACY
-        ====================================================== */
+        .runner-head {
+          position: absolute;
 
-        .privacy-note {
-          margin-top: 18px;
+          width: 8px;
+          height: 8px;
 
-          color: #607389;
+          top: -6px;
+          left: .5px;
+
+          border-radius: 50%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f4fff9,
+              #9fc8bd
+            );
+
+          box-shadow:
+            0 0 5px
+            rgba(201,255,238,.45);
+        }
+
+        .runner-core {
+          position: absolute;
+
+          width: 4px;
+          height: 5px;
+
+          left: 2.5px;
+          top: 4px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(74,183,166,.65);
+
+          box-shadow:
+            0 0 5px
+            rgba(93,225,202,.75);
+        }
+
+        /* =====================================
+           RUNNER LEGS
+        ====================================== */
+
+        .runner-leg {
+          position: absolute;
+
+          width: 2px;
+          height: 7px;
+
+          top: 20px;
+
+          border-radius: 3px;
+
+          background:
+            #9fc2ba;
+
+          transform-origin:
+            top center;
+        }
+
+        .runner-leg-one {
+          left: 8px;
+
+          animation:
+            legOne
+            .42s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        .runner-leg-two {
+          left: 13px;
+
+          animation:
+            legTwo
+            .42s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes legOne {
+
+          from {
+            transform:
+              rotate(32deg);
+          }
+
+          to {
+            transform:
+              rotate(-32deg);
+          }
+        }
+
+        @keyframes legTwo {
+
+          from {
+            transform:
+              rotate(-32deg);
+          }
+
+          to {
+            transform:
+              rotate(32deg);
+          }
+        }
+
+        /* =====================================
+           RUNNER ARMS
+        ====================================== */
+
+        .runner-arm {
+          position: absolute;
+
+          width: 2px;
+          height: 7px;
+
+          top: 11px;
+
+          border-radius: 3px;
+
+          background:
+            #a7c8c0;
+
+          transform-origin:
+            top center;
+        }
+
+        .runner-arm-one {
+          left: 5px;
+
+          animation:
+            armOne
+            .42s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        .runner-arm-two {
+          left: 16px;
+
+          animation:
+            armTwo
+            .42s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes armOne {
+
+          from {
+            transform:
+              rotate(35deg);
+          }
+
+          to {
+            transform:
+              rotate(-35deg);
+          }
+        }
+
+        @keyframes armTwo {
+
+          from {
+            transform:
+              rotate(-35deg);
+          }
+
+          to {
+            transform:
+              rotate(35deg);
+          }
+        }
+
+        /* =====================================
+           CREATING TEXT
+        ====================================== */
+
+        .creating-text {
+          position: relative;
+
+          z-index: 40;
+
+          color: white;
+
+          font-weight: 700;
+
+          text-shadow:
+            0 1px 6px
+            rgba(0,0,0,.55);
+
+          animation:
+            creatingPulse
+            1.8s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes creatingPulse {
+
+          0%,100% {
+            opacity: .72;
+          }
+
+          50% {
+            opacity: 1;
+          }
+        }
+
+        /* =====================================
+           LOGIN SECTION
+        ====================================== */
+
+        .login-section {
+          text-align: center;
+
+          margin-top: 19px;
 
           font-size: 11px;
 
-          letter-spacing: .2px;
+          color:
+            rgba(255,255,255,.40);
         }
 
-        /* =====================================================
-           OCEAN
-        ====================================================== */
+        .login-section a {
+          margin-left: 5px;
 
-        .ocean {
-          position: fixed;
+          color:
+            #b9d9c8;
 
-          left: 0;
-          right: 0;
-          bottom: 0;
+          text-decoration: none;
 
-          height: 190px;
-
-          z-index: 2;
-
-          pointer-events: none;
-
-          overflow: hidden;
+          font-weight: 600;
         }
 
-        .wave {
-          position: absolute;
-
-          left: -10%;
-
-          width: 120%;
-
-          border-radius:
-            50% 50% 0 0;
-
-          border-top:
-            2px solid
-            rgba(96,180,220,.25);
+        .login-section a:hover {
+          text-decoration: underline;
         }
 
-        .wave-back {
-          height: 130px;
+        /* =====================================
+           SECURITY
+        ====================================== */
 
-          bottom: -100px;
+        .security-text {
+          display: flex;
 
-          background:
-            rgba(18,62,91,.35);
+          justify-content: center;
 
-          animation:
-            waveBack
-            10s
-            ease-in-out
-            infinite;
+          align-items: center;
+
+          gap: 6px;
+
+          margin-top: 15px;
+
+          color:
+            rgba(255,255,255,.25);
+
+          font-size: 8px;
         }
 
-        .wave-middle {
-          height: 105px;
-
-          bottom: -83px;
-
-          background:
-            rgba(15,75,104,.30);
-
-          animation:
-            waveMiddle
-            8s
-            ease-in-out
-            infinite
-            reverse;
-        }
-
-        .wave-front {
-          height: 80px;
-
-          bottom: -63px;
-
-          background:
-            linear-gradient(
-              180deg,
-              rgba(35,115,145,.30),
-              rgba(8,34,58,.70)
-            );
-
-          animation:
-            waveFront
-            6s
-            ease-in-out
-            infinite;
-        }
-
-        @keyframes waveBack {
-
-          0%,
-          100% {
-            transform:
-              translateX(-3%)
-              rotate(1deg);
-          }
-
-          50% {
-            transform:
-              translateX(3%)
-              rotate(-1deg);
-          }
-        }
-
-        @keyframes waveMiddle {
-
-          0%,
-          100% {
-            transform:
-              translateX(3%)
-              rotate(-1deg);
-          }
-
-          50% {
-            transform:
-              translateX(-3%)
-              rotate(1deg);
-          }
-        }
-
-        @keyframes waveFront {
-
-          0%,
-          100% {
-            transform:
-              translateX(-2%);
-          }
-
-          50% {
-            transform:
-              translateX(2%);
-          }
-        }
-
-        .water-glow {
-          position: absolute;
-
-          width: 100%;
-          height: 90px;
-
-          bottom: 0;
-
-          background:
-            linear-gradient(
-              180deg,
-              transparent,
-              rgba(27,96,128,.15)
-            );
-
-          filter: blur(3px);
-        }
-
-        /* =====================================================
+        /* =====================================
            MOBILE
-        ====================================================== */
+        ====================================== */
 
-        @media (max-width: 640px) {
+        @media (max-width: 520px) {
 
-          .back-button {
-            padding-top: 23px;
-
-            font-size: 14px;
-          }
-
-          .register-main {
-            padding:
-              5px
-              13px
-              100px;
-          }
-
-          .fox-stage {
-            width: 230px;
-            height: 185px;
-
-            margin-bottom: -34px;
-
-            transform: scale(.87);
-          }
-
-          .fox-stage.email-mode {
-            transform:
-              scale(.87)
-              translateY(4px);
-          }
-
-          .fox-stage.password-mode {
-            transform:
-              scale(.87)
-              translateY(2px);
-          }
-
-          .register-card {
-            width: 100%;
+          .register-container {
+            max-width: 430px;
 
             padding:
-              31px
-              19px
-              27px;
-
-            border-radius: 27px;
+              18px
+              13px;
           }
-
-          .brand {
-            font-size: 18px;
-
-            letter-spacing: 4px;
-          }
-
-          .brand-sub {
-            font-size: 9px;
-
-            letter-spacing: 2.5px;
-
-            margin-bottom: 15px;
-          }
-
-          .register-card h1 {
-            font-size: 38px;
-          }
-
-          .register-description {
-            font-size: 16px;
-
-            margin-bottom: 25px;
-          }
-
-          .field {
-            margin-bottom: 15px;
-          }
-
-          .field label {
-            font-size: 14px;
-          }
-
-          .input-box {
-            height: 57px;
-
-            border-radius: 15px;
-          }
-
-          .input-box input {
-            font-size: 16px;
-          }
-
-          .register-button {
-            height: 61px;
-
-            border-radius: 15px;
-
-            font-size: 18px;
-          }
-
-          .login-account {
-            font-size: 14px;
-          }
-
-          .ocean {
-            height: 130px;
-          }
-
-        }
-
-        /* =====================================================
-           SMALL MOBILE
-        ====================================================== */
-
-        @media (max-width: 380px) {
 
           .register-card {
             padding:
               28px
-              15px
+              23px
               24px;
+
+            border-radius: 24px;
           }
 
-          .register-card h1 {
-            font-size: 34px;
+          .welcome-text h2 {
+            font-size: 21px;
           }
 
-          .fox-stage {
-            transform: scale(.78);
-
-            margin-bottom: -48px;
+          .input-wrapper input {
+            height: 45px;
           }
 
-          .fox-stage.email-mode {
-            transform:
-              scale(.78)
-              translateY(4px);
+          .register-button {
+            height: 49px;
           }
-
-          .fox-stage.password-mode {
-            transform:
-              scale(.78)
-              translateY(2px);
-          }
-
         }
 
-        /* =====================================================
-           REDUCED MOTION
-        ====================================================== */
+        @media (max-height: 720px) {
 
-        @media (prefers-reduced-motion: reduce) {
+          .register-card {
+            padding-top: 22px;
+          }
 
-          *,
-          *::before,
-          *::after {
-            animation-duration: .01ms !important;
+          .logo-section {
+            margin-bottom: 13px;
+          }
 
-            animation-iteration-count: 1 !important;
+          .welcome-text {
+            margin-bottom: 15px;
+          }
+
+          .input-group {
+            margin-bottom: 9px;
+          }
+
+          .register-button {
+            margin-top: 12px;
+          }
+
+          .login-section {
+            margin-top: 14px;
           }
 
         }
 
       `}</style>
+
     </div>
   );
 }
