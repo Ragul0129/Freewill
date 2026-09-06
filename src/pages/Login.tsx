@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -95,16 +95,17 @@ function Login() {
     <div className="login-page">
 
       {/* =========================
-          BACKGROUND
+          HEALING BACKGROUND
       ========================== */}
 
       <div className="ocean-bg">
 
         <div className="stars"></div>
 
-        {/* HEALING PARTICLES */}
+        {/* 3D HEALING PARTICLES */}
 
         <div className="healing-particles">
+
           <span className="particle p1"></span>
           <span className="particle p2"></span>
           <span className="particle p3"></span>
@@ -123,17 +124,25 @@ function Login() {
           <span className="particle p16"></span>
           <span className="particle p17"></span>
           <span className="particle p18"></span>
+          <span className="particle p19"></span>
+          <span className="particle p20"></span>
+
         </div>
 
-        {/* FLOWING LIGHT STREAMS */}
+        {/* SOFT HEALING LIGHT STREAMS */}
 
         <div className="healing-stream stream-one"></div>
         <div className="healing-stream stream-two"></div>
         <div className="healing-stream stream-three"></div>
+        <div className="healing-stream stream-four"></div>
+
+        {/* AMBIENT LIGHT */}
 
         <div className="ambient ambient-one"></div>
         <div className="ambient ambient-two"></div>
         <div className="ambient ambient-three"></div>
+
+        {/* OCEAN WAVES */}
 
         <div className="wave wave-one"></div>
         <div className="wave wave-two"></div>
@@ -142,7 +151,7 @@ function Login() {
       </div>
 
       {/* =========================
-          LOGIN
+          LOGIN CONTAINER
       ========================== */}
 
       <div className="login-container">
@@ -282,7 +291,7 @@ function Login() {
             </div>
 
             {/* =========================
-                SIGN IN BUTTON
+                SIGN IN
             ========================== */}
 
             <button
@@ -311,36 +320,53 @@ function Login() {
                   </div>
 
                   {/* =========================
-                      SMALL 3D RUNNER
+                      TINY GLOWING 3D CAT
                   ========================== */}
 
-                  <div className="battery-runner">
+                  <div className="cat-runner">
 
-                    {/* tiny shadow */}
+                    <div className="cat-glow"></div>
 
-                    <div className="runner-shadow"></div>
+                    <div className="cat-shadow"></div>
 
-                    {/* battery body */}
+                    {/* BODY */}
 
-                    <div className="battery-body">
+                    <div className="cat-body">
 
-                      <div className="battery-top"></div>
+                      {/* HEAD */}
 
-                      <div className="battery-highlight"></div>
+                      <div className="cat-head">
 
-                      <div className="battery-stripe"></div>
+                        {/* EARS */}
+
+                        <div className="cat-ear cat-ear-left"></div>
+                        <div className="cat-ear cat-ear-right"></div>
+
+                        {/* FACE */}
+
+                        <div className="cat-face">
+
+                          <span className="cat-eye cat-eye-left"></span>
+                          <span className="cat-eye cat-eye-right"></span>
+
+                        </div>
+
+                      </div>
+
+                      {/* BODY GLOW */}
+
+                      <div className="cat-body-glow"></div>
 
                     </div>
 
-                    {/* little legs */}
+                    {/* LEGS */}
 
-                    <div className="battery-leg leg-one"></div>
-                    <div className="battery-leg leg-two"></div>
+                    <div className="cat-leg cat-leg-left"></div>
+                    <div className="cat-leg cat-leg-right"></div>
 
-                    {/* little arms */}
+                    {/* TAIL */}
 
-                    <div className="battery-arm arm-one"></div>
-                    <div className="battery-arm arm-two"></div>
+                    <div className="cat-tail"></div>
 
                   </div>
 
@@ -394,7 +420,12 @@ function Login() {
           </div>
 
         </div>
+
       </div>
+
+      {/* =========================
+          STYLES
+      ========================== */}
 
       <style>{`
 
@@ -402,9 +433,9 @@ function Login() {
           box-sizing: border-box;
         }
 
-        /* =====================================
-           MAIN
-        ===================================== */
+        /* =================================
+           PAGE
+        ================================= */
 
         .login-page {
           min-height: 100vh;
@@ -415,9 +446,9 @@ function Login() {
 
           background:
             radial-gradient(
-              circle at 50% 15%,
-              rgba(24,112,122,.20),
-              transparent 35%
+              circle at 50% 12%,
+              rgba(26,120,125,.18),
+              transparent 36%
             ),
             linear-gradient(
               145deg,
@@ -442,14 +473,16 @@ function Login() {
             sans-serif;
         }
 
-        /* =====================================
+        /* =================================
            BACKGROUND
-        ===================================== */
+        ================================= */
 
         .ocean-bg {
           position: absolute;
           inset: 0;
+
           overflow: hidden;
+
           pointer-events: none;
         }
 
@@ -457,7 +490,7 @@ function Login() {
           position: absolute;
           inset: 0;
 
-          opacity: .45;
+          opacity: .35;
 
           background-image:
             radial-gradient(
@@ -467,22 +500,22 @@ function Login() {
             ),
             radial-gradient(
               circle,
-              rgba(255,255,255,.40) 1px,
+              rgba(255,255,255,.35) 1px,
               transparent 1px
             );
 
           background-size:
-            95px 95px,
-            145px 145px;
+            100px 100px,
+            160px 160px;
 
           background-position:
             20px 30px,
             70px 90px;
         }
 
-        /* =====================================
+        /* =================================
            HEALING PARTICLES
-        ===================================== */
+        ================================= */
 
         .healing-particles {
           position: absolute;
@@ -490,7 +523,7 @@ function Login() {
 
           overflow: hidden;
 
-          opacity: .8;
+          perspective: 700px;
         }
 
         .particle {
@@ -502,200 +535,227 @@ function Login() {
           border-radius: 50%;
 
           background:
-            rgba(150,235,219,.85);
+            radial-gradient(
+              circle at 30% 30%,
+              rgba(225,255,246,1),
+              rgba(105,226,204,.75)
+            );
 
           box-shadow:
-            0 0 8px
-            rgba(89,214,196,.65);
+            0 0 7px
+            rgba(88,224,202,.65),
+
+            0 0 18px
+            rgba(75,194,178,.22);
 
           animation:
-            healingFloat
+            healingParticle
             linear
             infinite;
         }
 
         .p1 {
-          left: 8%;
+          left: 5%;
           bottom: -10px;
-          animation-duration: 8s;
-          animation-delay: -2s;
+          animation-duration: 13s;
         }
 
         .p2 {
-          left: 15%;
+          left: 11%;
           bottom: -20px;
-          animation-duration: 11s;
-          animation-delay: -6s;
-          transform: scale(.7);
+          animation-duration: 17s;
+          animation-delay: -5s;
+          transform: scale(.55);
         }
 
         .p3 {
-          left: 23%;
-          bottom: -10px;
-          animation-duration: 9s;
-          animation-delay: -4s;
-          transform: scale(.55);
-        }
-
-        .p4 {
-          left: 31%;
-          bottom: -20px;
-          animation-duration: 12s;
-          animation-delay: -8s;
-        }
-
-        .p5 {
-          left: 39%;
-          bottom: -10px;
-          animation-duration: 10s;
-          animation-delay: -3s;
-          transform: scale(.6);
-        }
-
-        .p6 {
-          left: 47%;
-          bottom: -15px;
-          animation-duration: 13s;
-          animation-delay: -10s;
-        }
-
-        .p7 {
-          left: 55%;
-          bottom: -10px;
-          animation-duration: 9s;
-          animation-delay: -5s;
-          transform: scale(.6);
-        }
-
-        .p8 {
-          left: 64%;
-          bottom: -20px;
-          animation-duration: 12s;
-          animation-delay: -7s;
-        }
-
-        .p9 {
-          left: 71%;
-          bottom: -10px;
-          animation-duration: 10s;
-          animation-delay: -1s;
-          transform: scale(.55);
-        }
-
-        .p10 {
-          left: 79%;
-          bottom: -20px;
-          animation-duration: 14s;
-          animation-delay: -9s;
-        }
-
-        .p11 {
-          left: 87%;
-          bottom: -10px;
-          animation-duration: 9s;
-          animation-delay: -6s;
-          transform: scale(.65);
-        }
-
-        .p12 {
-          left: 93%;
-          bottom: -15px;
-          animation-duration: 12s;
-          animation-delay: -3s;
-        }
-
-        .p13 {
           left: 18%;
           bottom: -10px;
           animation-duration: 15s;
-          animation-delay: -12s;
-          transform: scale(.45);
+          animation-delay: -8s;
+        }
+
+        .p4 {
+          left: 26%;
+          bottom: -20px;
+          animation-duration: 19s;
+          animation-delay: -11s;
+          transform: scale(.65);
+        }
+
+        .p5 {
+          left: 33%;
+          bottom: -10px;
+          animation-duration: 14s;
+          animation-delay: -4s;
+        }
+
+        .p6 {
+          left: 40%;
+          bottom: -20px;
+          animation-duration: 18s;
+          animation-delay: -13s;
+          transform: scale(.55);
+        }
+
+        .p7 {
+          left: 47%;
+          bottom: -10px;
+          animation-duration: 16s;
+          animation-delay: -7s;
+        }
+
+        .p8 {
+          left: 54%;
+          bottom: -20px;
+          animation-duration: 20s;
+          animation-delay: -15s;
+          transform: scale(.65);
+        }
+
+        .p9 {
+          left: 61%;
+          bottom: -10px;
+          animation-duration: 15s;
+          animation-delay: -6s;
+        }
+
+        .p10 {
+          left: 68%;
+          bottom: -20px;
+          animation-duration: 18s;
+          animation-delay: -10s;
+          transform: scale(.55);
+        }
+
+        .p11 {
+          left: 75%;
+          bottom: -10px;
+          animation-duration: 14s;
+          animation-delay: -3s;
+        }
+
+        .p12 {
+          left: 82%;
+          bottom: -20px;
+          animation-duration: 21s;
+          animation-delay: -16s;
+          transform: scale(.65);
+        }
+
+        .p13 {
+          left: 89%;
+          bottom: -10px;
+          animation-duration: 17s;
+          animation-delay: -9s;
         }
 
         .p14 {
-          left: 36%;
+          left: 95%;
           bottom: -20px;
-          animation-duration: 11s;
+          animation-duration: 15s;
           animation-delay: -5s;
-          transform: scale(.5);
+          transform: scale(.55);
         }
 
         .p15 {
-          left: 59%;
-          bottom: -10px;
-          animation-duration: 14s;
-          animation-delay: -11s;
-          transform: scale(.5);
+          left: 22%;
+          bottom: -20px;
+          animation-duration: 22s;
+          animation-delay: -18s;
+          transform: scale(.45);
         }
 
         .p16 {
-          left: 76%;
-          bottom: -15px;
-          animation-duration: 10s;
-          animation-delay: -4s;
-          transform: scale(.6);
+          left: 44%;
+          bottom: -10px;
+          animation-duration: 19s;
+          animation-delay: -14s;
+          transform: scale(.5);
         }
 
         .p17 {
-          left: 45%;
-          bottom: -10px;
-          animation-duration: 16s;
-          animation-delay: -13s;
+          left: 57%;
+          bottom: -20px;
+          animation-duration: 23s;
+          animation-delay: -19s;
           transform: scale(.45);
         }
 
         .p18 {
-          left: 68%;
-          bottom: -20px;
-          animation-duration: 13s;
-          animation-delay: -7s;
+          left: 73%;
+          bottom: -10px;
+          animation-duration: 20s;
+          animation-delay: -12s;
           transform: scale(.5);
         }
 
-        @keyframes healingFloat {
+        .p19 {
+          left: 84%;
+          bottom: -20px;
+          animation-duration: 24s;
+          animation-delay: -20s;
+          transform: scale(.45);
+        }
+
+        .p20 {
+          left: 38%;
+          bottom: -10px;
+          animation-duration: 18s;
+          animation-delay: -9s;
+          transform: scale(.4);
+        }
+
+        @keyframes healingParticle {
 
           0% {
             transform:
-              translate3d(0, 0, 0)
-              scale(.6);
+              translate3d(0,0,0)
+              scale(.45);
 
             opacity: 0;
           }
 
-          10% {
-            opacity: .7;
+          12% {
+            opacity: .65;
           }
 
-          35% {
+          30% {
             transform:
               translate3d(
-                20px,
-                -30vh,
-                0
+                24px,
+                -28vh,
+                70px
               )
               scale(1);
           }
 
-          65% {
+          55% {
             transform:
               translate3d(
                 -18px,
-                -65vh,
-                0
+                -57vh,
+                20px
               )
               scale(.8);
           }
 
-          90% {
-            opacity: .4;
+          78% {
+            transform:
+              translate3d(
+                30px,
+                -82vh,
+                -40px
+              )
+              scale(.6);
           }
 
           100% {
             transform:
               translate3d(
-                25px,
-                -110vh,
-                0
+                -10px,
+                -112vh,
+                -80px
               )
               scale(.2);
 
@@ -703,15 +763,15 @@ function Login() {
           }
         }
 
-        /* =====================================
-           HEALING LIGHT STREAMS
-        ===================================== */
+        /* =================================
+           LIGHT STREAMS
+        ================================= */
 
         .healing-stream {
           position: absolute;
 
           width: 2px;
-          height: 65%;
+          height: 60%;
 
           top: 110%;
 
@@ -721,34 +781,36 @@ function Login() {
             linear-gradient(
               to top,
               transparent,
-              rgba(94,211,193,.28),
+              rgba(96,225,204,.28),
               transparent
             );
 
           filter: blur(1px);
 
-          opacity: .45;
-
           animation:
             streamFlow
-            9s
+            13s
             ease-in-out
             infinite;
         }
 
         .stream-one {
-          left: 18%;
-          animation-delay: -3s;
+          left: 14%;
         }
 
         .stream-two {
-          left: 53%;
-          animation-delay: -6s;
+          left: 37%;
+          animation-delay: -5s;
         }
 
         .stream-three {
-          left: 82%;
-          animation-delay: -1s;
+          left: 65%;
+          animation-delay: -9s;
+        }
+
+        .stream-four {
+          left: 88%;
+          animation-delay: -3s;
         }
 
         @keyframes streamFlow {
@@ -762,11 +824,11 @@ function Login() {
           }
 
           20% {
-            opacity: .45;
+            opacity: .35;
           }
 
-          70% {
-            opacity: .22;
+          65% {
+            opacity: .18;
           }
 
           100% {
@@ -778,55 +840,55 @@ function Login() {
           }
         }
 
-        /* =====================================
-           AMBIENT LIGHT
-        ===================================== */
+        /* =================================
+           AMBIENT
+        ================================= */
 
         .ambient {
           position: absolute;
 
           border-radius: 50%;
 
-          filter: blur(80px);
+          filter: blur(90px);
 
-          opacity: .20;
+          opacity: .16;
         }
 
         .ambient-one {
-          width: 300px;
-          height: 300px;
+          width: 320px;
+          height: 320px;
 
-          background: #0d8b8b;
+          top: -140px;
+          left: -120px;
 
-          top: -120px;
-          left: -100px;
+          background: #0b8e89;
         }
 
         .ambient-two {
-          width: 350px;
-          height: 350px;
+          width: 360px;
+          height: 360px;
 
-          background: #164d74;
+          right: -170px;
+          bottom: -170px;
 
-          right: -160px;
-          bottom: -150px;
+          background: #1c5573;
         }
 
         .ambient-three {
-          width: 220px;
-          height: 220px;
+          width: 260px;
+          height: 260px;
 
-          background: #4c9b88;
+          left: 45%;
+          top: 28%;
 
-          left: 50%;
-          top: 25%;
+          background: #42a996;
 
-          opacity: .07;
+          opacity: .045;
         }
 
-        /* =====================================
+        /* =================================
            WAVES
-        ===================================== */
+        ================================= */
 
         .wave {
           position: absolute;
@@ -841,11 +903,11 @@ function Login() {
 
           border:
             1px solid
-            rgba(120,220,210,.08);
+            rgba(110,224,209,.08);
 
           box-shadow:
-            0 0 60px
-            rgba(40,180,180,.05);
+            0 0 70px
+            rgba(46,185,177,.05);
         }
 
         .wave-one {
@@ -854,18 +916,18 @@ function Login() {
         }
 
         .wave-two {
-          height: 380px;
-          bottom: -260px;
+          height: 390px;
+          bottom: -270px;
         }
 
         .wave-three {
-          height: 500px;
-          bottom: -360px;
+          height: 520px;
+          bottom: -380px;
         }
 
-        /* =====================================
+        /* =================================
            CONTAINER
-        ===================================== */
+        ================================= */
 
         .login-container {
           width: 100%;
@@ -880,9 +942,9 @@ function Login() {
           z-index: 10;
         }
 
-        /* =====================================
+        /* =================================
            GLASS CARD
-        ===================================== */
+        ================================= */
 
         .login-card {
           position: relative;
@@ -946,16 +1008,14 @@ function Login() {
           }
         }
 
-        /* =====================================
+        /* =================================
            LOGO
-        ===================================== */
+        ================================= */
 
         .logo-section {
           text-align: center;
 
           margin-bottom: 25px;
-
-          padding-top: 4px;
         }
 
         .logo-circle {
@@ -1026,9 +1086,9 @@ function Login() {
           text-transform: uppercase;
         }
 
-        /* =====================================
+        /* =================================
            WELCOME
-        ===================================== */
+        ================================= */
 
         .welcome-text {
           text-align: center;
@@ -1056,9 +1116,9 @@ function Login() {
           line-height: 1.6;
         }
 
-        /* =====================================
-           INPUTS
-        ===================================== */
+        /* =================================
+           INPUT
+        ================================= */
 
         .input-group {
           margin-bottom: 19px;
@@ -1151,9 +1211,9 @@ function Login() {
             rgba(0,0,0,.14);
         }
 
-        /* =====================================
+        /* =================================
            OPTIONS
-        ===================================== */
+        ================================= */
 
         .login-options {
           display: flex;
@@ -1203,9 +1263,9 @@ function Login() {
           padding: 0;
         }
 
-        /* =====================================
-           LOGIN BUTTON
-        ===================================== */
+        /* =================================
+           BUTTON
+        ================================= */
 
         .login-button {
           width: 100%;
@@ -1284,9 +1344,9 @@ function Login() {
           font-size: 19px;
         }
 
-        /* =====================================
-           LIQUID
-        ===================================== */
+        /* =================================
+           LOADING BUTTON
+        ================================= */
 
         .button-loading-state {
           background:
@@ -1300,8 +1360,12 @@ function Login() {
 
           box-shadow:
             0 10px 30px
-            rgba(43,155,145,.25);
+            rgba(43,155,145,.28);
         }
+
+        /* =================================
+           FLUID
+        ================================= */
 
         .fluid-container {
           position: absolute;
@@ -1322,7 +1386,7 @@ function Login() {
 
           left: -40%;
 
-          bottom: -132%;
+          bottom: -136%;
 
           border-radius:
             45%
@@ -1333,73 +1397,69 @@ function Login() {
           background:
             linear-gradient(
               180deg,
-              rgba(207,241,222,.65),
-              rgba(72,176,166,.78)
+              rgba(207,241,222,.72),
+              rgba(66,171,160,.82)
             );
         }
 
         .fluid-wave-one {
           animation:
             fluidRise
-            2.4s
+            3.8s
             ease-in-out
             infinite;
         }
 
         .fluid-wave-two {
-          opacity: .38;
-
-          bottom: -138%;
+          opacity: .35;
 
           animation:
             fluidRiseTwo
-            2.8s
+            4.5s
             ease-in-out
             infinite;
 
           animation-delay:
-            -.5s;
+            -.7s;
         }
 
         .fluid-wave-three {
-          opacity: .22;
-
-          bottom: -142%;
+          opacity: .18;
 
           animation:
             fluidRiseThree
-            3.2s
+            5s
             ease-in-out
             infinite;
 
           animation-delay:
-            -.9s;
+            -1.2s;
         }
 
         @keyframes fluidRise {
 
           0% {
             transform:
-              translateX(-8%)
+              translateX(-7%)
               rotate(0deg);
 
-            bottom: -132%;
+            bottom: -136%;
           }
 
           50% {
             transform:
-              translateX(8%)
+              translateX(7%)
               rotate(2deg);
 
-            bottom: -112%;
+            bottom: -113%;
           }
 
           100% {
             transform:
-              translateX(-8%)
+              translateX(-7%)
               rotate(0deg);
 
-            bottom: -132%;
+            bottom: -136%;
           }
         }
 
@@ -1407,26 +1467,26 @@ function Login() {
 
           0% {
             transform:
-              translateX(8%)
+              translateX(7%)
               rotate(0deg);
 
-            bottom: -138%;
+            bottom: -140%;
           }
 
           50% {
             transform:
-              translateX(-8%)
+              translateX(-7%)
               rotate(-2deg);
 
-            bottom: -116%;
+            bottom: -118%;
           }
 
           100% {
             transform:
-              translateX(8%)
+              translateX(7%)
               rotate(0deg);
 
-            bottom: -138%;
+            bottom: -140%;
           }
         }
 
@@ -1437,15 +1497,15 @@ function Login() {
               translateX(-6%)
               rotate(1deg);
 
-            bottom: -142%;
+            bottom: -144%;
           }
 
           50% {
             transform:
-              translateX(7%)
+              translateX(6%)
               rotate(-1deg);
 
-            bottom: -120%;
+            bottom: -121%;
           }
 
           100% {
@@ -1453,114 +1513,473 @@ function Login() {
               translateX(-6%)
               rotate(1deg);
 
-            bottom: -142%;
+            bottom: -144%;
           }
         }
 
-        /* =====================================
-           SMALL 3D BATTERY RUNNER
-        ===================================== */
+        /* =================================
+           TINY 3D CAT
+        ================================= */
 
-        .battery-runner {
+        .cat-runner {
           position: absolute;
 
-          left: 12%;
+          left: 7%;
+          bottom: 10px;
 
-          bottom: 9px;
-
-          width: 22px;
+          width: 23px;
           height: 28px;
 
-          z-index: 20;
+          z-index: 30;
 
           transform-origin:
             center bottom;
 
           animation:
-            batteryRun
-            3.8s
+            catRun
+            6.5s
             linear
             infinite;
         }
 
-        @keyframes batteryRun {
+        @keyframes catRun {
 
           0% {
-            left: 8%;
+            left: 6%;
 
             transform:
               translateY(0)
-              rotate(0deg);
+              scale(.9);
           }
 
           12% {
             transform:
               translateY(-1px)
-              rotate(-2deg);
+              scale(.93);
           }
 
           25% {
             transform:
               translateY(0)
-              rotate(2deg);
+              scale(.9);
           }
 
-          50% {
-            left: 45%;
+          42% {
+            left: 35%;
 
             transform:
               translateY(-1px)
-              rotate(-1deg);
+              scale(.93);
           }
 
-          75% {
-            left: 70%;
+          60% {
+            left: 55%;
 
             transform:
               translateY(0)
-              rotate(2deg);
+              scale(.9);
           }
 
-          100% {
-            left: 94%;
+          78% {
+            left: 76%;
 
             transform:
               translateY(-1px)
-              rotate(0deg);
+              scale(.93);
+          }
+
+          100% {
+            left: 96%;
+
+            transform:
+              translateY(0)
+              scale(.9);
           }
         }
 
-        /* shadow */
+        /* =================================
+           CAT GLOW
+        ================================= */
 
-        .runner-shadow {
+        .cat-glow {
           position: absolute;
 
-          width: 15px;
-          height: 3px;
+          width: 25px;
+          height: 25px;
 
-          left: 3px;
-          bottom: 0;
+          left: -1px;
+          top: 2px;
 
           border-radius: 50%;
 
           background:
-            rgba(0,0,0,.25);
+            rgba(210,255,238,.30);
 
-          filter: blur(2px);
+          filter:
+            blur(7px);
 
           animation:
-            shadowPulse
-            .35s
+            catGlow
+            1.8s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes catGlow {
+
+          0%,100% {
+            opacity: .45;
+
+            transform:
+              scale(.75);
+          }
+
+          50% {
+            opacity: .9;
+
+            transform:
+              scale(1.12);
+          }
+        }
+
+        /* =================================
+           CAT BODY
+        ================================= */
+
+        .cat-body {
+          position: absolute;
+
+          left: 5px;
+          top: 9px;
+
+          width: 14px;
+          height: 14px;
+
+          border-radius:
+            45%
+            48%
+            42%
+            42%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #eef9f4,
+              #9ebdb5
+            );
+
+          box-shadow:
+            inset
+            -3px
+            -3px
+            4px
+            rgba(0,0,0,.22),
+
+            inset
+            2px
+            2px
+            4px
+            rgba(255,255,255,.5),
+
+            0 2px 8px
+            rgba(0,0,0,.35);
+        }
+
+        /* =================================
+           CAT HEAD
+        ================================= */
+
+        .cat-head {
+          position: absolute;
+
+          width: 15px;
+          height: 13px;
+
+          left: -1px;
+          top: -7px;
+
+          border-radius:
+            48%
+            48%
+            45%
+            45%;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f5fff9,
+              #a8c5bd
+            );
+
+          box-shadow:
+            inset
+            -2px
+            -2px
+            3px
+            rgba(0,0,0,.18),
+
+            inset
+            2px
+            2px
+            3px
+            rgba(255,255,255,.55);
+        }
+
+        /* =================================
+           CAT EARS
+        ================================= */
+
+        .cat-ear {
+          position: absolute;
+
+          width: 6px;
+          height: 6px;
+
+          top: -3px;
+
+          background:
+            linear-gradient(
+              145deg,
+              #f3fbf7,
+              #92b3aa
+            );
+
+          transform:
+            rotate(45deg);
+
+          border-radius:
+            2px 3px 1px 3px;
+        }
+
+        .cat-ear-left {
+          left: 1px;
+        }
+
+        .cat-ear-right {
+          right: 1px;
+        }
+
+        /* =================================
+           CAT FACE
+        ================================= */
+
+        .cat-face {
+          position: absolute;
+
+          inset: 0;
+        }
+
+        .cat-eye {
+          position: absolute;
+
+          width: 2px;
+          height: 2px;
+
+          top: 6px;
+
+          border-radius: 50%;
+
+          background:
+            #5ce3cd;
+
+          box-shadow:
+            0 0 4px
+            rgba(92,227,205,.9);
+        }
+
+        .cat-eye-left {
+          left: 4px;
+        }
+
+        .cat-eye-right {
+          right: 4px;
+        }
+
+        /* =================================
+           BODY GLOW
+        ================================= */
+
+        .cat-body-glow {
+          position: absolute;
+
+          width: 7px;
+          height: 7px;
+
+          left: 4px;
+          top: 4px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(255,255,255,.28);
+
+          filter:
+            blur(3px);
+        }
+
+        /* =================================
+           CAT LEGS
+        ================================= */
+
+        .cat-leg {
+          position: absolute;
+
+          width: 3px;
+          height: 8px;
+
+          top: 20px;
+
+          border-radius: 3px;
+
+          background:
+            linear-gradient(
+              180deg,
+              #c7ddd7,
+              #769890
+            );
+
+          transform-origin:
+            top center;
+        }
+
+        .cat-leg-left {
+          left: 7px;
+
+          animation:
+            catLegOne
+            .48s
             ease-in-out
             infinite
             alternate;
         }
 
-        @keyframes shadowPulse {
+        .cat-leg-right {
+          left: 13px;
+
+          animation:
+            catLegTwo
+            .48s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes catLegOne {
 
           from {
             transform:
-              scaleX(.75);
+              rotate(35deg);
+          }
+
+          to {
+            transform:
+              rotate(-35deg);
+          }
+        }
+
+        @keyframes catLegTwo {
+
+          from {
+            transform:
+              rotate(-35deg);
+          }
+
+          to {
+            transform:
+              rotate(35deg);
+          }
+        }
+
+        /* =================================
+           CAT TAIL
+        ================================= */
+
+        .cat-tail {
+          position: absolute;
+
+          width: 12px;
+          height: 9px;
+
+          left: 14px;
+          top: 8px;
+
+          border:
+            3px solid
+            #a5c0b8;
+
+          border-left:
+            0;
+
+          border-bottom:
+            0;
+
+          border-radius:
+            0
+            10px
+            10px
+            0;
+
+          transform:
+            rotate(-20deg);
+
+          transform-origin:
+            left bottom;
+
+          animation:
+            catTail
+            .7s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes catTail {
+
+          from {
+            transform:
+              rotate(-25deg);
+          }
+
+          to {
+            transform:
+              rotate(18deg);
+          }
+        }
+
+        /* =================================
+           CAT SHADOW
+        ================================= */
+
+        .cat-shadow {
+          position: absolute;
+
+          width: 16px;
+          height: 3px;
+
+          left: 3px;
+          bottom: -2px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(0,0,0,.30);
+
+          filter:
+            blur(2px);
+
+          animation:
+            catShadow
+            .48s
+            ease-in-out
+            infinite
+            alternate;
+        }
+
+        @keyframes catShadow {
+
+          from {
+            transform:
+              scaleX(.72);
           }
 
           to {
@@ -1569,268 +1988,26 @@ function Login() {
           }
         }
 
-        /* battery body */
-
-        .battery-body {
-          position: absolute;
-
-          width: 14px;
-          height: 20px;
-
-          left: 4px;
-          top: 5px;
-
-          border-radius: 4px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #f1f3ef,
-              #aabbb5
-            );
-
-          border:
-            1px solid
-            rgba(255,255,255,.65);
-
-          box-shadow:
-            inset
-            -3px
-            -3px
-            4px
-            rgba(0,0,0,.20),
-
-            inset
-            2px
-            2px
-            4px
-            rgba(255,255,255,.45),
-
-            0 2px 7px
-            rgba(0,0,0,.35);
-        }
-
-        /* battery top */
-
-        .battery-top {
-          position: absolute;
-
-          width: 6px;
-          height: 3px;
-
-          left: 3px;
-          top: -4px;
-
-          border-radius:
-            2px 2px 1px 1px;
-
-          background:
-            linear-gradient(
-              180deg,
-              #dce6e1,
-              #879b95
-            );
-
-          box-shadow:
-            0 1px 2px
-            rgba(0,0,0,.3);
-        }
-
-        /* battery highlight */
-
-        .battery-highlight {
-          position: absolute;
-
-          width: 3px;
-          height: 11px;
-
-          left: 2px;
-          top: 4px;
-
-          border-radius: 3px;
-
-          background:
-            rgba(255,255,255,.55);
-
-          filter:
-            blur(.4px);
-        }
-
-        /* battery stripe */
-
-        .battery-stripe {
-          position: absolute;
-
-          width: 8px;
-          height: 3px;
-
-          left: 3px;
-          top: 10px;
-
-          border-radius: 2px;
-
-          background:
-            rgba(75,145,137,.55);
-        }
-
-        /* =====================================
-           RUNNER LEGS
-        ===================================== */
-
-        .battery-leg {
-          position: absolute;
-
-          width: 3px;
-          height: 8px;
-
-          top: 22px;
-
-          border-radius: 3px;
-
-          background:
-            #9fb8b1;
-
-          transform-origin:
-            top center;
-        }
-
-        .leg-one {
-          left: 6px;
-
-          animation:
-            legOne
-            .32s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        .leg-two {
-          left: 12px;
-
-          animation:
-            legTwo
-            .32s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        @keyframes legOne {
-
-          from {
-            transform:
-              rotate(35deg);
-          }
-
-          to {
-            transform:
-              rotate(-35deg);
-          }
-        }
-
-        @keyframes legTwo {
-
-          from {
-            transform:
-              rotate(-35deg);
-          }
-
-          to {
-            transform:
-              rotate(35deg);
-          }
-        }
-
-        /* =====================================
-           RUNNER ARMS
-        ===================================== */
-
-        .battery-arm {
-          position: absolute;
-
-          width: 3px;
-          height: 8px;
-
-          top: 9px;
-
-          border-radius: 3px;
-
-          background:
-            #a9c0ba;
-
-          transform-origin:
-            top center;
-        }
-
-        .arm-one {
-          left: 2px;
-
-          animation:
-            armOne
-            .32s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        .arm-two {
-          right: 2px;
-
-          animation:
-            armTwo
-            .32s
-            ease-in-out
-            infinite
-            alternate;
-        }
-
-        @keyframes armOne {
-
-          from {
-            transform:
-              rotate(35deg);
-          }
-
-          to {
-            transform:
-              rotate(-35deg);
-          }
-        }
-
-        @keyframes armTwo {
-
-          from {
-            transform:
-              rotate(-35deg);
-          }
-
-          to {
-            transform:
-              rotate(35deg);
-          }
-        }
-
-        /* =====================================
-           SIGNING
-        ===================================== */
+        /* =================================
+           SIGNING TEXT
+        ================================= */
 
         .signing-text {
           position: relative;
 
-          z-index: 30;
+          z-index: 40;
 
           color: white;
 
           font-weight: 700;
 
           text-shadow:
-            0 1px 5px
-            rgba(0,0,0,.45);
+            0 1px 6px
+            rgba(0,0,0,.55);
 
           animation:
             signingPulse
-            1.4s
+            1.8s
             ease-in-out
             infinite;
         }
@@ -1838,7 +2015,7 @@ function Login() {
         @keyframes signingPulse {
 
           0%,100% {
-            opacity: .75;
+            opacity: .72;
           }
 
           50% {
@@ -1846,9 +2023,9 @@ function Login() {
           }
         }
 
-        /* =====================================
+        /* =================================
            REGISTER
-        ===================================== */
+        ================================= */
 
         .register-section {
           text-align: center;
@@ -1876,9 +2053,9 @@ function Login() {
           text-decoration: underline;
         }
 
-        /* =====================================
+        /* =================================
            SECURITY
-        ===================================== */
+        ================================= */
 
         .security-text {
           display: flex;
@@ -1897,9 +2074,9 @@ function Login() {
           font-size: 9px;
         }
 
-        /* =====================================
+        /* =================================
            MOBILE
-        ===================================== */
+        ================================= */
 
         @media (max-width: 520px) {
 
