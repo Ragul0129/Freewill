@@ -56,8 +56,105 @@ function ExpertDashboard() {
   );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Notification states
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [newBookingNotification, setNewBookingNotification] =
+    useState<Booking | null>(null);
+
   useEffect(() => {
     loadDashboard();
+  }, []);
+
+  // Supabase Realtime subscription
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupRealtime = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: expertData } = await supabase
+        .from("expert_profiles")
+        .select("id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      if (!expertData) return;
+
+      channel = supabase
+        .channel(`expert-bookings-${expertData.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "bookings",
+          },
+          async (payload) => {
+            console.log("New booking received:", payload);
+
+            await loadDashboard();
+
+            const newBookingId = String(payload.new.id);
+
+            const { data: bookingData } = await supabase
+              .from("bookings")
+              .select(`
+                id,
+                booking_date,
+                start_time,
+                status,
+                notes,
+                created_at,
+                services (
+                  title,
+                  price,
+                  duration_minutes
+                ),
+                payments (
+                  status
+                )
+              `)
+              .eq("id", newBookingId)
+              .maybeSingle();
+
+            if (bookingData) {
+              const formattedBooking: Booking = {
+                id: bookingData.id,
+                booking_date: bookingData.booking_date,
+                start_time: bookingData.start_time,
+                status: bookingData.status,
+                notes: bookingData.notes,
+                created_at: bookingData.created_at,
+
+                services: Array.isArray(bookingData.services)
+                  ? bookingData.services[0] || null
+                  : bookingData.services || null,
+
+                payment: Array.isArray(bookingData.payments)
+                  ? bookingData.payments[0] || null
+                  : bookingData.payments || null,
+              };
+
+              setNewBookingNotification(formattedBooking);
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log("Expert booking realtime status:", status);
+        });
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const loadDashboard = async () => {
@@ -377,7 +474,7 @@ function ExpertDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full mx-auto mb-4 animate-spin"></div>
 
           <p className="text-gray-600">
             Loading expert dashboard...
@@ -390,7 +487,10 @@ function ExpertDashboard() {
   return (
     <div
       className="min-h-screen bg-gray-50"
-      onClick={() => setOpenMenuId(null)}
+      onClick={() => {
+        setOpenMenuId(null);
+        setShowNotifications(false);
+      }}
     >
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -405,14 +505,141 @@ function ExpertDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Home */}
             <Link
               to="/home"
               onClick={(e) => e.stopPropagation()}
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
             >
-              Home
+              🏠 Home
             </Link>
 
+            {/* Notification */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="Notifications"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  setShowNotifications((current) => !current);
+
+                  setNewBookingNotification(null);
+                }}
+                className="relative w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition flex items-center justify-center"
+              >
+                <span className="text-xl">🔔</span>
+
+                {pendingBookings > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                    {pendingBookings > 9
+                      ? "9+"
+                      : pendingBookings}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification dropdown */}
+              {showNotifications && (
+                <div
+                  className="absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-32px)] bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-gray-900">
+                          Notifications
+                        </h3>
+
+                        <p className="text-xs text-gray-500 mt-1">
+                          {pendingBookings > 0
+                            ? `${pendingBookings} pending appointment${
+                                pendingBookings === 1
+                                  ? ""
+                                  : "s"
+                              }`
+                            : "You're all caught up"}
+                        </p>
+                      </div>
+
+                      <span className="text-xl">
+                        🔔
+                      </span>
+                    </div>
+                  </div>
+
+                  {bookings.filter(
+                    (booking) =>
+                      booking.status.toLowerCase() ===
+                      "pending"
+                  ).length === 0 ? (
+                    <div className="px-5 py-8 text-center">
+                      <div className="text-4xl mb-3">
+                        ✨
+                      </div>
+
+                      <p className="text-sm font-semibold text-gray-800">
+                        No new appointments
+                      </p>
+
+                      <p className="text-xs text-gray-500 mt-1">
+                        New booking requests will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="max-h-80 overflow-y-auto">
+                      {bookings
+                        .filter(
+                          (booking) =>
+                            booking.status.toLowerCase() ===
+                            "pending"
+                        )
+                        .slice(0, 10)
+                        .map((booking) => (
+                          <div
+                            key={booking.id}
+                            className="px-5 py-4 border-b border-gray-100 hover:bg-gray-50 transition"
+                          >
+                            <div className="flex gap-3">
+                              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                                📅
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-gray-900">
+                                  New Appointment Request
+                                </p>
+
+                                <p className="text-sm text-gray-700 mt-1 truncate">
+                                  {booking.services?.title ||
+                                    "Counseling Session"}
+                                </p>
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                  📅{" "}
+                                  {formatDate(
+                                    booking.booking_date
+                                  )}
+                                </p>
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                  ⏰{" "}
+                                  {formatTime(
+                                    booking.start_time
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Logout */}
             <button
               type="button"
               onClick={async () => {
@@ -426,6 +653,78 @@ function ExpertDashboard() {
           </div>
         </div>
       </header>
+
+      {/* New Booking Popup */}
+      {newBookingNotification && (
+        <div
+          className="fixed top-20 right-4 z-[60] w-[calc(100%-32px)] max-w-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                  🔔
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-bold text-gray-900">
+                      New Booking!
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewBookingNotification(null)
+                      }
+                      className="text-gray-400 hover:text-gray-700 text-lg"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-gray-700 mt-1">
+                    A new appointment request has arrived.
+                  </p>
+
+                  <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {newBookingNotification.services?.title ||
+                        "Counseling Session"}
+                    </p>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      📅{" "}
+                      {formatDate(
+                        newBookingNotification.booking_date
+                      )}
+                    </p>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      ⏰{" "}
+                      {formatTime(
+                        newBookingNotification.start_time
+                      )}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBookingNotification(null);
+                      setShowNotifications(true);
+                    }}
+                    className="w-full mt-3 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition"
+                  >
+                    View Appointment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {error && (
