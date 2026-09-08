@@ -24,15 +24,17 @@ function App() {
     <Routes>
       {/* Public Pages */}
 
-      {/* Website opening page → Sign Up / Register */}
-      <Route path="/" element={<Register />} />
+      {/* Website opening page → Home */}
+      <Route path="/" element={<Home />} />
 
+      {/* Login / Register */}
       <Route path="/login" element={<Login />} />
-
       <Route path="/register" element={<Register />} />
 
+      {/* Home */}
       <Route path="/home" element={<Home />} />
 
+      {/* Assessment */}
       <Route
         path="/assessment"
         element={
@@ -42,6 +44,7 @@ function App() {
         }
       />
 
+      {/* Assessment Result */}
       <Route
         path="/result"
         element={
@@ -51,15 +54,13 @@ function App() {
         }
       />
 
+      {/* Experts → Public */}
       <Route
         path="/experts"
-        element={
-          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
-            <Experts />
-          </ProtectedRoute>
-        }
+        element={<Experts />}
       />
 
+      {/* Booking → Login required */}
       <Route
         path="/booking"
         element={
@@ -69,8 +70,7 @@ function App() {
         }
       />
 
-      {/* User */}
-
+      {/* User Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -80,6 +80,7 @@ function App() {
         }
       />
 
+      {/* My Appointments */}
       <Route
         path="/my-appointments"
         element={
@@ -89,8 +90,7 @@ function App() {
         }
       />
 
-      {/* Expert */}
-
+      {/* Expert Dashboard */}
       <Route
         path="/expert-dashboard"
         element={
@@ -100,6 +100,7 @@ function App() {
         }
       />
 
+      {/* Expert Profile */}
       <Route
         path="/expert-profile"
         element={
@@ -109,6 +110,7 @@ function App() {
         }
       />
 
+      {/* Expert Services */}
       <Route
         path="/expert-services"
         element={
@@ -118,8 +120,7 @@ function App() {
         }
       />
 
-      {/* Admin */}
-
+      {/* Admin Dashboard */}
       <Route
         path="/admin-dashboard"
         element={
@@ -129,8 +130,8 @@ function App() {
         }
       />
 
-      {/* Unknown route → Sign Up */}
-      <Route path="*" element={<Register />} />
+      {/* Unknown route → Home */}
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }
