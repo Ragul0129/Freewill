@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -9,6 +9,7 @@ const supabase = createClient(
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,11 +68,26 @@ function Login() {
         console.error(profileError);
 
         setLoading(false);
-        startPageTransition("/home");
+
+        const redirectTo = searchParams.get("redirect");
+
+        startPageTransition(
+          redirectTo && redirectTo.startsWith("/")
+            ? redirectTo
+            : "/home"
+        );
         return;
       }
+
       setLoading(false);
-startPageTransition("/home");
+
+      const redirectTo = searchParams.get("redirect");
+
+      startPageTransition(
+        redirectTo && redirectTo.startsWith("/")
+          ? redirectTo
+          : "/home"
+      );
     } catch (error) {
       console.error("Login error:", error);
       alert("Something went wrong. Please try again.");
@@ -207,7 +223,7 @@ startPageTransition("/home");
               <div className="input-wrapper">
 
                 <span className="input-icon">
-                  ✉
+                  鉁�
                 </span>
 
                 <input
@@ -246,7 +262,7 @@ startPageTransition("/home");
               <div className="input-wrapper">
 
                 <span className="input-icon">
-                  🔒
+                  馃敀
                 </span>
 
                 <input
@@ -366,7 +382,7 @@ startPageTransition("/home");
                   </span>
 
                   <span className="arrow">
-                    →
+                    鈫�
                   </span>
                 </>
 
@@ -394,7 +410,7 @@ startPageTransition("/home");
 
           <div className="security-text">
 
-            <span>🔐</span>
+            <span>馃攼</span>
 
             <span>
               Your information is securely protected
