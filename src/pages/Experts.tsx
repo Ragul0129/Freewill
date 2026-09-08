@@ -160,6 +160,7 @@ function Experts() {
             <h1 className="text-2xl font-bold text-gray-900">
               FREEWILL
             </h1>
+
             <p className="text-xs text-gray-500">
               Human Empowerment
             </p>
@@ -335,7 +336,9 @@ function Experts() {
                                 )}
 
                                 <Link
-                                  to={`/booking?service=${service.id}`}
+                                  to={`/login?redirect=${encodeURIComponent(
+                                    `/booking?service=${service.id}`
+                                  )}`}
                                   className="block text-center mt-4 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition"
                                 >
                                   Book This Session
