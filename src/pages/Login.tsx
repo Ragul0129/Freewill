@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -9,6 +13,7 @@ const supabase = createClient(
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,95 +21,150 @@ export default function Login() {
   const [transitioning, setTransitioning] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const goToHome = () => {
+  /*
+   * Normal Login:
+   * /login
+   *      ↓
+   * /home
+   *
+   * Booking Login:
+   * /login?redirect=/booking?service=XXXX
+   *      ↓
+   * /booking?service=XXXX
+   */
+
+  const redirectPath = searchParams.get("redirect");
+
+  const goTo = (path: string) => {
     setTransitioning(true);
 
     setTimeout(() => {
-      navigate("/home", { replace: true });
+      navigate(path, { replace: true });
     }, 700);
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
     const cleanEmail = email.trim();
 
     if (!cleanEmail || !password) {
-      alert("Please enter your email and password.");
+      alert(
+        "Please enter your email and password."
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
+      const {
+        data,
+        error,
+      } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
 
       if (error) {
-        console.error("Login error:", error);
+        console.error(
+          "Login error:",
+          error
+        );
+
         alert(error.message);
+
         setLoading(false);
+
         return;
       }
 
       if (!data.user || !data.session) {
-        alert("Login failed. Please try again.");
+        alert(
+          "Login failed. Please try again."
+        );
+
         setLoading(false);
+
         return;
       }
 
       /*
-       * Login successful.
-       *
        * IMPORTANT:
-       * We intentionally DO NOT redirect based on role.
        *
-       * User / Expert / Admin
-       *        ↓
-       *      HOME
+       * If Login came from Booking,
+       * return to the SAME Booking page.
        *
-       * The Home page reads the logged-in user's role
-       * and shows the correct dashboard options inside
-       * the 3-line menu.
+       * Otherwise go to Home.
        */
 
-      setLoading(false);
-      goToHome();
+      let destination = "/home";
 
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    const cleanEmail = email.trim();
-
-    if (!cleanEmail) {
-      alert("Please enter your email first.");
-      return;
-    }
-
-    try {
-      const { error } =
-        await supabase.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: `${window.location.origin}/login`,
-        });
-
-      if (error) {
-        alert(error.message);
-      } else {
-        alert("Password reset link has been sent to your email.");
+      if (
+        redirectPath &&
+        redirectPath.startsWith("/")
+      ) {
+        destination = redirectPath;
       }
+
+      setLoading(false);
+
+      goTo(destination);
     } catch (error) {
-      console.error("Password reset error:", error);
-      alert("Something went wrong. Please try again.");
+      console.error(
+        "Login error:",
+        error
+      );
+
+      alert(
+        "Something went wrong. Please try again."
+      );
+
+      setLoading(false);
     }
   };
+
+  const handleForgotPassword =
+    async () => {
+      const cleanEmail = email.trim();
+
+      if (!cleanEmail) {
+        alert(
+          "Please enter your email first."
+        );
+
+        return;
+      }
+
+      try {
+        const { error } =
+          await supabase.auth.resetPasswordForEmail(
+            cleanEmail,
+            {
+              redirectTo: `${window.location.origin}/login`,
+            }
+          );
+
+        if (error) {
+          alert(error.message);
+        } else {
+          alert(
+            "Password reset link has been sent to your email."
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Password reset error:",
+          error
+        );
+
+        alert(
+          "Something went wrong. Please try again."
+        );
+      }
+    };
 
   return (
     <div
@@ -114,7 +174,6 @@ export default function Login() {
           : "opacity-100"
       } transition-all duration-700`}
     >
-
       {/* ================= BACKGROUND ================= */}
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -127,7 +186,9 @@ export default function Login() {
 
         <div className="absolute inset-0 opacity-20">
 
-          {Array.from({ length: 35 }).map((_, i) => (
+          {Array.from({
+            length: 35,
+          }).map((_, i) => (
             <span
               key={i}
               className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
@@ -201,7 +262,9 @@ export default function Login() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 placeholder="Enter your email"
                 autoComplete="email"
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none placeholder:text-gray-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 transition"
@@ -220,9 +283,15 @@ export default function Login() {
               <div className="relative">
 
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 pr-14 text-white outline-none placeholder:text-gray-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 transition"
@@ -231,7 +300,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() =>
-                    setShowPassword((v) => !v)
+                    setShowPassword(
+                      (v) => !v
+                    )
                   }
                   aria-label={
                     showPassword
@@ -240,7 +311,9 @@ export default function Login() {
                   }
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword
+                    ? "🙈"
+                    : "👁️"}
                 </button>
 
               </div>
@@ -253,7 +326,9 @@ export default function Login() {
 
               <button
                 type="button"
-                onClick={handleForgotPassword}
+                onClick={
+                  handleForgotPassword
+                }
                 className="text-sm text-cyan-300 hover:text-cyan-200"
               >
                 Forgot password?
@@ -265,7 +340,10 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading || transitioning}
+              disabled={
+                loading ||
+                transitioning
+              }
               className="w-full rounded-xl py-3.5 font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-lg shadow-cyan-500/10"
             >
               {loading
@@ -335,7 +413,9 @@ export default function Login() {
             </div>
 
             <p className="mt-4 text-sm text-gray-400">
-              Entering your space...
+              {redirectPath
+                ? "Returning to your booking..."
+                : "Entering your space..."}
             </p>
 
           </div>
