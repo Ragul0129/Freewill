@@ -31,7 +31,7 @@ function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       alert("Please enter your email and password.");
       return;
     }
@@ -39,58 +39,38 @@ function Login() {
     setLoading(true);
 
     try {
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
       if (error) {
+        console.error("Supabase login error:", error);
         alert(error.message);
         setLoading(false);
         return;
       }
 
-      if (!data.user) {
+      if (!data.user || !data.session) {
         alert("Login failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      const { error: profileError } =
-        await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .maybeSingle();
-
-      if (profileError) {
-        console.error(profileError);
-
-        setLoading(false);
-
-        const redirectTo = searchParams.get("redirect");
-
-        startPageTransition(
-          redirectTo && redirectTo.startsWith("/")
-            ? redirectTo
-            : "/home"
-        );
-        return;
-      }
-
-      setLoading(false);
-
+      // Login is successful.
+      // Do not block login because of a profiles/role query.
+      // ProtectedRoute will handle role-based access.
       const redirectTo = searchParams.get("redirect");
-
-      startPageTransition(
+      const destination =
         redirectTo && redirectTo.startsWith("/")
           ? redirectTo
-          : "/home"
-      );
+          : "/home";
+
+      setLoading(false);
+      startPageTransition(destination);
     } catch (error) {
       console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
+      alert("Something went wrong while logging in. Please try again.");
       setLoading(false);
     }
   };
@@ -223,7 +203,7 @@ function Login() {
               <div className="input-wrapper">
 
                 <span className="input-icon">
-                  鉁�
+                  閴侊拷
                 </span>
 
                 <input
@@ -262,7 +242,7 @@ function Login() {
               <div className="input-wrapper">
 
                 <span className="input-icon">
-                  馃敀
+                  棣冩晙
                 </span>
 
                 <input
@@ -382,7 +362,7 @@ function Login() {
                   </span>
 
                   <span className="arrow">
-                    鈫�
+                    閳拷
                   </span>
                 </>
 
@@ -410,7 +390,7 @@ function Login() {
 
           <div className="security-text">
 
-            <span>馃攼</span>
+            <span>棣冩敿</span>
 
             <span>
               Your information is securely protected
