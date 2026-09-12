@@ -44,6 +44,33 @@ function Booking() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  /*
+   * Restore booking details if the user was sent
+   * to Login and came back to this booking page.
+   */
+  useEffect(() => {
+    if (!serviceId) return;
+
+    const savedBooking = sessionStorage.getItem(
+      `freewill_booking_${serviceId}`
+    );
+
+    if (savedBooking) {
+      try {
+        const saved = JSON.parse(savedBooking);
+
+        setBookingDate(saved.bookingDate || "");
+        setStartTime(saved.startTime || "");
+        setNotes(saved.notes || "");
+      } catch (error) {
+        console.error(
+          "Unable to restore booking details:",
+          error
+        );
+      }
+    }
+  }, [serviceId]);
+
   useEffect(() => {
     if (serviceId) {
       loadService();
@@ -75,48 +102,73 @@ function Booking() {
           .single();
 
       if (serviceError || !serviceData) {
-        console.error("Service error:", serviceError);
-        setError("Unable to load this session.");
+        console.error(
+          "Service error:",
+          serviceError
+        );
+
+        setError(
+          "Unable to load this session."
+        );
+
         return;
       }
 
       setService(serviceData);
 
-      const { data: expertData, error: expertError } =
-        await supabase
-          .from("expert_profiles")
-          .select(`
-            id,
-            specialization,
-            is_active,
-            is_verified,
-            profiles (
-              full_name
-            )
-          `)
-          .eq("id", serviceData.expert_id)
-          .single();
+      const {
+        data: expertData,
+        error: expertError,
+      } = await supabase
+        .from("expert_profiles")
+        .select(`
+          id,
+          specialization,
+          is_active,
+          is_verified,
+          profiles (
+            full_name
+          )
+        `)
+        .eq("id", serviceData.expert_id)
+        .single();
 
       if (expertError) {
-        console.error("Expert error:", expertError);
-        setError("Unable to load expert information.");
+        console.error(
+          "Expert error:",
+          expertError
+        );
+
+        setError(
+          "Unable to load expert information."
+        );
+
         return;
       }
 
       const formattedExpert: Expert = {
         id: expertData.id,
-        specialization: expertData.specialization,
+        specialization:
+          expertData.specialization,
         is_active: expertData.is_active,
-        is_verified: expertData.is_verified,
-        profile: Array.isArray(expertData.profiles)
-          ? expertData.profiles[0] || null
-          : expertData.profiles || null,
+        is_verified:
+          expertData.is_verified,
+        profile:
+          Array.isArray(expertData.profiles)
+            ? expertData.profiles[0] || null
+            : expertData.profiles || null,
       };
 
       setExpert(formattedExpert);
     } catch (err) {
-      console.error("Load service error:", err);
-      setError("Something went wrong.");
+      console.error(
+        "Load service error:",
+        err
+      );
+
+      setError(
+        "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -126,14 +178,20 @@ function Booking() {
     const today = new Date();
 
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+    const day = String(
+      today.getDate()
+    ).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
   };
 
   const isPastTime = () => {
-    if (!bookingDate || !startTime) return false;
+    if (!bookingDate || !startTime) {
+      return false;
+    }
 
     const today = getToday();
 
@@ -143,9 +201,11 @@ function Booking() {
 
     const now = new Date();
 
-    const [hours, minutes] = startTime.split(":");
+    const [hours, minutes] =
+      startTime.split(":");
 
     const selectedTime = new Date();
+
     selectedTime.setHours(
       Number(hours),
       Number(minutes),
@@ -162,17 +222,23 @@ function Booking() {
       setSuccess("");
 
       if (!serviceId || !service) {
-        setError("Please select a valid session.");
+        setError(
+          "Please select a valid session."
+        );
         return;
       }
 
       if (!bookingDate) {
-        setError("Please select a booking date.");
+        setError(
+          "Please select a booking date."
+        );
         return;
       }
 
       if (!startTime) {
-        setError("Please select a time.");
+        setError(
+          "Please select a time."
+        );
         return;
       }
 
@@ -183,7 +249,10 @@ function Booking() {
         return;
       }
 
-      if (expert && !expert.is_active) {
+      if (
+        expert &&
+        !expert.is_active
+      ) {
         setError(
           "This expert is currently unavailable for new appointments."
         );
@@ -196,25 +265,61 @@ function Booking() {
         data: { user },
       } = await supabase.auth.getUser();
 
+      /*
+       * USER IS NOT LOGGED IN
+       *
+       * Save the booking details first.
+       * Then send the user to Login.
+       *
+       * After successful login, Login.tsx will
+       * return the user to this exact Booking URL.
+       */
       if (!user) {
-        navigate("/login");
+        sessionStorage.setItem(
+          `freewill_booking_${service.id}`,
+          JSON.stringify({
+            bookingDate,
+            startTime,
+            notes,
+          })
+        );
+
+        const currentBookingPath =
+          `/booking?service=${encodeURIComponent(
+            service.id
+          )}`;
+
+        const loginPath =
+          `/login?redirect=${encodeURIComponent(
+            currentBookingPath
+          )}`;
+
+        setBooking(false);
+
+        navigate(loginPath);
+
         return;
       }
 
       /*
-       * Check whether the same user already has a booking
-       * for the same service, date and time.
+       * Check whether the same user already has
+       * a booking for the same service, date and time.
        */
-      const { data: existingBooking, error: existingError } =
-        await supabase
-          .from("bookings")
-          .select("id, status")
-          .eq("user_id", user.id)
-          .eq("service_id", service.id)
-          .eq("booking_date", bookingDate)
-          .eq("start_time", startTime)
-          .in("status", ["pending", "confirmed"])
-          .maybeSingle();
+      const {
+        data: existingBooking,
+        error: existingError,
+      } = await supabase
+        .from("bookings")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("service_id", service.id)
+        .eq("booking_date", bookingDate)
+        .eq("start_time", startTime)
+        .in("status", [
+          "pending",
+          "confirmed",
+        ])
+        .maybeSingle();
 
       if (existingError) {
         console.error(
@@ -227,52 +332,70 @@ function Booking() {
         setError(
           "You already have an active booking for this session at the selected time."
         );
+
         return;
       }
 
       /*
-       * Check whether another confirmed/pending booking
-       * already occupies the exact same expert slot.
+       * Check whether another pending/confirmed
+       * booking already occupies this expert slot.
        */
-      const { data: serviceBookings, error: slotError } =
-        await supabase
-          .from("bookings")
-          .select(`
-            id,
-            status,
-            service_id,
-            services!inner (
-              expert_id
-            )
-          `)
-          .eq("booking_date", bookingDate)
-          .eq("start_time", startTime)
-          .in("status", ["pending", "confirmed"]);
+      const {
+        data: serviceBookings,
+        error: slotError,
+      } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          service_id,
+          services!inner (
+            expert_id
+          )
+        `)
+        .eq("booking_date", bookingDate)
+        .eq("start_time", startTime)
+        .in("status", [
+          "pending",
+          "confirmed",
+        ]);
 
       if (slotError) {
-        console.error("Slot check error:", slotError);
+        console.error(
+          "Slot check error:",
+          slotError
+        );
       }
 
-      const sameExpertBooking = (serviceBookings || []).some(
-        (item: any) => {
-          const bookingService = Array.isArray(item.services)
-            ? item.services[0]
-            : item.services;
+      const sameExpertBooking =
+        (serviceBookings || []).some(
+          (item: any) => {
+            const bookingService =
+              Array.isArray(item.services)
+                ? item.services[0]
+                : item.services;
 
-          return (
-            bookingService?.expert_id === service.expert_id
-          );
-        }
-      );
+            return (
+              bookingService?.expert_id ===
+              service.expert_id
+            );
+          }
+        );
 
       if (sameExpertBooking) {
         setError(
           "This time slot is already requested or booked with this expert. Please choose another time."
         );
+
         return;
       }
 
-      const { error: bookingError } = await supabase
+      /*
+       * Create booking
+       */
+      const {
+        error: bookingError,
+      } = await supabase
         .from("bookings")
         .insert({
           user_id: user.id,
@@ -284,10 +407,25 @@ function Booking() {
         });
 
       if (bookingError) {
-        console.error("Booking error:", bookingError);
-        setError(bookingError.message);
+        console.error(
+          "Booking error:",
+          bookingError
+        );
+
+        setError(
+          bookingError.message
+        );
+
         return;
       }
+
+      /*
+       * Booking completed successfully.
+       * Remove the temporary saved booking details.
+       */
+      sessionStorage.removeItem(
+        `freewill_booking_${service.id}`
+      );
 
       setSuccess(
         "Your appointment request has been submitted successfully!"
@@ -298,11 +436,19 @@ function Booking() {
       setNotes("");
 
       setTimeout(() => {
-        navigate("/my-appointments");
+        navigate(
+          "/my-appointments"
+        );
       }, 1500);
     } catch (err) {
-      console.error("Booking failed:", err);
-      setError("Unable to create booking.");
+      console.error(
+        "Booking failed:",
+        err
+      );
+
+      setError(
+        "Unable to create booking."
+      );
     } finally {
       setBooking(false);
     }
@@ -312,11 +458,13 @@ function Booking() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
+
           <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4" />
 
           <p className="text-gray-600">
             Loading session...
           </p>
+
         </div>
       </div>
     );
@@ -325,20 +473,27 @@ function Booking() {
   if (!serviceId) {
     return (
       <div className="min-h-screen bg-gray-50">
+
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-5xl mx-auto px-4 py-4">
+
             <Link
               to="/experts"
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               ← Back to Experts
             </Link>
+
           </div>
         </header>
 
         <main className="max-w-3xl mx-auto px-4 py-16 text-center">
+
           <div className="bg-white rounded-3xl border border-gray-200 p-10">
-            <div className="text-5xl mb-5">📅</div>
+
+            <div className="text-5xl mb-5">
+              📅
+            </div>
 
             <h1 className="text-3xl font-bold text-gray-900">
               Select a session first
@@ -355,8 +510,11 @@ function Booking() {
             >
               Find Experts
             </Link>
+
           </div>
+
         </main>
+
       </div>
     );
   }
@@ -364,7 +522,9 @@ function Booking() {
   if (!service) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+
         <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
+
           <h1 className="text-2xl font-bold text-gray-900">
             Session not found
           </h1>
@@ -379,16 +539,22 @@ function Booking() {
           >
             Back to Experts
           </Link>
+
         </div>
+
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       <header className="bg-white border-b border-gray-200">
+
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+
           <div>
+
             <h1 className="text-2xl font-bold text-gray-900">
               FREEWILL
             </h1>
@@ -396,6 +562,7 @@ function Booking() {
             <p className="text-xs text-gray-500">
               Human Empowerment
             </p>
+
           </div>
 
           <Link
@@ -404,14 +571,19 @@ function Booking() {
           >
             ← Experts
           </Link>
+
         </div>
+
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-10">
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* Session Details */}
+          {/* ================= SESSION DETAILS ================= */}
+
           <div className="bg-white rounded-3xl border border-gray-200 p-7">
+
             <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Booking Session
             </p>
@@ -422,6 +594,7 @@ function Booking() {
 
             {expert && (
               <div className="mt-5 p-4 rounded-2xl bg-gray-50">
+
                 <p className="text-xs text-gray-500">
                   Expert
                 </p>
@@ -437,6 +610,7 @@ function Booking() {
                 </p>
 
                 <div className="flex flex-wrap gap-2 mt-3">
+
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       expert.is_active
@@ -454,7 +628,9 @@ function Booking() {
                       ✓ Verified Expert
                     </span>
                   )}
+
                 </div>
+
               </div>
             )}
 
@@ -465,7 +641,9 @@ function Booking() {
             )}
 
             <div className="grid grid-cols-2 gap-4 mt-7">
+
               <div className="border border-gray-200 rounded-2xl p-4">
+
                 <p className="text-xs text-gray-500">
                   Duration
                 </p>
@@ -473,9 +651,11 @@ function Booking() {
                 <p className="text-lg font-bold text-gray-900 mt-1">
                   {service.duration_minutes} minutes
                 </p>
+
               </div>
 
               <div className="border border-gray-200 rounded-2xl p-4">
+
                 <p className="text-xs text-gray-500">
                   Session Fee
                 </p>
@@ -483,12 +663,17 @@ function Booking() {
                 <p className="text-lg font-bold text-gray-900 mt-1">
                   ₹{service.price}
                 </p>
+
               </div>
+
             </div>
+
           </div>
 
-          {/* Booking Form */}
+          {/* ================= BOOKING FORM ================= */}
+
           <div className="bg-white rounded-3xl border border-gray-200 p-7">
+
             <h2 className="text-2xl font-bold text-gray-900">
               Choose your slot
             </h2>
@@ -509,7 +694,10 @@ function Booking() {
               </div>
             )}
 
+            {/* DATE */}
+
             <div className="mt-7">
+
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Date
               </label>
@@ -519,14 +707,21 @@ function Booking() {
                 value={bookingDate}
                 min={getToday()}
                 onChange={(e) => {
-                  setBookingDate(e.target.value);
+                  setBookingDate(
+                    e.target.value
+                  );
+
                   setError("");
                 }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900"
               />
+
             </div>
 
+            {/* TIME */}
+
             <div className="mt-5">
+
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Preferred Time
               </label>
@@ -535,7 +730,10 @@ function Booking() {
                 type="time"
                 value={startTime}
                 onChange={(e) => {
-                  setStartTime(e.target.value);
+                  setStartTime(
+                    e.target.value
+                  );
+
                   setError("");
                 }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900"
@@ -544,25 +742,41 @@ function Booking() {
               <p className="text-xs text-gray-400 mt-2">
                 Please choose a future time.
               </p>
+
             </div>
 
+            {/* NOTES */}
+
             <div className="mt-5">
+
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Notes
               </label>
 
               <textarea
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) =>
+                  setNotes(
+                    e.target.value
+                  )
+                }
                 rows={4}
                 placeholder="Anything you'd like the expert to know..."
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-gray-900 resize-none"
               />
+
             </div>
+
+            {/* CONFIRM */}
 
             <button
               onClick={handleBooking}
-              disabled={booking || (expert ? !expert.is_active : false)}
+              disabled={
+                booking ||
+                (expert
+                  ? !expert.is_active
+                  : false)
+              }
               className="w-full mt-7 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {booking
@@ -574,9 +788,13 @@ function Booking() {
               Your booking will be submitted for expert
               confirmation.
             </p>
+
           </div>
+
         </div>
+
       </main>
+
     </div>
   );
 }
