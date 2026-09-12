@@ -22,55 +22,34 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   return (
     <Routes>
-      {/* Public Pages */}
+      {/* =========================
+          PUBLIC PAGES
+         ========================= */}
 
-      {/* Website opening page → Home */}
       <Route path="/" element={<Home />} />
 
-      {/* Login / Register */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* Home */}
       <Route path="/home" element={<Home />} />
 
-      {/* Assessment */}
-      <Route
-        path="/assessment"
-        element={
-          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
-            <Assessment />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/login" element={<Login />} />
 
-      {/* Assessment Result */}
-      <Route
-        path="/result"
-        element={
-          <ProtectedRoute allowedRoles={["user", "expert", "admin"]}>
-            <AssessmentResult />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/register" element={<Register />} />
 
-      {/* Experts → Public */}
-      <Route
-        path="/experts"
-        element={<Experts />}
-      />
+      {/* Assessment is now PUBLIC */}
+      <Route path="/assessment" element={<Assessment />} />
 
-      {/* Booking → Login required */}
-      <Route
-        path="/booking"
-        element={
-          <ProtectedRoute allowedRoles={["user"]}>
-            <Booking />
-          </ProtectedRoute>
-        }
-      />
+      {/* Assessment result is now PUBLIC */}
+      <Route path="/result" element={<AssessmentResult />} />
 
-      {/* User Dashboard */}
+      {/* Experts page is PUBLIC */}
+      <Route path="/experts" element={<Experts />} />
+
+      {/* Booking page is PUBLIC */}
+      <Route path="/booking" element={<Booking />} />
+
+      {/* =========================
+          USER LOGIN REQUIRED
+         ========================= */}
+
       <Route
         path="/dashboard"
         element={
@@ -80,7 +59,6 @@ function App() {
         }
       />
 
-      {/* My Appointments */}
       <Route
         path="/my-appointments"
         element={
@@ -90,7 +68,10 @@ function App() {
         }
       />
 
-      {/* Expert Dashboard */}
+      {/* =========================
+          EXPERT LOGIN REQUIRED
+         ========================= */}
+
       <Route
         path="/expert-dashboard"
         element={
@@ -100,7 +81,6 @@ function App() {
         }
       />
 
-      {/* Expert Profile */}
       <Route
         path="/expert-profile"
         element={
@@ -110,7 +90,6 @@ function App() {
         }
       />
 
-      {/* Expert Services */}
       <Route
         path="/expert-services"
         element={
@@ -120,7 +99,10 @@ function App() {
         }
       />
 
-      {/* Admin Dashboard */}
+      {/* =========================
+          ADMIN LOGIN REQUIRED
+         ========================= */}
+
       <Route
         path="/admin-dashboard"
         element={
@@ -130,7 +112,10 @@ function App() {
         }
       />
 
-      {/* Unknown route → Home */}
+      {/* =========================
+          FALLBACK
+         ========================= */}
+
       <Route path="*" element={<Home />} />
     </Routes>
   );
