@@ -1,12 +1,127 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createClient } from "@supabase/supabase-js";
 
 import bossImage from "../assets/boss.png";
 import jeevithaImage from "../assets/jeevitha.png";
 import rahulImage from "../assets/rahul.png";
 
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+type UserRole = "user" | "expert" | "admin" | null;
+
 function Home() {
+  const navigate = useNavigate();
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!mounted) return;
+
+        if (!user) {
+          setUserEmail("");
+          setUserRole(null);
+          setCheckingAuth(false);
+          return;
+        }
+
+        setUserEmail(user.email || "");
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!mounted) return;
+
+        setUserRole((profile?.role as UserRole) || "user");
+      } catch (error) {
+        console.error("Home auth error:", error);
+
+        if (mounted) {
+          setUserEmail("");
+          setUserRole(null);
+        }
+      } finally {
+        if (mounted) {
+          setCheckingAuth(false);
+        }
+      }
+    };
+
+    loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+
+      if (!session?.user) {
+        setUserEmail("");
+        setUserRole(null);
+        setCheckingAuth(false);
+        return;
+      }
+
+      setUserEmail(session.user.email || "");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (!mounted) return;
+
+      setUserRole((profile?.role as UserRole) || "user");
+      setCheckingAuth(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setMenuOpen(false);
+
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    setUserEmail("");
+    setUserRole(null);
+    navigate("/home", { replace: true });
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
+  const roleLabel =
+    userRole === "expert"
+      ? "Expert Account"
+      : userRole === "admin"
+      ? "Administrator"
+      : "FREEWILL User";
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
@@ -25,22 +140,45 @@ function Home() {
 
             {/* DESKTOP NAV */}
             <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
-              <Link to="/home" className="hover:text-[#e9ad3d] transition">
+              <Link
+                to="/home"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Home
               </Link>
-              <a href="#about" className="hover:text-[#e9ad3d] transition">
+
+              <a
+                href="#about"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 About
               </a>
-              <a href="#experts" className="hover:text-[#e9ad3d] transition">
+
+              <a
+                href="#experts"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Experts
               </a>
-              <a href="#services" className="hover:text-[#e9ad3d] transition">
+
+              <a
+                href="#services"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Services
               </a>
-              <a href="#process" className="hover:text-[#e9ad3d] transition">
+
+              <a
+                href="#process"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 How It Works
               </a>
-              <Link to="/booking" className="hover:text-[#e9ad3d] transition">
+
+              <Link
+                to="/booking"
+                className="hover:text-[#e9ad3d] transition"
+              >
                 Appointment
               </Link>
             </nav>
@@ -48,27 +186,32 @@ function Home() {
             {/* RIGHT SIDE */}
             <div className="flex items-center gap-3">
 
-              {/* DASHBOARD */}
-              <Link
-                to="/dashboard"
-                className="hidden sm:block rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur-md hover:bg-white/20 transition"
-              >
-                Dashboard
-              </Link>
+              {/* SIGN IN / LOGOUT */}
+              {!checkingAuth && !userEmail && (
+                <Link
+                  to="/login"
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
+                >
+                  Sign In
+                </Link>
+              )}
 
-              {/* LOGIN */}
-              <Link
-                to="/login"
-                className="hidden sm:block rounded-full bg-[#e8a83b] px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
-              >
-                Login / Sign Up
-              </Link>
+              {!checkingAuth && userEmail && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
+                >
+                  Logout
+                </button>
+              )}
 
               {/* MENU */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setMenuOpen(!menuOpen)}
+                  aria-label="Open menu"
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition"
                 >
                   <div className="space-y-1.5">
@@ -81,50 +224,176 @@ function Home() {
                 {menuOpen && (
                   <div className="absolute right-0 top-14 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
 
+                    {/* MENU HEADER */}
                     <div className="border-b border-gray-100 bg-[#f7f4ed] px-5 py-4">
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-                        FREEWILL
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-[#173d3a]">
-                        Human Empowerment
-                      </p>
+                      {userEmail ? (
+                        <>
+                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                            {roleLabel}
+                          </p>
+
+                          <p className="mt-1 truncate text-sm font-semibold text-[#173d3a]">
+                            {userEmail}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                            FREEWILL
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold text-[#173d3a]">
+                            Human Empowerment
+                          </p>
+                        </>
+                      )}
                     </div>
 
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
-                    >
-                      📊 <span>Dashboard</span>
-                    </Link>
+                    {/* ================= NORMAL PUBLIC MENU ================= */}
 
-                    <Link
-                      to="/login"
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
-                    >
-                      🔐 <span>Login / Sign Up</span>
-                    </Link>
+                    {!userEmail && (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">📊</span>
+                          <span>Dashboard</span>
+                        </Link>
+
+                        <Link
+                          to="/my-appointments"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">📅</span>
+                          <span>My Appointments</span>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* ================= USER MENU ================= */}
+
+                    {userEmail && userRole === "user" && (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">📊</span>
+                          <span>Dashboard</span>
+                        </Link>
+
+                        <Link
+                          to="/my-appointments"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">📅</span>
+                          <span>My Appointments</span>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* ================= EXPERT MENU ================= */}
+
+                    {userEmail && userRole === "expert" && (
+                      <>
+                        <Link
+                          to="/expert-dashboard"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">📊</span>
+                          <span>Expert Dashboard</span>
+                        </Link>
+
+                        <Link
+                          to="/expert-profile"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">👤</span>
+                          <span>My Profile</span>
+                        </Link>
+
+                        <Link
+                          to="/expert-services"
+                          onClick={closeMenu}
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                        >
+                          <span className="text-lg">🛠️</span>
+                          <span>My Services</span>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* ================= ADMIN MENU ================= */}
+
+                    {userEmail && userRole === "admin" && (
+                      <Link
+                        to="/admin-dashboard"
+                        onClick={closeMenu}
+                        className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                      >
+                        <span className="text-lg">🛡️</span>
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
+
+                    {/* ================= WHATSAPP ================= */}
 
                     <a
                       href="https://wa.me/919841624060"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setMenuOpen(false)}
+                      onClick={closeMenu}
                       className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                     >
-                      🟢 <span>WhatsApp</span>
+                      <span className="text-lg">🟢</span>
+                      <span>WhatsApp</span>
                     </a>
+
+                    {/* ================= INSTAGRAM ================= */}
 
                     <a
                       href="https://www.instagram.com/simonanandhraj/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setMenuOpen(false)}
+                      onClick={closeMenu}
                       className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                     >
-                      📸 <span>Instagram</span>
+                      <span className="text-lg">📸</span>
+                      <span>Instagram</span>
                     </a>
+
+                    {/* ================= LOGOUT ================= */}
+
+                    {userEmail && (
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                      >
+                        <span className="text-lg">🚪</span>
+                        <span>Logout</span>
+                      </button>
+                    )}
+
+                    {/* ================= SIGN IN ================= */}
+
+                    {!userEmail && (
+                      <Link
+                        to="/login"
+                        onClick={closeMenu}
+                        className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
+                      >
+                        <span className="text-lg">🔐</span>
+                        <span>Sign In</span>
+                      </Link>
+                    )}
 
                   </div>
                 )}
@@ -192,19 +461,27 @@ function Home() {
 
               <div className="mt-12 flex gap-8">
                 <div>
-                  <p className="text-2xl font-black text-[#eab34a]">100%</p>
-                  <p className="mt-1 text-xs text-white/60">Confidential</p>
+                  <p className="text-2xl font-black text-[#eab34a]">
+                    100%
+                  </p>
+                  <p className="mt-1 text-xs text-white/60">
+                    Confidential
+                  </p>
                 </div>
 
                 <div className="border-l border-white/20 pl-8">
-                  <p className="text-2xl font-black text-[#eab34a]">360°</p>
+                  <p className="text-2xl font-black text-[#eab34a]">
+                    360°
+                  </p>
                   <p className="mt-1 text-xs text-white/60">
                     Holistic Approach
                   </p>
                 </div>
 
                 <div className="border-l border-white/20 pl-8">
-                  <p className="text-2xl font-black text-[#eab34a]">24/7</p>
+                  <p className="text-2xl font-black text-[#eab34a]">
+                    24/7
+                  </p>
                   <p className="mt-1 text-xs text-white/60">
                     Online Access
                   </p>
@@ -215,6 +492,7 @@ function Home() {
             <div className="relative flex justify-center lg:justify-end">
 
               <div className="absolute h-[390px] w-[390px] md:h-[500px] md:w-[500px] rounded-full bg-[#185d57] opacity-80" />
+
               <div className="absolute h-[300px] w-[300px] md:h-[400px] md:w-[400px] rounded-full border border-[#eab34a]/20" />
 
               <img
@@ -224,10 +502,14 @@ function Home() {
               />
 
               <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
-                <p className="text-3xl font-serif text-[#eab34a]">“</p>
+                <p className="text-3xl font-serif text-[#eab34a]">
+                  “
+                </p>
+
                 <p className="text-sm font-semibold leading-6 text-white">
                   Your journey towards self-understanding starts here.
                 </p>
+
                 <p className="mt-2 text-xs text-white/50">
                   FREEWILL Human Empowerment
                 </p>
@@ -303,9 +585,11 @@ function Home() {
                   <p className="text-xs uppercase tracking-[0.2em] text-[#eab34a]">
                     Founder / Human Empowerment
                   </p>
+
                   <h3 className="mt-2 text-2xl font-bold text-white">
                     FREEWILL
                   </h3>
+
                   <p className="mt-2 text-sm text-white/60">
                     Empowering people to understand themselves better.
                   </p>
@@ -325,9 +609,11 @@ function Home() {
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Why FREEWILL
             </p>
+
             <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Designed Around You
             </h2>
+
             <p className="mt-4 text-gray-600">
               A simple, confidential and supportive experience.
             </p>
@@ -362,8 +648,14 @@ function Home() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
                   {icon}
                 </div>
-                <h3 className="mt-7 text-xl font-bold">{title}</h3>
-                <p className="mt-4 leading-7 text-gray-600">{text}</p>
+
+                <h3 className="mt-7 text-xl font-bold">
+                  {title}
+                </h3>
+
+                <p className="mt-4 leading-7 text-gray-600">
+                  {text}
+                </p>
               </div>
             ))}
 
@@ -374,49 +666,82 @@ function Home() {
       {/* ================= QUOTE ================= */}
       <section className="bg-[#f7f4ed] py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-6xl font-serif text-[#d49a2c]">“</p>
+
+          <p className="text-6xl font-serif text-[#d49a2c]">
+            “
+          </p>
+
           <h2 className="mt-2 text-3xl md:text-5xl font-black leading-tight">
             The first step towards
             <br />
             transformation is{" "}
-            <span className="text-[#c88d22]">understanding.</span>
+            <span className="text-[#c88d22]">
+              understanding.
+            </span>
           </h2>
+
           <p className="mt-6 text-gray-500">
             FREEWILL — Human Empowerment
           </p>
+
         </div>
       </section>
 
       {/* ================= PROCESS ================= */}
-      <section id="process" className="bg-[#0d4743] py-20 md:py-24 text-white">
+      <section
+        id="process"
+        className="bg-[#0d4743] py-20 md:py-24 text-white"
+      >
         <div className="mx-auto max-w-6xl px-6">
 
           <div className="text-center">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
               Your Journey
             </p>
+
             <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Three Simple Steps
             </h2>
           </div>
 
           <div className="mt-14 grid md:grid-cols-3 gap-8">
+
             {[
-              ["01", "Take Assessment", "Complete our simple wellbeing questionnaire and reflect on your current state."],
-              ["02", "Understand Your Result", "Receive an easy-to-understand overview that helps you recognise areas that may need attention."],
-              ["03", "Get Support", "Book an appointment and connect with professional counselling support."],
+              [
+                "01",
+                "Take Assessment",
+                "Complete our simple wellbeing questionnaire and reflect on your current state.",
+              ],
+              [
+                "02",
+                "Understand Your Result",
+                "Receive an easy-to-understand overview that helps you recognise areas that may need attention.",
+              ],
+              [
+                "03",
+                "Get Support",
+                "Book an appointment and connect with professional counselling support.",
+              ],
             ].map(([num, title, text]) => (
               <div
                 key={num}
                 className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
               >
-                <span className="text-5xl font-black text-[#eab34a]">{num}</span>
-                <h3 className="mt-7 text-2xl font-bold">{title}</h3>
-                <p className="mt-4 leading-7 text-white/65">{text}</p>
+                <span className="text-5xl font-black text-[#eab34a]">
+                  {num}
+                </span>
+
+                <h3 className="mt-7 text-2xl font-bold">
+                  {title}
+                </h3>
+
+                <p className="mt-4 leading-7 text-white/65">
+                  {text}
+                </p>
               </div>
             ))}
-          </div>
 
+          </div>
         </div>
       </section>
 
@@ -428,9 +753,11 @@ function Home() {
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Meet Our Experts
             </p>
+
             <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Guidance From Experienced Professionals
             </h2>
+
             <p className="mt-5 leading-7 text-gray-600">
               Connect with experienced professionals who bring expertise,
               compassion and practical guidance to your personal growth journey.
@@ -480,23 +807,30 @@ function Home() {
 
             {/* RAHUL */}
             <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition hover:-translate-y-2 hover:shadow-2xl">
+
               <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
+
                 <img
                   src={rahulImage}
                   alt="Rahul K.P"
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
+
                 <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold">
                   7 YEARS EXPERIENCE
                 </div>
+
               </div>
 
               <div className="p-7">
+
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
                   Life Coach / Content Head
                 </p>
 
-                <h3 className="mt-2 text-2xl font-black">Rahul K.P</h3>
+                <h3 className="mt-2 text-2xl font-black">
+                  Rahul K.P
+                </h3>
 
                 <p className="mt-2 font-semibold text-gray-700">
                   Life Coach & Content Head
@@ -515,26 +849,32 @@ function Home() {
                 </p>
 
                 <div className="mt-6 border-t border-gray-100 pt-5">
+
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
                     Focus Areas
                   </p>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {["Life Coaching", "Training", "Content Management"].map(
-                      (item) => (
-                        <span
-                          key={item}
-                          className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold"
-                        >
-                          {item}
-                        </span>
-                      )
-                    )}
+
+                    {[
+                      "Life Coaching",
+                      "Training",
+                      "Content Management",
+                    ].map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold"
+                      >
+                        {item}
+                      </span>
+                    ))}
+
                   </div>
 
                   <p className="mt-5 text-xs text-gray-400">
                     Service pricing will be available based on the selected program.
                   </p>
+
                 </div>
 
                 <Link
@@ -543,6 +883,7 @@ function Home() {
                 >
                   Explore & Book →
                 </Link>
+
               </div>
             </div>
 
@@ -555,12 +896,15 @@ function Home() {
         <div className="mx-auto max-w-7xl px-6">
 
           <div className="text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               What We Do
             </p>
+
             <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Our Services
             </h2>
+
           </div>
 
           <div className="mt-14 grid md:grid-cols-3 gap-7">
@@ -596,11 +940,13 @@ function Home() {
       {/* ================= CTA ================= */}
       <section className="bg-[#f7f4ed] py-20">
         <div className="mx-auto max-w-6xl px-6">
+
           <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 md:px-16 md:py-16 text-center">
 
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#1a5b55] blur-2xl" />
 
             <div className="relative z-10">
+
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
                 Begin Today
               </p>
@@ -615,6 +961,7 @@ function Home() {
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-4">
+
                 <Link
                   to="/assessment"
                   className="rounded-full bg-[#e8a83b] px-8 py-4 font-bold text-[#173d3a] hover:bg-[#f2bd58] transition"
@@ -628,9 +975,10 @@ function Home() {
                 >
                   Book Counselling
                 </Link>
-              </div>
-            </div>
 
+              </div>
+
+            </div>
           </div>
         </div>
       </section>
@@ -642,10 +990,14 @@ function Home() {
           <div className="grid md:grid-cols-3 gap-10">
 
             <div>
-              <h3 className="text-2xl font-black">FREEWILL</h3>
+              <h3 className="text-2xl font-black">
+                FREEWILL
+              </h3>
+
               <p className="mt-2 font-semibold text-[#eab34a]">
                 Human Empowerment
               </p>
+
               <p className="mt-4 max-w-sm leading-7 text-white/55">
                 World's First Psycho-Spiritual and Quantum Philosophical
                 Training Firm.
@@ -653,21 +1005,61 @@ function Home() {
             </div>
 
             <div>
-              <h4 className="font-bold">Quick Links</h4>
+
+              <h4 className="font-bold">
+                Quick Links
+              </h4>
 
               <div className="mt-4 flex flex-col gap-3 text-sm text-white/55">
-                <Link to="/home">Home</Link>
-                <a href="#about">About</a>
-                <a href="#experts">Experts</a>
-                <a href="#services">Services</a>
-                <Link to="/assessment">Assessment</Link>
-                <Link to="/booking">Appointment</Link>
-                <Link to="/login">Login / Sign Up</Link>
+
+                <Link to="/home">
+                  Home
+                </Link>
+
+                <a href="#about">
+                  About
+                </a>
+
+                <a href="#experts">
+                  Experts
+                </a>
+
+                <a href="#services">
+                  Services
+                </a>
+
+                <Link to="/assessment">
+                  Assessment
+                </Link>
+
+                <Link to="/booking">
+                  Appointment
+                </Link>
+
+                {!userEmail && (
+                  <Link to="/login">
+                    Sign In
+                  </Link>
+                )}
+
+                {userEmail && (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="text-left"
+                  >
+                    Logout
+                  </button>
+                )}
+
               </div>
             </div>
 
             <div>
-              <h4 className="font-bold">Start Your Journey</h4>
+
+              <h4 className="font-bold">
+                Start Your Journey
+              </h4>
 
               <p className="mt-4 leading-7 text-white/55">
                 Take a meaningful first step towards understanding
@@ -680,12 +1072,16 @@ function Home() {
               >
                 Get Started →
               </Link>
+
             </div>
 
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/40">
-            <p>© 2026 FREEWILL. All rights reserved.</p>
+
+            <p>
+              © 2026 FREEWILL. All rights reserved.
+            </p>
 
             <a
               href="https://www.instagram.com/ragul_arunan/"
@@ -695,8 +1091,8 @@ function Home() {
             >
               𝓡𝓪𝓰𝓾𝓵 𝓐𝓻𝓾𝓷𝓪𝓷
             </a>
-          </div>
 
+          </div>
         </div>
       </footer>
 
@@ -732,19 +1128,28 @@ function ExpertCard({
   return (
     <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
 
-      <div className={`relative h-[360px] overflow-hidden ${light ? "bg-[#f0e7d4]" : "bg-[#0d4743]"}`}>
+      <div
+        className={`relative h-[360px] overflow-hidden ${
+          light ? "bg-[#f0e7d4]" : "bg-[#0d4743]"
+        }`}
+      >
+
         <img
           src={image}
           alt={name}
-          className={`h-full w-full ${light ? "object-cover" : "object-contain"} transition duration-500 group-hover:scale-105`}
+          className={`h-full w-full ${
+            light ? "object-cover" : "object-contain"
+          } transition duration-500 group-hover:scale-105`}
         />
 
         <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
           {experience}
         </div>
+
       </div>
 
       <div className="p-7">
+
         <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
           {role}
         </p>
@@ -753,7 +1158,9 @@ function ExpertCard({
           {name}
         </h3>
 
-        <p className="mt-2 font-semibold text-gray-700">{title}</p>
+        <p className="mt-2 font-semibold text-gray-700">
+          {title}
+        </p>
 
         <p className="mt-4 text-sm leading-6 text-gray-600">
           Training, Counselling & Coaching
@@ -764,22 +1171,32 @@ function ExpertCard({
         </p>
 
         <div className="mt-6 border-t border-gray-100 pt-5">
+
           <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
             Services
           </p>
 
           <div className="mt-3 space-y-2 text-sm text-gray-600">
+
             {services.map(([service, price]) => (
-              <div key={service} className="flex justify-between gap-4">
+              <div
+                key={service}
+                className="flex justify-between gap-4"
+              >
                 <span>{service}</span>
+
                 <span className="font-bold text-[#173d3a]">
                   {price}
                 </span>
               </div>
             ))}
+
           </div>
 
-          <p className="mt-4 text-xs text-gray-400">{note}</p>
+          <p className="mt-4 text-xs text-gray-400">
+            {note}
+          </p>
+
         </div>
 
         <Link
@@ -788,6 +1205,7 @@ function ExpertCard({
         >
           {button}
         </Link>
+
       </div>
     </div>
   );
@@ -810,11 +1228,18 @@ function ServiceCard({
 }) {
   return (
     <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
-      <div className="text-4xl">{icon}</div>
 
-      <h3 className="mt-6 text-xl font-bold">{title}</h3>
+      <div className="text-4xl">
+        {icon}
+      </div>
 
-      <p className="mt-4 leading-7 text-gray-600">{text}</p>
+      <h3 className="mt-6 text-xl font-bold">
+        {title}
+      </h3>
+
+      <p className="mt-4 leading-7 text-gray-600">
+        {text}
+      </p>
 
       <Link
         to={link}
@@ -822,6 +1247,7 @@ function ServiceCard({
       >
         {button}
       </Link>
+
     </div>
   );
 }
