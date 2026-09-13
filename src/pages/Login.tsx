@@ -25,10 +25,14 @@ export default function Login() {
    * Normal Login:
    * /login
    *      ↓
+   * FREEWILL Healing Animation
+   *      ↓
    * /home
    *
    * Booking Login:
    * /login?redirect=/booking?service=XXXX
+   *      ↓
+   * FREEWILL Healing Animation
    *      ↓
    * /booking?service=XXXX
    */
@@ -40,7 +44,7 @@ export default function Login() {
 
     setTimeout(() => {
       navigate(path, { replace: true });
-    }, 700);
+    }, 1500);
   };
 
   const handleLogin = async (
@@ -167,23 +171,22 @@ export default function Login() {
     };
 
   return (
-    <div
-      className={`min-h-screen relative overflow-hidden bg-[#020617] text-white flex items-center justify-center px-5 py-10 ${
-        transitioning
-          ? "opacity-0 scale-[1.02]"
-          : "opacity-100"
-      } transition-all duration-700`}
-    >
+    <div className="min-h-screen relative overflow-hidden bg-[#020617] text-white flex items-center justify-center px-5 py-10">
+
       {/* ================= BACKGROUND ================= */}
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
 
+        {/* Main cyan healing glow */}
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px]" />
 
+        {/* Blue healing glow */}
         <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-blue-600/10 blur-[120px]" />
 
+        {/* Center purple glow */}
         <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/5 blur-[100px]" />
 
+        {/* Stars */}
         <div className="absolute inset-0 opacity-20">
 
           {Array.from({
@@ -207,7 +210,7 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md">
 
-        {/* BRAND */}
+        {/* ================= BRAND ================= */}
 
         <div className="text-center mb-8">
 
@@ -228,7 +231,7 @@ export default function Login() {
 
         </div>
 
-        {/* CARD */}
+        {/* ================= CARD ================= */}
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-2xl shadow-2xl p-7 sm:p-9">
 
@@ -353,7 +356,7 @@ export default function Login() {
 
           </form>
 
-          {/* REGISTER */}
+          {/* ================= REGISTER ================= */}
 
           <div className="mt-7 text-center text-sm text-gray-400">
 
@@ -368,7 +371,7 @@ export default function Login() {
 
           </div>
 
-          {/* HOME */}
+          {/* ================= HOME ================= */}
 
           <div className="mt-5 text-center">
 
@@ -383,7 +386,7 @@ export default function Login() {
 
         </div>
 
-        {/* FOOTER TEXT */}
+        {/* ================= FOOTER ================= */}
 
         <p className="text-center text-xs text-gray-600 mt-6">
           Your journey. Your mind. Your FREEWILL.
@@ -391,34 +394,195 @@ export default function Login() {
 
       </div>
 
-      {/* ================= TRANSITION ================= */}
+      {/* ================================================= */}
+      {/*             FREEWILL HEALING TRANSITION          */}
+      {/* ================================================= */}
 
       {transitioning && (
-        <div className="fixed inset-0 z-50 bg-[#020617] flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] bg-[#020617] flex items-center justify-center overflow-hidden">
 
-          <div className="text-center">
+          {/* ================= HEALING BACKGROUND ================= */}
 
-            <div className="text-3xl font-black tracking-[0.3em]">
-              FREEWILL
+          <div className="absolute inset-0 pointer-events-none">
+
+            {/* Large breathing glow */}
+            <div className="absolute top-1/2 left-1/2 w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-[70px] animate-[healingGlow_3s_ease-in-out_infinite]" />
+
+            {/* Outer healing rings */}
+
+            <div className="absolute top-1/2 left-1/2 w-[120px] h-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/20 animate-[healingRing_3s_ease-out_infinite]" />
+
+            <div
+              className="absolute top-1/2 left-1/2 w-[120px] h-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/15 animate-[healingRing_3s_ease-out_infinite]"
+              style={{
+                animationDelay: "1s",
+              }}
+            />
+
+            <div
+              className="absolute top-1/2 left-1/2 w-[120px] h-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-400/10 animate-[healingRing_3s_ease-out_infinite]"
+              style={{
+                animationDelay: "2s",
+              }}
+            />
+
+            {/* Small floating lights */}
+
+            <div
+              className="absolute top-[35%] left-[35%] w-2 h-2 rounded-full bg-cyan-300/50 blur-[1px] animate-[floatingLight_3s_ease-in-out_infinite]"
+            />
+
+            <div
+              className="absolute top-[60%] left-[65%] w-1.5 h-1.5 rounded-full bg-blue-300/50 blur-[1px] animate-[floatingLight_4s_ease-in-out_infinite]"
+              style={{
+                animationDelay: "1s",
+              }}
+            />
+
+            <div
+              className="absolute top-[42%] left-[68%] w-1 h-1 rounded-full bg-cyan-200/50 blur-[1px] animate-[floatingLight_3.5s_ease-in-out_infinite]"
+              style={{
+                animationDelay: "0.5s",
+              }}
+            />
+
+            <div
+              className="absolute top-[65%] left-[32%] w-1.5 h-1.5 rounded-full bg-purple-300/40 blur-[1px] animate-[floatingLight_4s_ease-in-out_infinite]"
+              style={{
+                animationDelay: "1.5s",
+              }}
+            />
+
+          </div>
+
+          {/* ================= CENTER ================= */}
+
+          <div className="relative z-10 text-center">
+
+            {/* Logo / Wordmark */}
+
+            <div className="relative">
+
+              {/* Glow behind text */}
+
+              <div className="absolute inset-0 flex items-center justify-center">
+
+                <div className="w-40 h-20 rounded-full bg-cyan-400/10 blur-3xl animate-[healingGlow_3s_ease-in-out_infinite]" />
+
+              </div>
+
+              <div
+                className="relative text-4xl sm:text-5xl font-black tracking-[0.32em] text-white animate-[healingText_3s_ease-in-out_infinite]"
+              >
+                FREEWILL
+              </div>
+
             </div>
 
-            <div className="mt-4 flex justify-center gap-2">
+            {/* Healing symbol */}
 
-              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" />
+            <div className="mt-7 flex justify-center items-center">
 
-              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce [animation-delay:150ms]" />
+              <div className="relative w-12 h-12 flex items-center justify-center">
 
-              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                <div className="absolute inset-0 rounded-full border border-cyan-300/30 animate-spin [animation-duration:5s]" />
+
+                <div className="absolute inset-2 rounded-full border border-blue-300/20 animate-spin [animation-duration:3s] [animation-direction:reverse]" />
+
+                <div className="w-2.5 h-2.5 rounded-full bg-cyan-300 shadow-[0_0_25px_rgba(103,232,249,0.9)] animate-pulse" />
+
+              </div>
 
             </div>
 
-            <p className="mt-4 text-sm text-gray-400">
+            {/* Message */}
+
+            <p className="mt-6 text-sm text-gray-400 tracking-wide animate-pulse">
               {redirectPath
-                ? "Returning to your booking..."
+                ? "Returning to your space..."
                 : "Entering your space..."}
             </p>
 
           </div>
+
+          {/* ================= CUSTOM ANIMATION STYLES ================= */}
+
+          <style>
+            {`
+              @keyframes healingGlow {
+                0% {
+                  transform: translate(-50%, -50%) scale(0.75);
+                  opacity: 0.25;
+                }
+
+                50% {
+                  transform: translate(-50%, -50%) scale(1.25);
+                  opacity: 0.7;
+                }
+
+                100% {
+                  transform: translate(-50%, -50%) scale(0.75);
+                  opacity: 0.25;
+                }
+              }
+
+              @keyframes healingRing {
+                0% {
+                  transform: translate(-50%, -50%) scale(0.6);
+                  opacity: 0;
+                }
+
+                20% {
+                  opacity: 0.8;
+                }
+
+                100% {
+                  transform: translate(-50%, -50%) scale(3.5);
+                  opacity: 0;
+                }
+              }
+
+              @keyframes healingText {
+                0% {
+                  opacity: 0.45;
+                  transform: scale(0.94);
+                  filter: blur(1px);
+                }
+
+                50% {
+                  opacity: 1;
+                  transform: scale(1.04);
+                  filter: blur(0);
+                  text-shadow:
+                    0 0 10px rgba(103, 232, 249, 0.35),
+                    0 0 30px rgba(59, 130, 246, 0.2);
+                }
+
+                100% {
+                  opacity: 0.45;
+                  transform: scale(0.94);
+                  filter: blur(1px);
+                }
+              }
+
+              @keyframes floatingLight {
+                0% {
+                  transform: translateY(10px);
+                  opacity: 0.15;
+                }
+
+                50% {
+                  transform: translateY(-25px);
+                  opacity: 0.8;
+                }
+
+                100% {
+                  transform: translateY(10px);
+                  opacity: 0.15;
+                }
+              }
+            `}
+          </style>
 
         </div>
       )}
