@@ -109,6 +109,7 @@ function Home() {
 
     setUserEmail("");
     setUserRole(null);
+
     navigate("/home", { replace: true });
   };
 
@@ -805,23 +806,21 @@ function Home() {
       </section>
 
       {/* ========================================================= */}
-      {/* ================= PREMIUM EXPERT CAROUSEL ============== */}
+      {/* ================= SCROLL EXPERT CAROUSEL ================ */}
       {/* ========================================================= */}
 
       <section
         id="experts"
-        className="relative overflow-hidden bg-[#f7f4ed] py-24 md:py-32"
+        className="relative bg-[#f7f4ed]"
       >
 
-        {/* Ambient background */}
+        {/* Background glow */}
 
-        <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[#0d4743]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute left-1/2 top-[20%] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[#0d4743]/10 blur-[140px]" />
 
-        <div className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-[#e8a83b]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute right-[-150px] top-[45%] h-[450px] w-[450px] rounded-full bg-[#e8a83b]/10 blur-[130px]" />
 
-        <div className="pointer-events-none absolute -right-40 top-1/2 h-[400px] w-[400px] rounded-full bg-[#174f4a]/10 blur-[120px]" />
-
-        <div className="relative z-10 mx-auto max-w-7xl px-6">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pt-24">
 
           {/* HEADER */}
 
@@ -836,17 +835,17 @@ function Home() {
             </h2>
 
             <p className="mt-5 leading-7 text-gray-600">
-              Connect with experienced professionals who bring expertise,
-              compassion and practical guidance to your personal growth journey.
+              Scroll naturally to explore our experts and discover the
+              right session for your journey.
             </p>
 
           </div>
 
-          {/* CAROUSEL */}
-
-          <ExpertCarousel />
-
         </div>
+
+        {/* SCROLL CONTROLLED CAROUSEL */}
+
+        <ExpertScrollCarousel />
 
       </section>
 
@@ -1076,12 +1075,13 @@ function Home() {
 }
 
 /* ========================================================= */
-/* ================= EXPERT CAROUSEL ======================= */
+/* =============== SCROLL EXPERT CAROUSEL ================= */
 /* ========================================================= */
 
-function ExpertCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const carouselRef = useRef<HTMLDivElement | null>(null);
+function ExpertScrollCarousel() {
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+
+  const [progress, setProgress] = useState(0);
 
   const experts = [
     {
@@ -1145,339 +1145,353 @@ function ExpertCarousel() {
   ];
 
   useEffect(() => {
-    const container = carouselRef.current;
-
-    if (!container) return;
-
     const handleScroll = () => {
-      const cards =
-        container.querySelectorAll<HTMLElement>(
-          "[data-expert-card]"
-        );
+      const section = sectionRef.current;
 
-      if (!cards.length) return;
+      if (!section) return;
 
-      let closestIndex = 0;
-      let closestDistance = Infinity;
+      const rect = section.getBoundingClientRect();
 
-      const containerCenter =
-        container.scrollLeft +
-        container.clientWidth / 2;
+      const viewportHeight = window.innerHeight;
 
-      cards.forEach((card, index) => {
-        const cardCenter =
-          card.offsetLeft +
-          card.offsetWidth / 2;
+      /*
+        The carousel starts when the section enters the viewport.
 
-        const distance = Math.abs(
-          containerCenter - cardCenter
-        );
+        We reserve enough vertical scroll space for all 3 cards.
+      */
 
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
-        }
-      });
+      const scrollDistance =
+        section.offsetHeight - viewportHeight;
 
-      setActiveIndex(closestIndex);
+      if (scrollDistance <= 0) {
+        setProgress(0);
+        return;
+      }
+
+      const passed = Math.max(0, -rect.top);
+
+      const rawProgress =
+        passed / scrollDistance;
+
+      const clampedProgress = Math.max(
+        0,
+        Math.min(
+          experts.length - 1,
+          rawProgress * (experts.length - 1)
+        )
+      );
+
+      setProgress(clampedProgress);
     };
 
-    container.addEventListener(
+    window.addEventListener(
       "scroll",
       handleScroll,
       { passive: true }
     );
 
+    window.addEventListener(
+      "resize",
+      handleScroll
+    );
+
     handleScroll();
 
     return () => {
-      container.removeEventListener(
+      window.removeEventListener(
         "scroll",
         handleScroll
       );
-    };
-  }, []);
 
-  const moveCarousel = (direction: number) => {
-    const container = carouselRef.current;
-
-    if (!container) return;
-
-    const nextIndex = Math.max(
-      0,
-      Math.min(
-        experts.length - 1,
-        activeIndex + direction
-      )
-    );
-
-    const cards =
-      container.querySelectorAll<HTMLElement>(
-        "[data-expert-card]"
+      window.removeEventListener(
+        "resize",
+        handleScroll
       );
-
-    const target = cards[nextIndex];
-
-    if (!target) return;
-
-    container.scrollTo({
-      left:
-        target.offsetLeft -
-        container.clientWidth / 2 +
-        target.offsetWidth / 2,
-      behavior: "smooth",
-    });
-  };
+    };
+  }, [experts.length]);
 
   return (
-    <div className="mt-16">
+    <div
+      ref={sectionRef}
+      className="relative h-[300vh]"
+    >
 
-      {/* DESKTOP ARROWS */}
+      {/* STICKY VIEWPORT */}
 
-      <div className="mb-6 hidden md:flex justify-end gap-3">
+      <div className="sticky top-0 flex min-h-screen items-center justify-center overflow-hidden px-4 py-20 md:px-8">
 
-        <button
-          type="button"
-          onClick={() => moveCarousel(-1)}
-          disabled={activeIndex === 0}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-[#0d4743]/15 bg-white/60 text-[#0d4743] shadow-lg backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
-          aria-label="Previous expert"
-        >
-          ←
-        </button>
+        {/* Progress indicator */}
 
-        <button
-          type="button"
-          onClick={() => moveCarousel(1)}
-          disabled={activeIndex === experts.length - 1}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-[#0d4743]/15 bg-white/60 text-[#0d4743] shadow-lg backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
-          aria-label="Next expert"
-        >
-          →
-        </button>
+        <div className="absolute right-5 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-3 md:flex">
 
-      </div>
+          {experts.map((expert, index) => {
 
-      {/* CAROUSEL */}
+            const distance =
+              Math.abs(progress - index);
 
-      <div
-        ref={carouselRef}
-        className="expert-carousel flex snap-x snap-mandatory gap-6 overflow-x-auto px-3 pb-8 pt-6 md:px-[8%] md:gap-8"
-        style={{
-          scrollbarWidth: "none",
-        }}
-      >
+            const active =
+              distance < 0.5;
 
-        {experts.map((expert, index) => {
-
-          const isActive =
-            index === activeIndex;
-
-          return (
-            <div
-              key={expert.name}
-              data-expert-card
-              className={`group relative min-w-[88%] snap-center md:min-w-[72%] lg:min-w-[58%] xl:min-w-[48%] transition-all duration-700 ${
-                isActive
-                  ? "scale-100 opacity-100"
-                  : "scale-[0.94] opacity-55"
-              }`}
-            >
-
-              {/* GLASS CARD */}
-
+            return (
               <div
-                className={`relative overflow-hidden rounded-[2.5rem] border p-[1px] shadow-2xl backdrop-blur-2xl transition-all duration-700 ${
-                  isActive
-                    ? "border-[#d4a443]/50 shadow-[#0d4743]/20"
-                    : "border-white/40"
+                key={expert.name}
+                className={`transition-all duration-500 ${
+                  active
+                    ? "h-10 w-1.5 rounded-full bg-[#eab34a]"
+                    : "h-5 w-1 rounded-full bg-[#0d4743]/20"
                 }`}
+              />
+            );
+          })}
+
+        </div>
+
+        {/* CARD STAGE */}
+
+        <div
+          className="relative w-full max-w-5xl"
+          style={{
+            perspective: "1400px",
+          }}
+        >
+
+          {experts.map((expert, index) => {
+
+            const offset =
+              index - progress;
+
+            const absoluteOffset =
+              Math.abs(offset);
+
+            /*
+              Each card behaves like a physical
+              character card in a stack.
+
+              Current card:
+              scale 1
+              rotate 0
+              opacity 1
+
+              Previous card:
+              moves upward/back
+
+              Next card:
+              waits behind and then comes forward.
+            */
+
+            const translateY =
+              offset * 90;
+
+            const translateZ =
+              -absoluteOffset * 90;
+
+            const rotateX =
+              offset * -7;
+
+            const scale =
+              Math.max(
+                0.84,
+                1 - absoluteOffset * 0.08
+              );
+
+            const opacity =
+              Math.max(
+                0,
+                1 - absoluteOffset * 0.65
+              );
+
+            const blur =
+              absoluteOffset > 1
+                ? Math.min(
+                    5,
+                    (absoluteOffset - 1) * 5
+                  )
+                : 0;
+
+            const zIndex =
+              100 -
+              Math.round(
+                absoluteOffset * 10
+              );
+
+            return (
+              <div
+                key={expert.name}
+                className="absolute left-0 top-1/2 w-full"
+                style={{
+                  zIndex,
+                  transform: `
+                    translateY(calc(-50% + ${translateY}px))
+                    translateZ(${translateZ}px)
+                    rotateX(${rotateX}deg)
+                    scale(${scale})
+                  `,
+                  opacity,
+                  filter: `blur(${blur}px)`,
+                  transition:
+                    "transform 180ms linear, opacity 180ms linear, filter 180ms linear",
+                  transformStyle: "preserve-3d",
+                  pointerEvents:
+                    absoluteOffset < 0.55
+                      ? "auto"
+                      : "none",
+                }}
               >
 
-                <div className="relative overflow-hidden rounded-[2.45rem] bg-[#0d4743]/95">
+                {/* PREMIUM GLASS CARD */}
 
-                  {/* Ambient glass glow */}
+                <div className="relative overflow-hidden rounded-[2rem] border border-[#d4a443]/30 bg-[#0d4743]/95 shadow-[0_35px_90px_rgba(13,71,67,0.28)] backdrop-blur-2xl md:rounded-[2.8rem]">
 
-                  <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#e8a83b]/10 blur-[70px]" />
+                  {/* GOLD BORDER GLOW */}
 
-                  <div className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-cyan-300/10 blur-[90px]" />
+                  <div className="pointer-events-none absolute inset-0 rounded-[2rem] border border-white/10 md:rounded-[2.8rem]" />
 
-                  {/* IMAGE */}
+                  <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#e8a83b]/10 blur-[90px]" />
 
-                  <div
-                    className={`relative h-[340px] overflow-hidden ${
-                      expert.light
-                        ? "bg-[#eadfc9]"
-                        : "bg-[#0d4743]"
-                    }`}
-                  >
+                  <div className="pointer-events-none absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#2a8178]/20 blur-[100px]" />
 
-                    <img
-                      src={expert.image}
-                      alt={expert.name}
-                      className={`h-full w-full transition duration-1000 ${
+                  {/* CARD CONTENT */}
+
+                  <div className="grid md:grid-cols-[0.9fr_1.1fr]">
+
+                    {/* IMAGE SIDE */}
+
+                    <div
+                      className={`relative min-h-[300px] overflow-hidden md:min-h-[650px] ${
                         expert.light
-                          ? "object-cover"
-                          : "object-contain"
-                      } ${
-                        isActive
-                          ? "scale-105"
-                          : "scale-100"
+                          ? "bg-[#eadfc9]"
+                          : "bg-[#0d4743]"
                       }`}
-                    />
+                    >
 
-                    {/* Image gradient */}
+                      <img
+                        src={expert.image}
+                        alt={expert.name}
+                        className={`h-full w-full object-cover transition-transform duration-700 ${
+                          expert.light
+                            ? "object-cover"
+                            : "object-contain"
+                        }`}
+                      />
 
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0d4743] to-transparent" />
+                      {/* IMAGE GRADIENT */}
 
-                    {/* Experience */}
+                      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0d4743] via-[#0d4743]/40 to-transparent" />
 
-                    <div className="absolute bottom-5 left-5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-wide text-white shadow-lg backdrop-blur-xl">
-                      {expert.experience}
+                      {/* EXPERIENCE BADGE */}
+
+                      <div className="absolute bottom-5 left-5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[10px] font-bold tracking-[0.12em] text-white shadow-xl backdrop-blur-xl md:bottom-7 md:left-7 md:text-xs">
+                        {expert.experience}
+                      </div>
+
+                      {/* CHARACTER CARD MARK */}
+
+                      <div className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-[#eab34a]/30 bg-black/20 text-lg font-black text-[#eab34a] backdrop-blur-xl md:left-7 md:top-7">
+                        0{index + 1}
+                      </div>
+
                     </div>
 
-                  </div>
+                    {/* INFORMATION SIDE */}
 
-                  {/* CONTENT */}
+                    <div className="relative max-h-[calc(100vh-100px)] overflow-y-auto p-6 md:p-10">
 
-                  <div className="relative p-7 md:p-9">
-
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#eab34a]">
-                      {expert.role}
-                    </p>
-
-                    <h3 className="mt-2 text-3xl font-black text-white">
-                      {expert.name}
-                    </h3>
-
-                    <p className="mt-2 font-semibold text-white/75">
-                      {expert.title}
-                    </p>
-
-                    <p className="mt-5 text-sm leading-7 text-white/65">
-                      {expert.description}
-                    </p>
-
-                    {/* SERVICES */}
-
-                    <div className="mt-7 border-t border-white/10 pt-6">
-
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/40">
-                        Services
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#eab34a] md:text-xs">
+                        {expert.role}
                       </p>
 
-                      <div className="mt-4 space-y-3">
+                      <h3 className="mt-2 text-3xl font-black text-white md:text-5xl">
+                        {expert.name}
+                      </h3>
 
-                        {expert.services.map(
-                          ([service, price]) => (
-                            <div
-                              key={service}
-                              className="flex items-center justify-between gap-5 rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3"
-                            >
+                      <p className="mt-2 text-sm font-semibold text-white/70 md:text-base">
+                        {expert.title}
+                      </p>
 
-                              <span className="text-sm text-white/65">
-                                {service}
-                              </span>
+                      <div className="mt-5 h-px w-16 bg-[#eab34a]" />
 
-                              <span className="whitespace-nowrap text-sm font-bold text-[#eab34a]">
-                                {price}
-                              </span>
+                      <p className="mt-5 text-sm leading-7 text-white/65 md:text-[15px]">
+                        {expert.description}
+                      </p>
 
-                            </div>
-                          )
-                        )}
+                      {/* SERVICES */}
+
+                      <div className="mt-6 border-t border-white/10 pt-5">
+
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">
+                          Available Sessions
+                        </p>
+
+                        <div className="mt-4 space-y-2.5">
+
+                          {expert.services.map(
+                            ([service, price]) => (
+                              <div
+                                key={service}
+                                className="flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-white/[0.045] px-4 py-3 backdrop-blur-md"
+                              >
+
+                                <span className="text-sm text-white/65">
+                                  {service}
+                                </span>
+
+                                <span className="whitespace-nowrap text-sm font-bold text-[#eab34a]">
+                                  {price}
+                                </span>
+
+                              </div>
+                            )
+                          )}
+
+                        </div>
+
+                        <p className="mt-4 text-[11px] leading-5 text-white/40">
+                          {expert.note}
+                        </p>
 
                       </div>
 
-                      <p className="mt-4 text-xs leading-5 text-white/40">
-                        {expert.note}
-                      </p>
+                      {/* BOOK SESSION */}
+
+                      <Link
+                        to="/booking"
+                        className="mt-6 block rounded-full bg-[#e8a83b] px-6 py-4 text-center text-sm font-bold text-[#173d3a] shadow-xl shadow-black/20 transition hover:bg-[#f2bd58] hover:shadow-2xl md:text-base"
+                      >
+                        {expert.button}
+                      </Link>
 
                     </div>
-
-                    {/* BOOK BUTTON */}
-
-                    <Link
-                      to="/booking"
-                      className="mt-7 block rounded-full border border-[#eab34a]/40 bg-[#e8a83b] px-6 py-4 text-center font-bold text-[#173d3a] shadow-xl shadow-black/10 transition hover:bg-[#f2bd58] hover:shadow-2xl"
-                    >
-                      {expert.button}
-                    </Link>
 
                   </div>
 
                 </div>
 
               </div>
+            );
+          })}
 
-            </div>
-          );
-        })}
+          {/* STAGE HEIGHT PLACEHOLDER */}
 
-      </div>
+          <div className="invisible pointer-events-none grid md:grid-cols-[0.9fr_1.1fr] overflow-hidden rounded-[2.8rem]">
+            <div className="min-h-[300px] md:min-h-[650px]" />
+            <div className="min-h-[300px] md:min-h-[650px]" />
+          </div>
 
-      {/* DOT INDICATOR */}
+        </div>
 
-      <div className="mt-3 flex items-center justify-center gap-2">
+        {/* MOBILE SCROLL LABEL */}
 
-        {experts.map((expert, index) => (
-          <button
-            key={expert.name}
-            type="button"
-            onClick={() => {
-              const container =
-                carouselRef.current;
+        <div className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2 text-center md:hidden">
 
-              if (!container) return;
+          <div className="mx-auto mb-2 h-8 w-px animate-pulse bg-[#c88d22]/50" />
 
-              const cards =
-                container.querySelectorAll<HTMLElement>(
-                  "[data-expert-card]"
-                );
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#173d3a]/40">
+            Scroll to explore
+          </p>
 
-              const target = cards[index];
-
-              if (!target) return;
-
-              container.scrollTo({
-                left:
-                  target.offsetLeft -
-                  container.clientWidth / 2 +
-                  target.offsetWidth / 2,
-                behavior: "smooth",
-              });
-            }}
-            aria-label={`Show ${expert.name}`}
-            className={`h-2.5 rounded-full transition-all duration-500 ${
-              index === activeIndex
-                ? "w-8 bg-[#0d4743]"
-                : "w-2.5 bg-[#0d4743]/20"
-            }`}
-          />
-        ))}
+        </div>
 
       </div>
-
-      {/* MOBILE HINT */}
-
-      <p className="mt-5 text-center text-xs font-medium tracking-wide text-[#173d3a]/40 md:hidden">
-        ← Swipe to explore our experts →
-      </p>
-
-      {/* CAROUSEL SCROLLBAR HIDE */}
-
-      <style>
-        {`
-          .expert-carousel::-webkit-scrollbar {
-            display: none;
-          }
-
-          .expert-carousel {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}
-      </style>
 
     </div>
   );
