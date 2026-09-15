@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -127,6 +127,7 @@ function Home() {
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
 
       {/* ================= NAVBAR ================= */}
+
       <header className="absolute top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
@@ -139,7 +140,9 @@ function Home() {
             </Link>
 
             {/* DESKTOP NAV */}
+
             <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
+
               <Link
                 to="/home"
                 className="hover:text-[#e9ad3d] transition"
@@ -181,12 +184,13 @@ function Home() {
               >
                 Appointment
               </Link>
+
             </nav>
 
             {/* RIGHT SIDE */}
+
             <div className="flex items-center gap-3">
 
-              {/* SIGN IN / LOGOUT */}
               {!checkingAuth && !userEmail && (
                 <Link
                   to="/login"
@@ -207,7 +211,9 @@ function Home() {
               )}
 
               {/* MENU */}
+
               <div className="relative">
+
                 <button
                   type="button"
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -225,7 +231,9 @@ function Home() {
                   <div className="absolute right-0 top-14 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
 
                     {/* MENU HEADER */}
+
                     <div className="border-b border-gray-100 bg-[#f7f4ed] px-5 py-4">
+
                       {userEmail ? (
                         <>
                           <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
@@ -247,9 +255,10 @@ function Home() {
                           </p>
                         </>
                       )}
+
                     </div>
 
-                    {/* ================= NORMAL PUBLIC MENU ================= */}
+                    {/* NORMAL PUBLIC MENU */}
 
                     {!userEmail && (
                       <>
@@ -273,7 +282,7 @@ function Home() {
                       </>
                     )}
 
-                    {/* ================= USER MENU ================= */}
+                    {/* USER MENU */}
 
                     {userEmail && userRole === "user" && (
                       <>
@@ -297,7 +306,7 @@ function Home() {
                       </>
                     )}
 
-                    {/* ================= EXPERT MENU ================= */}
+                    {/* EXPERT MENU */}
 
                     {userEmail && userRole === "expert" && (
                       <>
@@ -330,7 +339,7 @@ function Home() {
                       </>
                     )}
 
-                    {/* ================= ADMIN MENU ================= */}
+                    {/* ADMIN MENU */}
 
                     {userEmail && userRole === "admin" && (
                       <Link
@@ -343,7 +352,7 @@ function Home() {
                       </Link>
                     )}
 
-                    {/* ================= WHATSAPP ================= */}
+                    {/* WHATSAPP */}
 
                     <a
                       href="https://wa.me/919841624060"
@@ -356,7 +365,7 @@ function Home() {
                       <span>WhatsApp</span>
                     </a>
 
-                    {/* ================= INSTAGRAM ================= */}
+                    {/* INSTAGRAM */}
 
                     <a
                       href="https://www.instagram.com/simonanandhraj/"
@@ -369,7 +378,7 @@ function Home() {
                       <span>Instagram</span>
                     </a>
 
-                    {/* ================= LOGOUT ================= */}
+                    {/* LOGOUT */}
 
                     {userEmail && (
                       <button
@@ -382,7 +391,7 @@ function Home() {
                       </button>
                     )}
 
-                    {/* ================= SIGN IN ================= */}
+                    {/* SIGN IN */}
 
                     {!userEmail && (
                       <Link
@@ -397,20 +406,26 @@ function Home() {
 
                   </div>
                 )}
+
               </div>
+
             </div>
           </div>
         </div>
       </header>
 
       {/* ================= HERO ================= */}
+
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
 
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
+
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
+
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 md:pt-40">
+
           <div className="grid lg:grid-cols-[1.05fr_0.95fr] items-center gap-10">
 
             <div className="max-w-2xl">
@@ -419,6 +434,7 @@ function Home() {
                 <span className="text-[#eab34a] text-lg tracking-widest">
                   ★★★★★
                 </span>
+
                 <span className="text-sm text-white/70">
                   Human Empowerment
                 </span>
@@ -431,6 +447,7 @@ function Home() {
               <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black leading-[1.04]">
                 Understand Your Mind.
                 <br />
+
                 <span className="text-[#eab34a]">
                   Transform Your Life.
                 </span>
@@ -444,6 +461,7 @@ function Home() {
               </p>
 
               <div className="mt-9 flex flex-wrap gap-4">
+
                 <Link
                   to="/assessment"
                   className="rounded-full bg-[#e8a83b] px-7 py-4 font-bold text-[#173d3a] shadow-xl hover:bg-[#f2bd58] transition"
@@ -457,13 +475,16 @@ function Home() {
                 >
                   Book Appointment
                 </Link>
+
               </div>
 
               <div className="mt-12 flex gap-8">
+
                 <div>
                   <p className="text-2xl font-black text-[#eab34a]">
                     100%
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Confidential
                   </p>
@@ -473,6 +494,7 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     360°
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Holistic Approach
                   </p>
@@ -482,11 +504,14 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     24/7
                   </p>
+
                   <p className="mt-1 text-xs text-white/60">
                     Online Access
                   </p>
                 </div>
+
               </div>
+
             </div>
 
             <div className="relative flex justify-center lg:justify-end">
@@ -502,6 +527,7 @@ function Home() {
               />
 
               <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
+
                 <p className="text-3xl font-serif text-[#eab34a]">
                   “
                 </p>
@@ -513,13 +539,16 @@ function Home() {
                 <p className="mt-2 text-xs text-white/50">
                   FREEWILL Human Empowerment
                 </p>
+
               </div>
 
             </div>
+
           </div>
         </div>
 
         <div className="absolute bottom-[-1px] left-0 right-0">
+
           <svg
             viewBox="0 0 1440 130"
             className="h-[90px] w-full md:h-[120px]"
@@ -530,15 +559,21 @@ function Home() {
               d="M0 55 C180 115 300 100 450 75 C580 53 650 125 760 125 C900 125 930 53 1060 75 C1190 100 1280 115 1440 55 L1440 130 L0 130 Z"
             />
           </svg>
+
         </div>
+
       </section>
 
       {/* ================= ABOUT ================= */}
+
       <section id="about" className="bg-[#f7f4ed] py-20 md:py-28">
+
         <div className="mx-auto max-w-6xl px-6">
+
           <div className="grid lg:grid-cols-2 gap-14 items-center">
 
             <div>
+
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
                 About FREEWILL
               </p>
@@ -546,6 +581,7 @@ function Home() {
               <h2 className="mt-4 text-3xl md:text-5xl font-black leading-tight">
                 A deeper approach to
                 <br />
+
                 <span className="text-[#c88d22]">
                   human empowerment.
                 </span>
@@ -569,12 +605,15 @@ function Home() {
               >
                 Discover Yourself →
               </Link>
+
             </div>
 
             <div className="relative">
+
               <div className="absolute -inset-5 rounded-[2rem] bg-[#e6d9bb]/50" />
 
               <div className="relative overflow-hidden rounded-[2rem] bg-[#0d4743] p-6 md:p-8">
+
                 <img
                   src={bossImage}
                   alt="FREEWILL Founder"
@@ -582,6 +621,7 @@ function Home() {
                 />
 
                 <div className="border-t border-white/10 pt-5 text-center">
+
                   <p className="text-xs uppercase tracking-[0.2em] text-[#eab34a]">
                     Founder / Human Empowerment
                   </p>
@@ -593,19 +633,26 @@ function Home() {
                   <p className="mt-2 text-sm text-white/60">
                     Empowering people to understand themselves better.
                   </p>
+
                 </div>
+
               </div>
+
             </div>
 
           </div>
         </div>
+
       </section>
 
       {/* ================= WHY ================= */}
+
       <section className="bg-white py-20 md:py-24">
+
         <div className="mx-auto max-w-7xl px-6">
 
           <div className="mx-auto max-w-2xl text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Why FREEWILL
             </p>
@@ -617,6 +664,7 @@ function Home() {
             <p className="mt-4 text-gray-600">
               A simple, confidential and supportive experience.
             </p>
+
           </div>
 
           <div className="mt-14 grid md:grid-cols-3 gap-7">
@@ -661,10 +709,13 @@ function Home() {
 
           </div>
         </div>
+
       </section>
 
       {/* ================= QUOTE ================= */}
+
       <section className="bg-[#f7f4ed] py-20">
+
         <div className="mx-auto max-w-4xl px-6 text-center">
 
           <p className="text-6xl font-serif text-[#d49a2c]">
@@ -674,7 +725,9 @@ function Home() {
           <h2 className="mt-2 text-3xl md:text-5xl font-black leading-tight">
             The first step towards
             <br />
+
             transformation is{" "}
+
             <span className="text-[#c88d22]">
               understanding.
             </span>
@@ -685,16 +738,20 @@ function Home() {
           </p>
 
         </div>
+
       </section>
 
       {/* ================= PROCESS ================= */}
+
       <section
         id="process"
         className="bg-[#0d4743] py-20 md:py-24 text-white"
       >
+
         <div className="mx-auto max-w-6xl px-6">
 
           <div className="text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
               Your Journey
             </p>
@@ -702,6 +759,7 @@ function Home() {
             <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Three Simple Steps
             </h2>
+
           </div>
 
           <div className="mt-14 grid md:grid-cols-3 gap-8">
@@ -743,18 +801,37 @@ function Home() {
 
           </div>
         </div>
+
       </section>
 
-      {/* ================= EXPERTS ================= */}
-      <section id="experts" className="bg-[#f7f4ed] py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-6">
+      {/* ========================================================= */}
+      {/* ================= PREMIUM EXPERT CAROUSEL ============== */}
+      {/* ========================================================= */}
+
+      <section
+        id="experts"
+        className="relative overflow-hidden bg-[#f7f4ed] py-24 md:py-32"
+      >
+
+        {/* Ambient background */}
+
+        <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[#0d4743]/10 blur-[120px]" />
+
+        <div className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-[#e8a83b]/10 blur-[120px]" />
+
+        <div className="pointer-events-none absolute -right-40 top-1/2 h-[400px] w-[400px] rounded-full bg-[#174f4a]/10 blur-[120px]" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6">
+
+          {/* HEADER */}
 
           <div className="mx-auto max-w-3xl text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Meet Our Experts
             </p>
 
-            <h2 className="mt-3 text-3xl md:text-5xl font-black">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black text-[#173d3a]">
               Guidance From Experienced Professionals
             </h2>
 
@@ -762,137 +839,21 @@ function Home() {
               Connect with experienced professionals who bring expertise,
               compassion and practical guidance to your personal growth journey.
             </p>
-          </div>
-
-          <div className="mt-14 grid lg:grid-cols-3 gap-8">
-
-            {/* SIMON */}
-            <ExpertCard
-              image={bossImage}
-              experience="26 YEARS EXPERIENCE"
-              role="Founder / CEO"
-              name="Simon Anand Raj"
-              title="Emotional Intelligence Coach"
-              description="Simon Anand Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development. His work focuses on helping individuals and organisations develop emotional intelligence, improve self-awareness, strengthen relationships and unlock their potential."
-              services={[
-                ["One Hour", "₹1,500"],
-                ["Psychometric Analysis", "₹2,500"],
-                ["One-to-One Session", "₹3,000"],
-                ["Training Sessions", "₹12,000"],
-                ["Mentoring", "₹25,000"],
-              ]}
-              note="Extended sessions and specialised programs may range from ₹5,000 to ₹50,000."
-              button="Book a Session →"
-            />
-
-            {/* JEEVITHA */}
-            <ExpertCard
-              image={jeevithaImage}
-              experience="5 YEARS EXPERIENCE"
-              role="Clinical Psychologist / Project Head"
-              name="Jeevitha S"
-              title="Clinical Psychologist & Project Head"
-              description="Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness and work towards meaningful personal growth."
-              services={[
-                ["One Hour", "₹1,500"],
-                ["Psychometric Analysis", "₹2,500"],
-                ["One-to-One Session", "₹3,000"],
-                ["Training Sessions", "₹12,000"],
-                ["Mentoring", "₹25,000"],
-              ]}
-              note="Session pricing may range from ₹1,000 to ₹10,000 depending on the service."
-              button="Book a Session →"
-              light
-            />
-
-            {/* RAHUL */}
-            <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition hover:-translate-y-2 hover:shadow-2xl">
-
-              <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
-
-                <img
-                  src={rahulImage}
-                  alt="Rahul K.P"
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-
-                <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold">
-                  7 YEARS EXPERIENCE
-                </div>
-
-              </div>
-
-              <div className="p-7">
-
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-                  Life Coach / Content Head
-                </p>
-
-                <h3 className="mt-2 text-2xl font-black">
-                  Rahul K.P
-                </h3>
-
-                <p className="mt-2 font-semibold text-gray-700">
-                  Life Coach & Content Head
-                </p>
-
-                <p className="mt-4 text-sm leading-6 text-gray-600">
-                  Training & Content Management
-                </p>
-
-                <p className="mt-5 text-sm leading-7 text-gray-600">
-                  Rahul K.P is a Life Coach and Content Head with 7 years of
-                  experience in training and content management. His work combines
-                  personal development, structured learning and effective
-                  communication to help individuals build confidence, develop
-                  practical skills and move towards their goals.
-                </p>
-
-                <div className="mt-6 border-t border-gray-100 pt-5">
-
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                    Focus Areas
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-
-                    {[
-                      "Life Coaching",
-                      "Training",
-                      "Content Management",
-                    ].map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold"
-                      >
-                        {item}
-                      </span>
-                    ))}
-
-                  </div>
-
-                  <p className="mt-5 text-xs text-gray-400">
-                    Service pricing will be available based on the selected program.
-                  </p>
-
-                </div>
-
-                <Link
-                  to="/booking"
-                  className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white hover:bg-[#12554f] transition"
-                >
-                  Explore & Book →
-                </Link>
-
-              </div>
-            </div>
 
           </div>
+
+          {/* CAROUSEL */}
+
+          <ExpertCarousel />
+
         </div>
+
       </section>
 
       {/* ================= SERVICES ================= */}
+
       <section id="services" className="bg-white py-20 md:py-24">
+
         <div className="mx-auto max-w-7xl px-6">
 
           <div className="text-center">
@@ -934,11 +895,15 @@ function Home() {
             />
 
           </div>
+
         </div>
+
       </section>
 
       {/* ================= CTA ================= */}
+
       <section className="bg-[#f7f4ed] py-20">
+
         <div className="mx-auto max-w-6xl px-6">
 
           <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 md:px-16 md:py-16 text-center">
@@ -979,17 +944,23 @@ function Home() {
               </div>
 
             </div>
+
           </div>
+
         </div>
+
       </section>
 
       {/* ================= FOOTER ================= */}
+
       <footer className="bg-[#082f2d] text-white">
+
         <div className="mx-auto max-w-7xl px-6 py-12">
 
           <div className="grid md:grid-cols-3 gap-10">
 
             <div>
+
               <h3 className="text-2xl font-black">
                 FREEWILL
               </h3>
@@ -1002,6 +973,7 @@ function Home() {
                 World's First Psycho-Spiritual and Quantum Philosophical
                 Training Firm.
               </p>
+
             </div>
 
             <div>
@@ -1053,6 +1025,7 @@ function Home() {
                 )}
 
               </div>
+
             </div>
 
             <div>
@@ -1093,120 +1066,419 @@ function Home() {
             </a>
 
           </div>
+
         </div>
+
       </footer>
 
     </div>
   );
 }
 
-/* ================= EXPERT CARD ================= */
+/* ========================================================= */
+/* ================= EXPERT CAROUSEL ======================= */
+/* ========================================================= */
 
-function ExpertCard({
-  image,
-  experience,
-  role,
-  name,
-  title,
-  description,
-  services,
-  note,
-  button,
-  light = false,
-}: {
-  image: string;
-  experience: string;
-  role: string;
-  name: string;
-  title: string;
-  description: string;
-  services: string[][];
-  note: string;
-  button: string;
-  light?: boolean;
-}) {
+function ExpertCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  const experts = [
+    {
+      image: bossImage,
+      experience: "26 YEARS EXPERIENCE",
+      role: "Founder / CEO",
+      name: "Simon Anand Raj",
+      title: "Emotional Intelligence Coach",
+      description:
+        "Simon Anand Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development. His work focuses on helping individuals and organisations develop emotional intelligence, improve self-awareness, strengthen relationships and unlock their potential.",
+      services: [
+        ["One Hour", "₹1,500"],
+        ["Psychometric Analysis", "₹2,500"],
+        ["One-to-One Session", "₹3,000"],
+        ["Training Sessions", "₹12,000"],
+        ["Mentoring", "₹25,000"],
+      ],
+      note:
+        "Extended sessions and specialised programs may range from ₹5,000 to ₹50,000.",
+      button: "Book a Session →",
+      light: false,
+    },
+    {
+      image: jeevithaImage,
+      experience: "5 YEARS EXPERIENCE",
+      role: "Clinical Psychologist / Project Head",
+      name: "Jeevitha S",
+      title: "Clinical Psychologist & Project Head",
+      description:
+        "Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness and work towards meaningful personal growth.",
+      services: [
+        ["One Hour", "₹1,500"],
+        ["Psychometric Analysis", "₹2,500"],
+        ["One-to-One Session", "₹3,000"],
+        ["Training Sessions", "₹12,000"],
+        ["Mentoring", "₹25,000"],
+      ],
+      note:
+        "Session pricing may range from ₹1,000 to ₹10,000 depending on the service.",
+      button: "Book a Session →",
+      light: true,
+    },
+    {
+      image: rahulImage,
+      experience: "7 YEARS EXPERIENCE",
+      role: "Life Coach / Content Head",
+      name: "Rahul K.P",
+      title: "Life Coach & Content Head",
+      description:
+        "Rahul K.P is a Life Coach and Content Head with 7 years of experience in training and content management. His work combines personal development, structured learning and effective communication to help individuals build confidence, develop practical skills and move towards their goals.",
+      services: [
+        ["Focus", "Life Coaching"],
+        ["Training", "Personal Development"],
+        ["Content", "Content Management"],
+      ],
+      note:
+        "Service pricing will be available based on the selected program.",
+      button: "Explore & Book →",
+      light: false,
+    },
+  ];
+
+  useEffect(() => {
+    const container = carouselRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+      const cards =
+        container.querySelectorAll<HTMLElement>(
+          "[data-expert-card]"
+        );
+
+      if (!cards.length) return;
+
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+
+      const containerCenter =
+        container.scrollLeft +
+        container.clientWidth / 2;
+
+      cards.forEach((card, index) => {
+        const cardCenter =
+          card.offsetLeft +
+          card.offsetWidth / 2;
+
+        const distance = Math.abs(
+          containerCenter - cardCenter
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      setActiveIndex(closestIndex);
+    };
+
+    container.addEventListener(
+      "scroll",
+      handleScroll,
+      { passive: true }
+    );
+
+    handleScroll();
+
+    return () => {
+      container.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
+  }, []);
+
+  const moveCarousel = (direction: number) => {
+    const container = carouselRef.current;
+
+    if (!container) return;
+
+    const nextIndex = Math.max(
+      0,
+      Math.min(
+        experts.length - 1,
+        activeIndex + direction
+      )
+    );
+
+    const cards =
+      container.querySelectorAll<HTMLElement>(
+        "[data-expert-card]"
+      );
+
+    const target = cards[nextIndex];
+
+    if (!target) return;
+
+    container.scrollTo({
+      left:
+        target.offsetLeft -
+        container.clientWidth / 2 +
+        target.offsetWidth / 2,
+      behavior: "smooth",
+    });
+  };
+
   return (
-    <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+    <div className="mt-16">
+
+      {/* DESKTOP ARROWS */}
+
+      <div className="mb-6 hidden md:flex justify-end gap-3">
+
+        <button
+          type="button"
+          onClick={() => moveCarousel(-1)}
+          disabled={activeIndex === 0}
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-[#0d4743]/15 bg-white/60 text-[#0d4743] shadow-lg backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Previous expert"
+        >
+          ←
+        </button>
+
+        <button
+          type="button"
+          onClick={() => moveCarousel(1)}
+          disabled={activeIndex === experts.length - 1}
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-[#0d4743]/15 bg-white/60 text-[#0d4743] shadow-lg backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Next expert"
+        >
+          →
+        </button>
+
+      </div>
+
+      {/* CAROUSEL */}
 
       <div
-        className={`relative h-[360px] overflow-hidden ${
-          light ? "bg-[#f0e7d4]" : "bg-[#0d4743]"
-        }`}
+        ref={carouselRef}
+        className="expert-carousel flex snap-x snap-mandatory gap-6 overflow-x-auto px-3 pb-8 pt-6 md:px-[8%] md:gap-8"
+        style={{
+          scrollbarWidth: "none",
+        }}
       >
 
-        <img
-          src={image}
-          alt={name}
-          className={`h-full w-full ${
-            light ? "object-cover" : "object-contain"
-          } transition duration-500 group-hover:scale-105`}
-        />
+        {experts.map((expert, index) => {
 
-        <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
-          {experience}
-        </div>
+          const isActive =
+            index === activeIndex;
 
-      </div>
+          return (
+            <div
+              key={expert.name}
+              data-expert-card
+              className={`group relative min-w-[88%] snap-center md:min-w-[72%] lg:min-w-[58%] xl:min-w-[48%] transition-all duration-700 ${
+                isActive
+                  ? "scale-100 opacity-100"
+                  : "scale-[0.94] opacity-55"
+              }`}
+            >
 
-      <div className="p-7">
+              {/* GLASS CARD */}
 
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-          {role}
-        </p>
-
-        <h3 className="mt-2 text-2xl font-black text-[#173d3a]">
-          {name}
-        </h3>
-
-        <p className="mt-2 font-semibold text-gray-700">
-          {title}
-        </p>
-
-        <p className="mt-4 text-sm leading-6 text-gray-600">
-          Training, Counselling & Coaching
-        </p>
-
-        <p className="mt-5 text-sm leading-7 text-gray-600">
-          {description}
-        </p>
-
-        <div className="mt-6 border-t border-gray-100 pt-5">
-
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-            Services
-          </p>
-
-          <div className="mt-3 space-y-2 text-sm text-gray-600">
-
-            {services.map(([service, price]) => (
               <div
-                key={service}
-                className="flex justify-between gap-4"
+                className={`relative overflow-hidden rounded-[2.5rem] border p-[1px] shadow-2xl backdrop-blur-2xl transition-all duration-700 ${
+                  isActive
+                    ? "border-[#d4a443]/50 shadow-[#0d4743]/20"
+                    : "border-white/40"
+                }`}
               >
-                <span>{service}</span>
 
-                <span className="font-bold text-[#173d3a]">
-                  {price}
-                </span>
+                <div className="relative overflow-hidden rounded-[2.45rem] bg-[#0d4743]/95">
+
+                  {/* Ambient glass glow */}
+
+                  <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#e8a83b]/10 blur-[70px]" />
+
+                  <div className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-cyan-300/10 blur-[90px]" />
+
+                  {/* IMAGE */}
+
+                  <div
+                    className={`relative h-[340px] overflow-hidden ${
+                      expert.light
+                        ? "bg-[#eadfc9]"
+                        : "bg-[#0d4743]"
+                    }`}
+                  >
+
+                    <img
+                      src={expert.image}
+                      alt={expert.name}
+                      className={`h-full w-full transition duration-1000 ${
+                        expert.light
+                          ? "object-cover"
+                          : "object-contain"
+                      } ${
+                        isActive
+                          ? "scale-105"
+                          : "scale-100"
+                      }`}
+                    />
+
+                    {/* Image gradient */}
+
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0d4743] to-transparent" />
+
+                    {/* Experience */}
+
+                    <div className="absolute bottom-5 left-5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-wide text-white shadow-lg backdrop-blur-xl">
+                      {expert.experience}
+                    </div>
+
+                  </div>
+
+                  {/* CONTENT */}
+
+                  <div className="relative p-7 md:p-9">
+
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#eab34a]">
+                      {expert.role}
+                    </p>
+
+                    <h3 className="mt-2 text-3xl font-black text-white">
+                      {expert.name}
+                    </h3>
+
+                    <p className="mt-2 font-semibold text-white/75">
+                      {expert.title}
+                    </p>
+
+                    <p className="mt-5 text-sm leading-7 text-white/65">
+                      {expert.description}
+                    </p>
+
+                    {/* SERVICES */}
+
+                    <div className="mt-7 border-t border-white/10 pt-6">
+
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/40">
+                        Services
+                      </p>
+
+                      <div className="mt-4 space-y-3">
+
+                        {expert.services.map(
+                          ([service, price]) => (
+                            <div
+                              key={service}
+                              className="flex items-center justify-between gap-5 rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3"
+                            >
+
+                              <span className="text-sm text-white/65">
+                                {service}
+                              </span>
+
+                              <span className="whitespace-nowrap text-sm font-bold text-[#eab34a]">
+                                {price}
+                              </span>
+
+                            </div>
+                          )
+                        )}
+
+                      </div>
+
+                      <p className="mt-4 text-xs leading-5 text-white/40">
+                        {expert.note}
+                      </p>
+
+                    </div>
+
+                    {/* BOOK BUTTON */}
+
+                    <Link
+                      to="/booking"
+                      className="mt-7 block rounded-full border border-[#eab34a]/40 bg-[#e8a83b] px-6 py-4 text-center font-bold text-[#173d3a] shadow-xl shadow-black/10 transition hover:bg-[#f2bd58] hover:shadow-2xl"
+                    >
+                      {expert.button}
+                    </Link>
+
+                  </div>
+
+                </div>
+
               </div>
-            ))}
 
-          </div>
-
-          <p className="mt-4 text-xs text-gray-400">
-            {note}
-          </p>
-
-        </div>
-
-        <Link
-          to="/booking"
-          className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white hover:bg-[#12554f] transition"
-        >
-          {button}
-        </Link>
+            </div>
+          );
+        })}
 
       </div>
+
+      {/* DOT INDICATOR */}
+
+      <div className="mt-3 flex items-center justify-center gap-2">
+
+        {experts.map((expert, index) => (
+          <button
+            key={expert.name}
+            type="button"
+            onClick={() => {
+              const container =
+                carouselRef.current;
+
+              if (!container) return;
+
+              const cards =
+                container.querySelectorAll<HTMLElement>(
+                  "[data-expert-card]"
+                );
+
+              const target = cards[index];
+
+              if (!target) return;
+
+              container.scrollTo({
+                left:
+                  target.offsetLeft -
+                  container.clientWidth / 2 +
+                  target.offsetWidth / 2,
+                behavior: "smooth",
+              });
+            }}
+            aria-label={`Show ${expert.name}`}
+            className={`h-2.5 rounded-full transition-all duration-500 ${
+              index === activeIndex
+                ? "w-8 bg-[#0d4743]"
+                : "w-2.5 bg-[#0d4743]/20"
+            }`}
+          />
+        ))}
+
+      </div>
+
+      {/* MOBILE HINT */}
+
+      <p className="mt-5 text-center text-xs font-medium tracking-wide text-[#173d3a]/40 md:hidden">
+        ← Swipe to explore our experts →
+      </p>
+
+      {/* CAROUSEL SCROLLBAR HIDE */}
+
+      <style>
+        {`
+          .expert-carousel::-webkit-scrollbar {
+            display: none;
+          }
+
+          .expert-carousel {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}
+      </style>
+
     </div>
   );
 }
