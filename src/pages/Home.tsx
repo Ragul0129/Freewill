@@ -1085,7 +1085,10 @@ function ExpertCarousel() {
 
     const nextIndex = activeIndex + direction;
 
-    if (nextIndex < 0 || nextIndex >= experts.length) {
+    if (
+      nextIndex < 0 ||
+      nextIndex >= experts.length
+    ) {
       return;
     }
 
@@ -1094,11 +1097,11 @@ function ExpertCarousel() {
 
     window.setTimeout(() => {
       setIsAnimating(false);
-    }, 850);
+    }, 900);
   };
 
   /* ======================================================= */
-  /* =============== SCROLL CONTROLLED CAROUSEL ============ */
+  /* ============== DESKTOP WHEEL / PAGE SCROLL ============ */
   /* ======================================================= */
 
   useEffect(() => {
@@ -1113,32 +1116,26 @@ function ExpertCarousel() {
       const viewportHeight = window.innerHeight;
 
       /*
-       * DOWN:
-       *
-       * The current expert card is allowed to scroll normally
-       * through the full card content first.
-       *
-       * Only when the bottom of the card/stage is reached,
-       * the next expert is activated.
+       * The current expert card must be read completely first.
+       * Only after the card reaches the bottom of the viewport
+       * should the next expert appear.
        */
-      const cardReachedBottom =
-        rect.bottom <= viewportHeight + 24;
+      const reachedBottom =
+        rect.bottom <= viewportHeight + 10 &&
+        rect.bottom > 0;
 
       /*
-       * UP:
-       *
-       * The current expert is allowed to scroll back normally.
-       *
-       * Only when the card has returned to the top,
-       * the previous expert is activated.
+       * When scrolling upward, the current expert must first
+       * reach the top before changing to the previous expert.
        */
-      const cardReachedTop =
-        rect.top >= -24;
+      const reachedTop =
+        rect.top >= -10 &&
+        rect.top < viewportHeight;
 
       if (event.deltaY > 0) {
         if (
-          activeIndex < experts.length - 1 &&
-          cardReachedBottom
+          reachedBottom &&
+          activeIndex < experts.length - 1
         ) {
           event.preventDefault();
           changeExpert(1);
@@ -1149,8 +1146,8 @@ function ExpertCarousel() {
 
       if (event.deltaY < 0) {
         if (
-          activeIndex > 0 &&
-          cardReachedTop
+          reachedTop &&
+          activeIndex > 0
         ) {
           event.preventDefault();
           changeExpert(-1);
@@ -1158,9 +1155,13 @@ function ExpertCarousel() {
       }
     };
 
-    window.addEventListener("wheel", handleWheel, {
-      passive: false,
-    });
+    window.addEventListener(
+      "wheel",
+      handleWheel,
+      {
+        passive: false,
+      }
+    );
 
     return () => {
       window.removeEventListener(
@@ -1171,7 +1172,7 @@ function ExpertCarousel() {
   }, [activeIndex, isAnimating]);
 
   /* ======================================================= */
-  /* ================= MOBILE VERTICAL SCROLL =============== */
+  /* ==================== MOBILE TOUCH ===================== */
   /* ======================================================= */
 
   useEffect(() => {
@@ -1212,21 +1213,22 @@ function ExpertCarousel() {
       const rect = stage.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
 
-      const cardReachedBottom =
-        rect.bottom <= viewportHeight + 24;
+      const reachedBottom =
+        rect.bottom <= viewportHeight + 10 &&
+        rect.bottom > 0;
 
-      const cardReachedTop =
-        rect.top >= -24;
+      const reachedTop =
+        rect.top >= -10 &&
+        rect.top < viewportHeight;
 
       /*
-       * Finger moves UP:
-       * next expert only after the current card
-       * has naturally been scrolled through.
+       * Finger moves upward.
+       * Only change after current card is read to bottom.
        */
       if (difference > 0) {
         if (
-          activeIndex < experts.length - 1 &&
-          cardReachedBottom
+          reachedBottom &&
+          activeIndex < experts.length - 1
         ) {
           changeExpert(1);
         }
@@ -1235,14 +1237,13 @@ function ExpertCarousel() {
       }
 
       /*
-       * Finger moves DOWN:
-       * previous expert only after the current card
-       * has returned to the top.
+       * Finger moves downward.
+       * Only change after current card has returned to top.
        */
       if (difference < 0) {
         if (
-          activeIndex > 0 &&
-          cardReachedTop
+          reachedTop &&
+          activeIndex > 0
         ) {
           changeExpert(-1);
         }
@@ -1279,7 +1280,7 @@ function ExpertCarousel() {
   }, [activeIndex, isAnimating]);
 
   /* ======================================================= */
-  /* ==================== SESSION BOOKING ================== */
+  /* ================= SPECIFIC BOOKING ==================== */
   /* ======================================================= */
 
   const bookSession = (
@@ -1307,14 +1308,14 @@ function ExpertCarousel() {
   };
 
   return (
-    <div className="mt-16">
-      {/* ======================================================= */}
-      {/* ==================== 3D STAGE ========================= */}
-      {/* ======================================================= */}
+    <div className="relative mt-16">
+      {/* ===================================================== */}
+      {/* ==================== 3D STAGE ======================= */}
+      {/* ===================================================== */}
 
       <div
         ref={stageRef}
-        className="relative mx-auto min-h-[900px] w-full max-w-5xl md:min-h-[920px]"
+        className="relative mx-auto min-h-[700px] w-full max-w-5xl md:min-h-[760px]"
         style={{
           perspective: "1800px",
         }}
@@ -1328,100 +1329,71 @@ function ExpertCarousel() {
           }
 
           let transform =
-            "translate3d(0,0,0)";
+            "translate3d(0,0,0) rotateY(0deg) scale(1)";
 
           let opacity = 0;
-
           let zIndex = 0;
+          let filter = "blur(0px)";
 
-          let filter =
-            "blur(0px)";
-
-          /*
-           * CURRENT
-           */
+          /* CURRENT CARD */
 
           if (offset === 0) {
             transform =
               "translate3d(0,0,0) rotateY(0deg) scale(1)";
 
             opacity = 1;
-
             zIndex = 30;
-
-            filter =
-              "blur(0px)";
+            filter = "blur(0px)";
           }
 
-          /*
-           * NEXT
-           * Comes from RIGHT.
-           */
+          /* NEXT CARD — COMES FROM RIGHT */
 
           if (offset === 1) {
             transform =
-              "translate3d(48%,35px,-260px) rotateY(-32deg) scale(0.82)";
+              "translate3d(42%,20px,-300px) rotateY(-34deg) scale(0.82)";
 
-            opacity = 0.48;
-
+            opacity = 0.38;
             zIndex = 20;
-
-            filter =
-              "blur(1px)";
+            filter = "blur(1px)";
           }
 
-          /*
-           * PREVIOUS
-           */
+          /* PREVIOUS CARD — GOES TO LEFT */
 
           if (offset === -1) {
             transform =
-              "translate3d(-48%,35px,-260px) rotateY(32deg) scale(0.82)";
+              "translate3d(-42%,20px,-300px) rotateY(34deg) scale(0.82)";
 
-            opacity = 0.45;
-
+            opacity = 0.38;
             zIndex = 20;
-
-            filter =
-              "blur(1px)";
+            filter = "blur(1px)";
           }
 
-          /*
-           * FAR NEXT
-           */
+          /* FAR NEXT */
 
           if (offset === 2) {
             transform =
-              "translate3d(70%,70px,-520px) rotateY(-42deg) scale(0.68)";
+              "translate3d(66%,40px,-600px) rotateY(-44deg) scale(0.66)";
 
-            opacity = 0.12;
-
+            opacity = 0.08;
             zIndex = 10;
-
-            filter =
-              "blur(3px)";
+            filter = "blur(4px)";
           }
 
-          /*
-           * FAR PREVIOUS
-           */
+          /* FAR PREVIOUS */
 
           if (offset === -2) {
             transform =
-              "translate3d(-70%,70px,-520px) rotateY(42deg) scale(0.68)";
+              "translate3d(-66%,40px,-600px) rotateY(44deg) scale(0.66)";
 
-            opacity = 0.12;
-
+            opacity = 0.08;
             zIndex = 10;
-
-            filter =
-              "blur(3px)";
+            filter = "blur(4px)";
           }
 
           return (
             <div
               key={expert.name}
-              className="absolute inset-0 flex justify-center"
+              className="absolute inset-0 flex items-start justify-center"
               style={{
                 transform,
                 opacity,
@@ -1431,7 +1403,7 @@ function ExpertCarousel() {
                   "preserve-3d",
 
                 transition:
-                  "transform 850ms cubic-bezier(0.22,1,0.36,1), opacity 650ms ease, filter 650ms ease",
+                  "transform 900ms cubic-bezier(0.22,1,0.36,1), opacity 700ms ease, filter 700ms ease",
 
                 pointerEvents:
                   offset === 0
@@ -1440,251 +1412,129 @@ function ExpertCarousel() {
               }}
             >
               {/* ================================================= */}
-              {/* ================= CHARACTER CARD ================= */}
+              {/* ================= GLASS CARD ==================== */}
               {/* ================================================= */}
 
               <div
-                className="
-                  relative
-                  h-fit
-                  w-full
-                  max-w-[720px]
-                  overflow-hidden
-                  rounded-[2.7rem]
-                  border
-                  border-[#d4a443]/35
-                  bg-[#0d4743]/95
-                  shadow-[0_40px_100px_rgba(8,47,45,0.30)]
-                  backdrop-blur-2xl
-                "
+                className="relative w-full max-w-[650px] overflow-hidden rounded-[2.5rem] border border-white/15 bg-[#0d4743]/80 shadow-[0_30px_80px_rgba(8,47,45,0.28)] backdrop-blur-2xl"
                 style={{
                   transformStyle:
                     "preserve-3d",
                 }}
               >
-                {/* GOLD GLOW */}
+                {/* GLASS LIGHT */}
 
-                <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#e8a83b]/15 blur-[90px]" />
+                <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-[#e8a83b]/12 blur-[80px]" />
 
-                <div className="pointer-events-none absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#0b6a62]/30 blur-[100px]" />
+                <div className="pointer-events-none absolute -bottom-32 -left-28 h-80 w-80 rounded-full bg-[#0b6a62]/25 blur-[90px]" />
 
-                {/* IMAGE */}
+                {/* ================================================= */}
+                {/* ==================== IMAGE ====================== */}
+                {/* ================================================= */}
 
-                <div
-                  className="
-                    relative
-                    h-[290px]
-                    overflow-hidden
-                    bg-[#0d4743]
-                    md:h-[360px]
-                  "
-                >
+                <div className="relative h-[205px] overflow-hidden bg-[#0d4743] md:h-[260px]">
                   <img
                     src={expert.image}
                     alt={expert.name}
-                    className="
-                      h-full
-                      w-full
-                      object-contain
-                      transition-transform
-                      duration-1000
-                    "
+                    className="h-full w-full object-contain transition-transform duration-1000"
                     style={{
                       transform:
                         offset === 0
-                          ? "scale(1.04)"
-                          : "scale(0.98)",
+                          ? "scale(1.02)"
+                          : "scale(0.96)",
                     }}
                   />
 
-                  {/* IMAGE FADE */}
+                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0d4743] via-[#0d4743]/65 to-transparent" />
 
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0d4743] via-[#0d4743]/60 to-transparent" />
-
-                  {/* EXPERIENCE */}
-
-                  <div
-                    className="
-                      absolute
-                      bottom-5
-                      left-5
-                      rounded-full
-                      border
-                      border-[#eab34a]/30
-                      bg-[#0d4743]/75
-                      px-4
-                      py-2
-                      text-[11px]
-                      font-bold
-                      tracking-[0.12em]
-                      text-[#eab34a]
-                      shadow-xl
-                      backdrop-blur-xl
-                    "
-                  >
+                  <div className="absolute bottom-4 left-5 rounded-full border border-[#eab34a]/30 bg-[#0d4743]/65 px-4 py-2 text-[10px] font-bold tracking-[0.12em] text-[#eab34a] shadow-xl backdrop-blur-xl md:left-6 md:text-[11px]">
                     {expert.experience}
                   </div>
                 </div>
 
-                {/* CONTENT */}
+                {/* ================================================= */}
+                {/* ==================== CONTENT ==================== */}
+                {/* ================================================= */}
 
-                <div className="relative px-6 pb-8 pt-3 md:px-9 md:pb-9">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#eab34a]">
+                <div className="relative px-5 pb-6 pt-3 md:px-7 md:pb-7">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#eab34a] md:text-xs md:tracking-[0.16em]">
                     {expert.role}
                   </p>
 
-                  <h3 className="mt-2 text-3xl font-black text-white md:text-4xl">
+                  <h3 className="mt-1 text-2xl font-black text-white md:text-3xl">
                     {expert.name}
                   </h3>
 
-                  <p className="mt-2 font-semibold text-white/75">
+                  <p className="mt-1 text-sm font-semibold text-white/75 md:text-base">
                     {expert.title}
                   </p>
 
-                  <p className="mt-4 text-sm leading-6 text-white/60 md:leading-7">
+                  <p className="mt-3 text-xs leading-5 text-white/60 md:text-sm md:leading-6">
                     {expert.description}
                   </p>
 
-                  {/* SESSIONS */}
+                  {/* ================================================= */}
+                  {/* =================== SESSIONS =================== */}
+                  {/* ================================================= */}
 
-                  <div className="mt-7 border-t border-white/10 pt-6">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/40">
+                  <div className="mt-5 border-t border-white/10 pt-5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 md:text-xs md:tracking-[0.16em]">
                       Available Sessions
                     </p>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-3 space-y-2.5">
                       {expert.services.map(
                         ([service, price]) => (
                           <div
                             key={service}
-                            className="
-                              group/session
-                              flex
-                              items-center
-                              gap-3
-                              rounded-2xl
-                              border
-                              border-white/10
-                              bg-white/[0.045]
-                              px-4
-                              py-3
-                              transition
-                              hover:border-[#eab34a]/35
-                              hover:bg-white/[0.08]
-                            "
+                            className="group/session flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2.5 transition hover:border-[#eab34a]/35 hover:bg-white/[0.08] md:px-4 md:py-3"
                           >
-                            <div className="flex min-w-0 flex-1 items-center gap-3">
-                              <div
-                                className="
-                                  flex
-                                  h-9
-                                  w-9
-                                  shrink-0
-                                  items-center
-                                  justify-center
-                                  rounded-full
-                                  bg-[#e8a83b]/15
-                                  text-sm
-                                  text-[#eab34a]
-                                "
-                              >
+                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e8a83b]/15 text-xs text-[#eab34a] md:h-9 md:w-9 md:text-sm">
                                 ✦
                               </div>
 
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-white/80">
+                                <p className="truncate text-xs font-semibold text-white/80 md:text-sm">
                                   {service}
                                 </p>
 
-                                <p className="mt-0.5 text-xs text-white/35">
+                                <p className="mt-0.5 text-[10px] text-white/35 md:text-xs">
                                   Personalised session
                                 </p>
                               </div>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-2">
-                              <span className="whitespace-nowrap text-sm font-black text-[#eab34a]">
-                                {price}
-                              </span>
-
-                              {/* DESKTOP BUTTON */}
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  bookSession(
-                                    expert.name,
-                                    service
-                                  )
-                                }
-                                className="
-                                  hidden
-                                  rounded-full
-                                  bg-[#e8a83b]
-                                  px-4
-                                  py-2
-                                  text-xs
-                                  font-black
-                                  text-[#173d3a]
-                                  shadow-lg
-                                  transition
-                                  hover:bg-[#f2bd58]
-                                  sm:block
-                                "
-                              >
-                                Book this session
-                              </button>
-                            </div>
+                            <span className="shrink-0 whitespace-nowrap text-xs font-black text-[#eab34a] md:text-sm">
+                              {price}
+                            </span>
                           </div>
                         )
                       )}
                     </div>
 
-                    {/* MOBILE BUTTONS */}
+                    {/* SINGLE BOOK BUTTON */}
 
-                    <div className="mt-4 space-y-2 sm:hidden">
-                      {expert.services.map(
-                        ([service]) => (
-                          <button
-                            key={`mobile-${service}`}
-                            type="button"
-                            onClick={() =>
-                              bookSession(
-                                expert.name,
-                                service
-                              )
-                            }
-                            className="
-                              flex
-                              w-full
-                              items-center
-                              justify-between
-                              rounded-full
-                              border
-                              border-[#eab34a]/30
-                              bg-[#e8a83b]
-                              px-5
-                              py-3
-                              text-sm
-                              font-black
-                              text-[#173d3a]
-                              transition
-                              hover:bg-[#f2bd58]
-                            "
-                          >
-                            <span>
-                              Book this session
-                            </span>
-
-                            <span>
-                              →
-                            </span>
-                          </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        bookSession(
+                          expert.name,
+                          expert.services[0][0]
                         )
-                      )}
-                    </div>
+                      }
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-black text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] md:py-3.5"
+                    >
+                      <span>
+                        Book a Session
+                      </span>
 
-                    <p className="mt-4 text-xs leading-5 text-white/35">
+                      <span>
+                        →
+                      </span>
+                    </button>
+
+                    <p className="mt-3 text-[10px] leading-4 text-white/35 md:text-xs md:leading-5">
                       {expert.note}
                     </p>
                   </div>
@@ -1693,13 +1543,11 @@ function ExpertCarousel() {
             </div>
           );
         })}
-      </div>
 
-      {/* ======================================================= */}
-      {/* ===================== ARROW BUTTONS ================== */}
-      {/* ======================================================= */}
+        {/* ======================================================= */}
+        {/* ================= LEFT ARROW ========================== */}
+        {/* ======================================================= */}
 
-      <div className="relative z-40 mt-5 flex items-center justify-center gap-3">
         <button
           type="button"
           onClick={() => changeExpert(-1)}
@@ -1708,29 +1556,14 @@ function ExpertCarousel() {
             isAnimating
           }
           aria-label="Previous expert"
-          className="
-            flex
-            h-9
-            w-9
-            items-center
-            justify-center
-            rounded-full
-            border
-            border-[#0d4743]/15
-            bg-white/70
-            text-sm
-            font-bold
-            text-[#173d3a]
-            shadow-sm
-            backdrop-blur
-            transition
-            hover:bg-white
-            disabled:cursor-not-allowed
-            disabled:opacity-30
-          "
+          className="absolute left-1 top-1/2 z-50 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/75 text-base font-black text-[#173d3a] shadow-xl backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-25 sm:left-2 md:left-3 md:h-11 md:w-11"
         >
           ←
         </button>
+
+        {/* ======================================================= */}
+        {/* ================= RIGHT ARROW ========================= */}
+        {/* ======================================================= */}
 
         <button
           type="button"
@@ -1741,26 +1574,7 @@ function ExpertCarousel() {
             isAnimating
           }
           aria-label="Next expert"
-          className="
-            flex
-            h-9
-            w-9
-            items-center
-            justify-center
-            rounded-full
-            border
-            border-[#0d4743]/15
-            bg-white/70
-            text-sm
-            font-bold
-            text-[#173d3a]
-            shadow-sm
-            backdrop-blur
-            transition
-            hover:bg-white
-            disabled:cursor-not-allowed
-            disabled:opacity-30
-          "
+          className="absolute right-1 top-1/2 z-50 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/75 text-base font-black text-[#173d3a] shadow-xl backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-25 sm:right-2 md:right-3 md:h-11 md:w-11"
         >
           →
         </button>
