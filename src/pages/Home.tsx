@@ -1080,8 +1080,11 @@ function Home() {
 /* ========================================================= */
 
 function ExpertCarousel() {
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const [carouselPosition, setCarouselPosition] = useState(0);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const transitionLock = useRef(false);
+
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const experts = [
     {
@@ -1145,67 +1148,235 @@ function ExpertCarousel() {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      const section = sectionRef.current;
+    const stage = stageRef.current;
 
-      if (!section) return;
+    if (!stage) return;
 
-      const rect = section.getBoundingClientRect();
+    const isStageActive = () => {
+      const rect = stage.getBoundingClientRect();
 
-      const scrollableDistance = Math.max(
-        section.offsetHeight - window.innerHeight,
-        1
+      const viewportHeight = window.innerHeight;
+
+      /*
+       * The expert carousel becomes "active" only when
+       * the main card area has reached the viewport.
+       *
+       * At that moment normal page scrolling is temporarily
+       * consumed by the expert cards.
+       */
+      return (
+        rect.top <= viewportHeight * 0.55 &&
+        rect.bottom >= viewportHeight * 0.45
       );
-
-      const travelled = Math.min(
-        Math.max(-rect.top, 0),
-        scrollableDistance
-      );
-
-      const progress =
-        travelled / scrollableDistance;
-
-      const position =
-        progress * (experts.length - 1);
-
-      setCarouselPosition(position);
     };
 
-    handleScroll();
+    const moveCard = (direction: 1 | -1) => {
+      if (transitionLock.current) return false;
+
+      const nextIndex = activeIndex + direction;
+
+      if (
+        nextIndex < 0 ||
+        nextIndex >= experts.length
+      ) {
+        return false;
+      }
+
+      transitionLock.current = true;
+
+      setActiveIndex(nextIndex);
+
+      /*
+       * Small lock so one strong wheel/trackpad movement
+       * does not accidentally skip multiple experts.
+       */
+      window.setTimeout(() => {
+        transitionLock.current = false;
+      }, 650);
+
+      return true;
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!isStageActive()) return;
+
+      const delta = event.deltaY;
+
+      if (Math.abs(delta) < 2) return;
+
+      /*
+       * SCROLL DOWN
+       *
+       * Simon -> Jeevitha -> Rahul
+       *
+       * While there is another expert available,
+       * stop the actual page from moving.
+       */
+      if (delta > 0) {
+        if (activeIndex < experts.length - 1) {
+          event.preventDefault();
+          moveCard(1);
+          return;
+        }
+
+        /*
+         * Rahul is already active.
+         *
+         * Do NOT preventDefault here.
+         *
+         * This allows the page to continue naturally
+         * into the Services section.
+         */
+        return;
+      }
+
+      /*
+       * SCROLL UP
+       *
+       * Rahul -> Jeevitha -> Simon
+       *
+       * While there is a previous expert available,
+       * consume the scroll inside the expert carousel.
+       */
+      if (delta < 0) {
+        if (activeIndex > 0) {
+          event.preventDefault();
+          moveCard(-1);
+          return;
+        }
+
+        /*
+         * Simon is already the first card.
+         *
+         * Allow normal page scrolling upward so the
+         * Process section can appear.
+         */
+        return;
+      }
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (!isStageActive()) return;
+
+      touchStartY.current =
+        event.touches[0]?.clientY ?? null;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!isStageActive()) return;
+
+      if (touchStartY.current === null) return;
+
+      const currentY =
+        event.touches[0]?.clientY ?? touchStartY.current;
+
+      const deltaY =
+        touchStartY.current - currentY;
+
+      /*
+       * Ignore tiny finger movement.
+       */
+      if (Math.abs(deltaY) < 25) return;
+
+      /*
+       * Finger moving upward = page scroll down.
+       */
+      if (deltaY > 0) {
+        if (activeIndex < experts.length - 1) {
+          event.preventDefault();
+
+          moveCard(1);
+
+          touchStartY.current = currentY;
+        }
+
+        return;
+      }
+
+      /*
+       * Finger moving downward = page scroll up.
+       */
+      if (deltaY < 0) {
+        if (activeIndex > 0) {
+          event.preventDefault();
+
+          moveCard(-1);
+
+          touchStartY.current = currentY;
+        }
+
+        return;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartY.current = null;
+    };
 
     window.addEventListener(
-      "scroll",
-      handleScroll,
-      { passive: true }
+      "wheel",
+      handleWheel,
+      {
+        passive: false,
+      }
     );
 
     window.addEventListener(
-      "resize",
-      handleScroll
+      "touchstart",
+      handleTouchStart,
+      {
+        passive: true,
+      }
+    );
+
+    window.addEventListener(
+      "touchmove",
+      handleTouchMove,
+      {
+        passive: false,
+      }
+    );
+
+    window.addEventListener(
+      "touchend",
+      handleTouchEnd,
+      {
+        passive: true,
+      }
     );
 
     return () => {
       window.removeEventListener(
-        "scroll",
-        handleScroll
+        "wheel",
+        handleWheel
       );
 
       window.removeEventListener(
-        "resize",
-        handleScroll
+        "touchstart",
+        handleTouchStart
+      );
+
+      window.removeEventListener(
+        "touchmove",
+        handleTouchMove
+      );
+
+      window.removeEventListener(
+        "touchend",
+        handleTouchEnd
       );
     };
-  }, [experts.length]);
+  }, [activeIndex, experts.length]);
 
   return (
     <div
-      ref={sectionRef}
-      className="relative mt-16 h-[300vh]"
+      ref={stageRef}
+      className="relative mt-16 min-h-[900px] md:min-h-[1050px]"
     >
 
-      {/* STICKY 3D STAGE */}
+      {/* STAGE */}
 
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
+      <div className="sticky top-0 flex min-h-screen items-center justify-center overflow-hidden">
 
         {/* BACKDROP */}
 
@@ -1230,11 +1401,15 @@ function ExpertCarousel() {
           {experts.map((expert, index) => {
 
             const offset =
-              index - carouselPosition;
+              index - activeIndex;
 
             const distance =
               Math.abs(offset);
 
+            /*
+             * Cards come from the RIGHT when scrolling
+             * downward and reverse naturally when scrolling up.
+             */
             const translateX =
               offset * 108;
 
@@ -1291,7 +1466,7 @@ function ExpertCarousel() {
                   opacity,
                   filter: `blur(${blur}px)`,
                   transition:
-                    "transform 90ms linear, opacity 120ms linear, filter 120ms linear",
+                    "transform 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease, filter 500ms ease",
                 }}
               >
 
