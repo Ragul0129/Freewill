@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -12,17 +12,6 @@ const supabase = createClient(
 );
 
 type UserRole = "user" | "expert" | "admin" | null;
-
-type Expert = {
-  image: string;
-  experience: string;
-  role: string;
-  name: string;
-  title: string;
-  description: string;
-  services: [string, string][];
-  note: string;
-};
 
 function Home() {
   const navigate = useNavigate();
@@ -46,6 +35,7 @@ function Home() {
         if (!user) {
           setUserEmail("");
           setUserRole(null);
+          setCheckingAuth(false);
           return;
         }
 
@@ -119,10 +109,7 @@ function Home() {
 
     setUserEmail("");
     setUserRole(null);
-
-    navigate("/home", {
-      replace: true,
-    });
+    navigate("/home", { replace: true });
   };
 
   const closeMenu = () => {
@@ -138,103 +125,94 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-      {/* ========================================================= */}
-      {/* ======================= NAVBAR ========================== */}
-      {/* ========================================================= */}
 
-      <header className="absolute left-0 right-0 top-0 z-50">
-        <div className="mx-auto max-w-7xl px-6 py-6">
+      {/* ================= NAVBAR ================= */}
+      <header className="absolute top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            {/* LOGO */}
 
             <Link
               to="/home"
-              className="text-2xl font-black tracking-wide text-white md:text-3xl"
+              className="text-2xl md:text-3xl font-black tracking-wide text-white"
             >
               FREEWILL
             </Link>
 
             {/* DESKTOP NAV */}
-
-            <nav className="hidden items-center gap-8 text-sm font-medium text-white/90 lg:flex">
+            <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
               <Link
                 to="/home"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Home
               </Link>
 
               <a
                 href="#about"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 About
               </a>
 
               <a
                 href="#experts"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Experts
               </a>
 
               <a
                 href="#services"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Services
               </a>
 
               <a
                 href="#process"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 How It Works
               </a>
 
               <Link
                 to="/booking"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Appointment
               </Link>
             </nav>
 
             {/* RIGHT SIDE */}
-
             <div className="flex items-center gap-3">
-              {/* SIGN IN */}
 
+              {/* SIGN IN / LOGOUT */}
               {!checkingAuth && !userEmail && (
                 <Link
                   to="/login"
-                  className="rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-bold text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] sm:px-6"
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
                 >
                   Sign In
                 </Link>
               )}
 
-              {/* LOGOUT */}
-
               {!checkingAuth && userEmail && (
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-bold text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] sm:px-6"
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
                 >
                   Logout
                 </button>
               )}
 
               {/* MENU */}
-
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setMenuOpen((value) => !value)}
+                  onClick={() => setMenuOpen(!menuOpen)}
                   aria-label="Open menu"
-                  aria-expanded={menuOpen}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition"
                 >
                   <div className="space-y-1.5">
                     <span className="block h-0.5 w-6 bg-white" />
@@ -245,8 +223,8 @@ function Home() {
 
                 {menuOpen && (
                   <div className="absolute right-0 top-14 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
-                    {/* MENU HEADER */}
 
+                    {/* MENU HEADER */}
                     <div className="border-b border-gray-100 bg-[#f7f4ed] px-5 py-4">
                       {userEmail ? (
                         <>
@@ -271,14 +249,14 @@ function Home() {
                       )}
                     </div>
 
-                    {/* PUBLIC MENU */}
+                    {/* ================= NORMAL PUBLIC MENU ================= */}
 
                     {!userEmail && (
                       <>
                         <Link
                           to="/dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">📊</span>
                           <span>Dashboard</span>
@@ -287,7 +265,7 @@ function Home() {
                         <Link
                           to="/my-appointments"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">📅</span>
                           <span>My Appointments</span>
@@ -295,14 +273,14 @@ function Home() {
                       </>
                     )}
 
-                    {/* USER MENU */}
+                    {/* ================= USER MENU ================= */}
 
                     {userEmail && userRole === "user" && (
                       <>
                         <Link
                           to="/dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">📊</span>
                           <span>Dashboard</span>
@@ -311,7 +289,7 @@ function Home() {
                         <Link
                           to="/my-appointments"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">📅</span>
                           <span>My Appointments</span>
@@ -319,14 +297,14 @@ function Home() {
                       </>
                     )}
 
-                    {/* EXPERT MENU */}
+                    {/* ================= EXPERT MENU ================= */}
 
                     {userEmail && userRole === "expert" && (
                       <>
                         <Link
                           to="/expert-dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">📊</span>
                           <span>Expert Dashboard</span>
@@ -335,7 +313,7 @@ function Home() {
                         <Link
                           to="/expert-profile"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">👤</span>
                           <span>My Profile</span>
@@ -344,7 +322,7 @@ function Home() {
                         <Link
                           to="/expert-services"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                         >
                           <span className="text-lg">🛠️</span>
                           <span>My Services</span>
@@ -352,70 +330,71 @@ function Home() {
                       </>
                     )}
 
-                    {/* ADMIN MENU */}
+                    {/* ================= ADMIN MENU ================= */}
 
                     {userEmail && userRole === "admin" && (
                       <Link
                         to="/admin-dashboard"
                         onClick={closeMenu}
-                        className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                        className="flex items-center gap-4 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                       >
                         <span className="text-lg">🛡️</span>
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
 
-                    {/* WHATSAPP */}
+                    {/* ================= WHATSAPP ================= */}
 
                     <a
                       href="https://wa.me/919841624060"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={closeMenu}
-                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                     >
                       <span className="text-lg">🟢</span>
                       <span>WhatsApp</span>
                     </a>
 
-                    {/* INSTAGRAM */}
+                    {/* ================= INSTAGRAM ================= */}
 
                     <a
                       href="https://www.instagram.com/simonanandhraj/"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={closeMenu}
-                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                     >
                       <span className="text-lg">📸</span>
                       <span>Instagram</span>
                     </a>
 
-                    {/* LOGOUT */}
+                    {/* ================= LOGOUT ================= */}
 
                     {userEmail && (
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                        className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
                       >
                         <span className="text-lg">🚪</span>
                         <span>Logout</span>
                       </button>
                     )}
 
-                    {/* SIGN IN */}
+                    {/* ================= SIGN IN ================= */}
 
                     {!userEmail && (
                       <Link
                         to="/login"
                         onClick={closeMenu}
-                        className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                        className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold hover:bg-[#f7f4ed] transition"
                       >
                         <span className="text-lg">🔐</span>
                         <span>Sign In</span>
                       </Link>
                     )}
+
                   </div>
                 )}
               </div>
@@ -424,35 +403,32 @@ function Home() {
         </div>
       </header>
 
-      {/* ========================================================= */}
-      {/* ========================= HERO ========================== */}
-      {/* ========================================================= */}
-
+      {/* ================= HERO ================= */}
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
+
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
-
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
-
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-32 pt-32 md:pt-40">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 md:pt-40">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] items-center gap-10">
+
             <div className="max-w-2xl">
+
               <div className="mb-6 flex items-center gap-3">
-                <span className="text-lg tracking-widest text-[#eab34a]">
+                <span className="text-[#eab34a] text-lg tracking-widest">
                   ★★★★★
                 </span>
-
                 <span className="text-sm text-white/70">
                   Human Empowerment
                 </span>
               </div>
 
-              <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a] md:text-base">
+              <p className="mb-5 text-sm md:text-base font-bold uppercase tracking-[0.2em] text-[#eab34a]">
                 FREEWILL – Human Empowerment
               </p>
 
-              <h1 className="text-4xl font-black leading-[1.04] sm:text-5xl md:text-6xl xl:text-7xl">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black leading-[1.04]">
                 Understand Your Mind.
                 <br />
                 <span className="text-[#eab34a]">
@@ -460,7 +436,7 @@ function Home() {
                 </span>
               </h1>
 
-              <p className="mt-7 max-w-xl text-base leading-8 text-white/75 md:text-lg">
+              <p className="mt-7 max-w-xl text-base md:text-lg leading-8 text-white/75">
                 World's First Psycho-Spiritual and Quantum Philosophical
                 Training Firm — empowering individuals to understand
                 themselves, discover their potential and create meaningful
@@ -470,14 +446,14 @@ function Home() {
               <div className="mt-9 flex flex-wrap gap-4">
                 <Link
                   to="/assessment"
-                  className="rounded-full bg-[#e8a83b] px-7 py-4 font-bold text-[#173d3a] shadow-xl transition hover:bg-[#f2bd58]"
+                  className="rounded-full bg-[#e8a83b] px-7 py-4 font-bold text-[#173d3a] shadow-xl hover:bg-[#f2bd58] transition"
                 >
                   Take Assessment →
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="rounded-full border border-white/30 px-7 py-4 font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-full border border-white/30 px-7 py-4 font-semibold text-white hover:bg-white/10 transition"
                 >
                   Book Appointment
                 </Link>
@@ -488,7 +464,6 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     100%
                   </p>
-
                   <p className="mt-1 text-xs text-white/60">
                     Confidential
                   </p>
@@ -498,7 +473,6 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     360°
                   </p>
-
                   <p className="mt-1 text-xs text-white/60">
                     Holistic Approach
                   </p>
@@ -508,7 +482,6 @@ function Home() {
                   <p className="text-2xl font-black text-[#eab34a]">
                     24/7
                   </p>
-
                   <p className="mt-1 text-xs text-white/60">
                     Online Access
                   </p>
@@ -517,9 +490,10 @@ function Home() {
             </div>
 
             <div className="relative flex justify-center lg:justify-end">
-              <div className="absolute h-[390px] w-[390px] rounded-full bg-[#185d57] opacity-80 md:h-[500px] md:w-[500px]" />
 
-              <div className="absolute h-[300px] w-[300px] rounded-full border border-[#eab34a]/20 md:h-[400px] md:w-[400px]" />
+              <div className="absolute h-[390px] w-[390px] md:h-[500px] md:w-[500px] rounded-full bg-[#185d57] opacity-80" />
+
+              <div className="absolute h-[300px] w-[300px] md:h-[400px] md:w-[400px] rounded-full border border-[#eab34a]/20" />
 
               <img
                 src={bossImage}
@@ -528,7 +502,7 @@ function Home() {
               />
 
               <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
-                <p className="font-serif text-3xl text-[#eab34a]">
+                <p className="text-3xl font-serif text-[#eab34a]">
                   “
                 </p>
 
@@ -540,6 +514,7 @@ function Home() {
                   FREEWILL Human Empowerment
                 </p>
               </div>
+
             </div>
           </div>
         </div>
@@ -558,22 +533,17 @@ function Home() {
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= ABOUT ========================= */}
-      {/* ========================================================= */}
-
-      <section
-        id="about"
-        className="bg-[#f7f4ed] py-20 md:py-28"
-      >
+      {/* ================= ABOUT ================= */}
+      <section id="about" className="bg-[#f7f4ed] py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid items-center gap-14 lg:grid-cols-2">
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
+
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
                 About FREEWILL
               </p>
 
-              <h2 className="mt-4 text-3xl font-black leading-tight md:text-5xl">
+              <h2 className="mt-4 text-3xl md:text-5xl font-black leading-tight">
                 A deeper approach to
                 <br />
                 <span className="text-[#c88d22]">
@@ -589,13 +559,13 @@ function Home() {
 
               <p className="mt-4 leading-8 text-gray-600">
                 Through self-assessment, professional counselling and
-                psycho-spiritual exploration, we create a space where people
-                can pause, understand and take their next step.
+                psycho-spiritual exploration, we create a space where
+                people can pause, understand and take their next step.
               </p>
 
               <Link
                 to="/assessment"
-                className="mt-7 inline-block rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white transition hover:bg-[#12554f]"
+                className="mt-7 inline-block rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white hover:bg-[#12554f] transition"
               >
                 Discover Yourself →
               </Link>
@@ -626,22 +596,21 @@ function Home() {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================== WHY ========================== */}
-      {/* ========================================================= */}
-
+      {/* ================= WHY ================= */}
       <section className="bg-white py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-6">
+
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Why FREEWILL
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Designed Around You
             </h2>
 
@@ -650,7 +619,8 @@ function Home() {
             </p>
           </div>
 
-          <div className="mt-14 grid gap-7 md:grid-cols-3">
+          <div className="mt-14 grid md:grid-cols-3 gap-7">
+
             {[
               [
                 "🧠",
@@ -688,21 +658,20 @@ function Home() {
                 </p>
               </div>
             ))}
+
           </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= QUOTE ========================= */}
-      {/* ========================================================= */}
-
+      {/* ================= QUOTE ================= */}
       <section className="bg-[#f7f4ed] py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="font-serif text-6xl text-[#d49a2c]">
+
+          <p className="text-6xl font-serif text-[#d49a2c]">
             “
           </p>
 
-          <h2 className="mt-2 text-3xl font-black leading-tight md:text-5xl">
+          <h2 className="mt-2 text-3xl md:text-5xl font-black leading-tight">
             The first step towards
             <br />
             transformation is{" "}
@@ -714,29 +683,29 @@ function Home() {
           <p className="mt-6 text-gray-500">
             FREEWILL — Human Empowerment
           </p>
+
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= PROCESS ======================= */}
-      {/* ========================================================= */}
-
+      {/* ================= PROCESS ================= */}
       <section
         id="process"
-        className="bg-[#0d4743] py-20 text-white md:py-24"
+        className="bg-[#0d4743] py-20 md:py-24 text-white"
       >
         <div className="mx-auto max-w-6xl px-6">
+
           <div className="text-center">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
               Your Journey
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Three Simple Steps
             </h2>
           </div>
 
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
+          <div className="mt-14 grid md:grid-cols-3 gap-8">
+
             {[
               [
                 "01",
@@ -771,63 +740,175 @@ function Home() {
                 </p>
               </div>
             ))}
+
           </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================== EXPERTS ====================== */}
-      {/* ========================================================= */}
+      {/* ================= EXPERTS ================= */}
+      <section id="experts" className="bg-[#f7f4ed] py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
 
-      <section
-        id="experts"
-        className="relative overflow-hidden bg-[#f7f4ed] py-24 md:py-32"
-      >
-        <div className="pointer-events-none absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#e8a83b]/10 blur-[120px]" />
-
-        <div className="pointer-events-none absolute -right-40 top-1/2 h-[400px] w-[400px] rounded-full bg-[#174f4a]/10 blur-[120px]" />
-
-        <div className="relative z-10 mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Meet Our Experts
             </p>
 
-            <h2 className="mt-3 text-3xl font-black text-[#173d3a] md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Guidance From Experienced Professionals
             </h2>
 
             <p className="mt-5 leading-7 text-gray-600">
               Connect with experienced professionals who bring expertise,
-              compassion and practical guidance to your personal growth
-              journey.
+              compassion and practical guidance to your personal growth journey.
             </p>
           </div>
 
-          <ExpertCarousel />
+          <div className="mt-14 grid lg:grid-cols-3 gap-8">
+
+            {/* SIMON */}
+            <ExpertCard
+              image={bossImage}
+              experience="26 YEARS EXPERIENCE"
+              role="Founder / CEO"
+              name="Simon Anand Raj"
+              title="Emotional Intelligence Coach"
+              description="Simon Anand Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development. His work focuses on helping individuals and organisations develop emotional intelligence, improve self-awareness, strengthen relationships and unlock their potential."
+              services={[
+                ["One Hour", "₹1,500"],
+                ["Psychometric Analysis", "₹2,500"],
+                ["One-to-One Session", "₹3,000"],
+                ["Training Sessions", "₹12,000"],
+                ["Mentoring", "₹25,000"],
+              ]}
+              note="Extended sessions and specialised programs may range from ₹5,000 to ₹50,000."
+              button="Book a Session →"
+            />
+
+            {/* JEEVITHA */}
+            <ExpertCard
+              image={jeevithaImage}
+              experience="5 YEARS EXPERIENCE"
+              role="Clinical Psychologist / Project Head"
+              name="Jeevitha S"
+              title="Clinical Psychologist & Project Head"
+              description="Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness and work towards meaningful personal growth."
+              services={[
+                ["One Hour", "₹1,500"],
+                ["Psychometric Analysis", "₹2,500"],
+                ["One-to-One Session", "₹3,000"],
+                ["Training Sessions", "₹12,000"],
+                ["Mentoring", "₹25,000"],
+              ]}
+              note="Session pricing may range from ₹1,000 to ₹10,000 depending on the service."
+              button="Book a Session →"
+              light
+            />
+
+            {/* RAHUL */}
+            <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition hover:-translate-y-2 hover:shadow-2xl">
+
+              <div className="relative h-[360px] overflow-hidden bg-[#0d4743]">
+
+                <img
+                  src={rahulImage}
+                  alt="Rahul K.P"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+
+                <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold">
+                  7 YEARS EXPERIENCE
+                </div>
+
+              </div>
+
+              <div className="p-7">
+
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                  Life Coach / Content Head
+                </p>
+
+                <h3 className="mt-2 text-2xl font-black">
+                  Rahul K.P
+                </h3>
+
+                <p className="mt-2 font-semibold text-gray-700">
+                  Life Coach & Content Head
+                </p>
+
+                <p className="mt-4 text-sm leading-6 text-gray-600">
+                  Training & Content Management
+                </p>
+
+                <p className="mt-5 text-sm leading-7 text-gray-600">
+                  Rahul K.P is a Life Coach and Content Head with 7 years of
+                  experience in training and content management. His work combines
+                  personal development, structured learning and effective
+                  communication to help individuals build confidence, develop
+                  practical skills and move towards their goals.
+                </p>
+
+                <div className="mt-6 border-t border-gray-100 pt-5">
+
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Focus Areas
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+
+                    {[
+                      "Life Coaching",
+                      "Training",
+                      "Content Management",
+                    ].map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-[#edf4f2] px-3 py-2 text-xs font-semibold"
+                      >
+                        {item}
+                      </span>
+                    ))}
+
+                  </div>
+
+                  <p className="mt-5 text-xs text-gray-400">
+                    Service pricing will be available based on the selected program.
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/booking"
+                  className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white hover:bg-[#12554f] transition"
+                >
+                  Explore & Book →
+                </Link>
+
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= SERVICES ====================== */}
-      {/* ========================================================= */}
-
-      <section
-        id="services"
-        className="bg-white py-20 md:py-24"
-      >
+      {/* ================= SERVICES ================= */}
+      <section id="services" className="bg-white py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-6">
+
           <div className="text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               What We Do
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Our Services
             </h2>
+
           </div>
 
-          <div className="mt-14 grid gap-7 md:grid-cols-3">
+          <div className="mt-14 grid md:grid-cols-3 gap-7">
+
             <ServiceCard
               icon="🧠"
               title="Mental Wellness Assessment"
@@ -851,25 +932,26 @@ function Home() {
               link="/dashboard"
               button="My Appointments →"
             />
+
           </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* =========================== CTA ========================= */}
-      {/* ========================================================= */}
-
+      {/* ================= CTA ================= */}
       <section className="bg-[#f7f4ed] py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 text-center md:px-16 md:py-16">
+
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 md:px-16 md:py-16 text-center">
+
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#1a5b55] blur-2xl" />
 
             <div className="relative z-10">
+
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
                 Begin Today
               </p>
 
-              <h2 className="mt-4 text-3xl font-black text-white md:text-5xl">
+              <h2 className="mt-4 text-3xl md:text-5xl font-black text-white">
                 Ready to understand yourself better?
               </h2>
 
@@ -879,32 +961,34 @@ function Home() {
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-4">
+
                 <Link
                   to="/assessment"
-                  className="rounded-full bg-[#e8a83b] px-8 py-4 font-bold text-[#173d3a] transition hover:bg-[#f2bd58]"
+                  className="rounded-full bg-[#e8a83b] px-8 py-4 font-bold text-[#173d3a] hover:bg-[#f2bd58] transition"
                 >
                   Take Assessment
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="rounded-full border border-white/30 px-8 py-4 font-bold text-white transition hover:bg-white/10"
+                  className="rounded-full border border-white/30 px-8 py-4 font-bold text-white hover:bg-white/10 transition"
                 >
                   Book Counselling
                 </Link>
+
               </div>
+
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= FOOTER ======================== */}
-      {/* ========================================================= */}
-
+      {/* ================= FOOTER ================= */}
       <footer className="bg-[#082f2d] text-white">
         <div className="mx-auto max-w-7xl px-6 py-12">
-          <div className="grid gap-10 md:grid-cols-3">
+
+          <div className="grid md:grid-cols-3 gap-10">
+
             <div>
               <h3 className="text-2xl font-black">
                 FREEWILL
@@ -921,11 +1005,13 @@ function Home() {
             </div>
 
             <div>
+
               <h4 className="font-bold">
                 Quick Links
               </h4>
 
               <div className="mt-4 flex flex-col gap-3 text-sm text-white/55">
+
                 <Link to="/home">
                   Home
                 </Link>
@@ -940,10 +1026,6 @@ function Home() {
 
                 <a href="#services">
                   Services
-                </a>
-
-                <a href="#process">
-                  How It Works
                 </a>
 
                 <Link to="/assessment">
@@ -969,17 +1051,19 @@ function Home() {
                     Logout
                   </button>
                 )}
+
               </div>
             </div>
 
             <div>
+
               <h4 className="font-bold">
                 Start Your Journey
               </h4>
 
               <p className="mt-4 leading-7 text-white/55">
-                Take a meaningful first step towards understanding yourself
-                better.
+                Take a meaningful first step towards understanding
+                yourself better.
               </p>
 
               <Link
@@ -988,10 +1072,13 @@ function Home() {
               >
                 Get Started →
               </Link>
+
             </div>
+
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/40">
+
             <p>
               © 2026 FREEWILL. All rights reserved.
             </p>
@@ -1000,592 +1087,131 @@ function Home() {
               href="https://www.instagram.com/ragul_arunan/"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-block text-[11px] font-serif tracking-wide text-white/30 transition hover:text-[#eab34a]"
-              aria-label="Ragul Arunan Instagram"
+              className="mt-2 inline-block text-[11px] font-serif tracking-wide text-white/30"
             >
               𝓡𝓪𝓰𝓾𝓵 𝓐𝓻𝓾𝓷𝓪𝓷
             </a>
+
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
 
-/* ========================================================= */
-/* ============== 3D VERTICAL EXPERT CAROUSEL ============= */
-/* ========================================================= */
+/* ================= EXPERT CARD ================= */
 
-function ExpertCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const touchStart = useRef<number | null>(null);
-
-  const experts: Expert[] = [
-    {
-      image: bossImage,
-      experience: "26 YEARS EXPERIENCE",
-      role: "Founder / CEO",
-      name: "Simon Anand Raj",
-      title: "Emotional Intelligence Coach",
-      description:
-        "Simon Anand Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development.",
-      services: [
-        ["One Hour", "₹1,500"],
-        ["Psychometric Analysis", "₹2,500"],
-        ["One-to-One Session", "₹3,000"],
-        ["Training Sessions", "₹12,000"],
-        ["Mentoring", "₹25,000"],
-      ],
-      note:
-        "Extended sessions and specialised programs may range from ₹5,000 to ₹50,000.",
-    },
-
-    {
-      image: jeevithaImage,
-      experience: "5 YEARS EXPERIENCE",
-      role: "Clinical Psychologist / Project Head",
-      name: "Jeevitha S",
-      title: "Clinical Psychologist & Project Head",
-      description:
-        "Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness.",
-      services: [
-        ["One Hour", "₹1,500"],
-        ["Psychometric Analysis", "₹2,500"],
-        ["One-to-One Session", "₹3,000"],
-        ["Training Sessions", "₹12,000"],
-        ["Mentoring", "₹25,000"],
-      ],
-      note:
-        "Session pricing may range from ₹1,000 to ₹10,000 depending on the service.",
-    },
-
-    {
-      image: rahulImage,
-      experience: "7 YEARS EXPERIENCE",
-      role: "Life Coach / Content Head",
-      name: "Rahul K.P",
-      title: "Life Coach & Content Head",
-      description:
-        "Rahul K.P is a Life Coach and Content Head with 7 years of experience in training and content management. His work combines personal development, structured learning and effective communication.",
-      services: [
-        ["Life Coaching", "Available"],
-        ["Personal Development", "Available"],
-        ["Content Management", "Available"],
-      ],
-      note:
-        "Service pricing will be available based on the selected program.",
-    },
-  ];
-
-  const changeExpert = (direction: 1 | -1) => {
-    if (isAnimating) return;
-
-    const nextIndex = activeIndex + direction;
-
-    if (
-      nextIndex < 0 ||
-      nextIndex >= experts.length
-    ) {
-      return;
-    }
-
-    setIsAnimating(true);
-    setActiveIndex(nextIndex);
-
-    window.setTimeout(() => {
-      setIsAnimating(false);
-    }, 900);
-  };
-
-  /* ======================================================= */
-  /* ============== DESKTOP WHEEL / PAGE SCROLL ============ */
-  /* ======================================================= */
-
-  useEffect(() => {
-    const handleWheel = (event: WheelEvent) => {
-      const stage = stageRef.current;
-
-      if (!stage) return;
-      if (Math.abs(event.deltaY) < 12) return;
-      if (isAnimating) return;
-
-      const rect = stage.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      /*
-       * The current expert card must be read completely first.
-       * Only after the card reaches the bottom of the viewport
-       * should the next expert appear.
-       */
-      const reachedBottom =
-        rect.bottom <= viewportHeight + 10 &&
-        rect.bottom > 0;
-
-      /*
-       * When scrolling upward, the current expert must first
-       * reach the top before changing to the previous expert.
-       */
-      const reachedTop =
-        rect.top >= -10 &&
-        rect.top < viewportHeight;
-
-      if (event.deltaY > 0) {
-        if (
-          reachedBottom &&
-          activeIndex < experts.length - 1
-        ) {
-          event.preventDefault();
-          changeExpert(1);
-        }
-
-        return;
-      }
-
-      if (event.deltaY < 0) {
-        if (
-          reachedTop &&
-          activeIndex > 0
-        ) {
-          event.preventDefault();
-          changeExpert(-1);
-        }
-      }
-    };
-
-    window.addEventListener(
-      "wheel",
-      handleWheel,
-      {
-        passive: false,
-      }
-    );
-
-    return () => {
-      window.removeEventListener(
-        "wheel",
-        handleWheel
-      );
-    };
-  }, [activeIndex, isAnimating]);
-
-  /* ======================================================= */
-  /* ==================== MOBILE TOUCH ===================== */
-  /* ======================================================= */
-
-  useEffect(() => {
-    const handleTouchStart = (event: TouchEvent) => {
-      if (!event.touches.length) return;
-
-      touchStart.current =
-        event.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (event: TouchEvent) => {
-      const stage = stageRef.current;
-
-      if (
-        !stage ||
-        touchStart.current === null
-      ) {
-        touchStart.current = null;
-        return;
-      }
-
-      if (!event.changedTouches.length) {
-        touchStart.current = null;
-        return;
-      }
-
-      const endY =
-        event.changedTouches[0].clientY;
-
-      const difference =
-        touchStart.current - endY;
-
-      touchStart.current = null;
-
-      if (Math.abs(difference) < 70) return;
-      if (isAnimating) return;
-
-      const rect = stage.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      const reachedBottom =
-        rect.bottom <= viewportHeight + 10 &&
-        rect.bottom > 0;
-
-      const reachedTop =
-        rect.top >= -10 &&
-        rect.top < viewportHeight;
-
-      /*
-       * Finger moves upward.
-       * Only change after current card is read to bottom.
-       */
-      if (difference > 0) {
-        if (
-          reachedBottom &&
-          activeIndex < experts.length - 1
-        ) {
-          changeExpert(1);
-        }
-
-        return;
-      }
-
-      /*
-       * Finger moves downward.
-       * Only change after current card has returned to top.
-       */
-      if (difference < 0) {
-        if (
-          reachedTop &&
-          activeIndex > 0
-        ) {
-          changeExpert(-1);
-        }
-      }
-    };
-
-    window.addEventListener(
-      "touchstart",
-      handleTouchStart,
-      {
-        passive: true,
-      }
-    );
-
-    window.addEventListener(
-      "touchend",
-      handleTouchEnd,
-      {
-        passive: true,
-      }
-    );
-
-    return () => {
-      window.removeEventListener(
-        "touchstart",
-        handleTouchStart
-      );
-
-      window.removeEventListener(
-        "touchend",
-        handleTouchEnd
-      );
-    };
-  }, [activeIndex, isAnimating]);
-
-  /* ======================================================= */
-  /* ================= SPECIFIC BOOKING ==================== */
-  /* ======================================================= */
-
-  const bookSession = (
-    expertName: string,
-    serviceName: string
-  ) => {
-    navigateToBooking(
-      expertName,
-      serviceName
-    );
-  };
-
-  const navigateToBooking = (
-    expertName: string,
-    serviceName: string
-  ) => {
-    const url =
-      `/booking?expert=${encodeURIComponent(
-        expertName
-      )}&service=${encodeURIComponent(
-        serviceName
-      )}`;
-
-    window.location.href = url;
-  };
-
+function ExpertCard({
+  image,
+  experience,
+  role,
+  name,
+  title,
+  description,
+  services,
+  note,
+  button,
+  light = false,
+}: {
+  image: string;
+  experience: string;
+  role: string;
+  name: string;
+  title: string;
+  description: string;
+  services: string[][];
+  note: string;
+  button: string;
+  light?: boolean;
+}) {
   return (
-    <div className="relative mt-16">
-      {/* ===================================================== */}
-      {/* ==================== 3D STAGE ======================= */}
-      {/* ===================================================== */}
+    <div className="group overflow-hidden rounded-[2rem] border border-[#ded8ca] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
 
       <div
-        ref={stageRef}
-        className="relative mx-auto min-h-[700px] w-full max-w-5xl md:min-h-[760px]"
-        style={{
-          perspective: "1800px",
-        }}
+        className={`relative h-[360px] overflow-hidden ${
+          light ? "bg-[#f0e7d4]" : "bg-[#0d4743]"
+        }`}
       >
-        {experts.map((expert, index) => {
-          const offset =
-            index - activeIndex;
 
-          if (Math.abs(offset) > 2) {
-            return null;
-          }
+        <img
+          src={image}
+          alt={name}
+          className={`h-full w-full ${
+            light ? "object-cover" : "object-contain"
+          } transition duration-500 group-hover:scale-105`}
+        />
 
-          let transform =
-            "translate3d(0,0,0) rotateY(0deg) scale(1)";
+        <div className="absolute bottom-4 left-4 rounded-full bg-[#e8a83b] px-4 py-2 text-xs font-bold text-[#173d3a]">
+          {experience}
+        </div>
 
-          let opacity = 0;
-          let zIndex = 0;
-          let filter = "blur(0px)";
+      </div>
 
-          /* CURRENT CARD */
+      <div className="p-7">
 
-          if (offset === 0) {
-            transform =
-              "translate3d(0,0,0) rotateY(0deg) scale(1)";
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+          {role}
+        </p>
 
-            opacity = 1;
-            zIndex = 30;
-            filter = "blur(0px)";
-          }
+        <h3 className="mt-2 text-2xl font-black text-[#173d3a]">
+          {name}
+        </h3>
 
-          /* NEXT CARD — COMES FROM RIGHT */
+        <p className="mt-2 font-semibold text-gray-700">
+          {title}
+        </p>
 
-          if (offset === 1) {
-            transform =
-              "translate3d(42%,20px,-300px) rotateY(-34deg) scale(0.82)";
+        <p className="mt-4 text-sm leading-6 text-gray-600">
+          Training, Counselling & Coaching
+        </p>
 
-            opacity = 0.38;
-            zIndex = 20;
-            filter = "blur(1px)";
-          }
+        <p className="mt-5 text-sm leading-7 text-gray-600">
+          {description}
+        </p>
 
-          /* PREVIOUS CARD — GOES TO LEFT */
+        <div className="mt-6 border-t border-gray-100 pt-5">
 
-          if (offset === -1) {
-            transform =
-              "translate3d(-42%,20px,-300px) rotateY(34deg) scale(0.82)";
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            Services
+          </p>
 
-            opacity = 0.38;
-            zIndex = 20;
-            filter = "blur(1px)";
-          }
+          <div className="mt-3 space-y-2 text-sm text-gray-600">
 
-          /* FAR NEXT */
-
-          if (offset === 2) {
-            transform =
-              "translate3d(66%,40px,-600px) rotateY(-44deg) scale(0.66)";
-
-            opacity = 0.08;
-            zIndex = 10;
-            filter = "blur(4px)";
-          }
-
-          /* FAR PREVIOUS */
-
-          if (offset === -2) {
-            transform =
-              "translate3d(-66%,40px,-600px) rotateY(44deg) scale(0.66)";
-
-            opacity = 0.08;
-            zIndex = 10;
-            filter = "blur(4px)";
-          }
-
-          return (
-            <div
-              key={expert.name}
-              className="absolute inset-0 flex items-start justify-center"
-              style={{
-                transform,
-                opacity,
-                zIndex,
-                filter,
-                transformStyle:
-                  "preserve-3d",
-
-                transition:
-                  "transform 900ms cubic-bezier(0.22,1,0.36,1), opacity 700ms ease, filter 700ms ease",
-
-                pointerEvents:
-                  offset === 0
-                    ? "auto"
-                    : "none",
-              }}
-            >
-              {/* ================================================= */}
-              {/* ================= GLASS CARD ==================== */}
-              {/* ================================================= */}
-
+            {services.map(([service, price]) => (
               <div
-                className="relative w-full max-w-[650px] overflow-hidden rounded-[2.5rem] border border-white/15 bg-[#0d4743]/80 shadow-[0_30px_80px_rgba(8,47,45,0.28)] backdrop-blur-2xl"
-                style={{
-                  transformStyle:
-                    "preserve-3d",
-                }}
+                key={service}
+                className="flex justify-between gap-4"
               >
-                {/* GLASS LIGHT */}
+                <span>{service}</span>
 
-                <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-[#e8a83b]/12 blur-[80px]" />
-
-                <div className="pointer-events-none absolute -bottom-32 -left-28 h-80 w-80 rounded-full bg-[#0b6a62]/25 blur-[90px]" />
-
-                {/* ================================================= */}
-                {/* ==================== IMAGE ====================== */}
-                {/* ================================================= */}
-
-                <div className="relative h-[205px] overflow-hidden bg-[#0d4743] md:h-[260px]">
-                  <img
-                    src={expert.image}
-                    alt={expert.name}
-                    className="h-full w-full object-contain transition-transform duration-1000"
-                    style={{
-                      transform:
-                        offset === 0
-                          ? "scale(1.02)"
-                          : "scale(0.96)",
-                    }}
-                  />
-
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0d4743] via-[#0d4743]/65 to-transparent" />
-
-                  <div className="absolute bottom-4 left-5 rounded-full border border-[#eab34a]/30 bg-[#0d4743]/65 px-4 py-2 text-[10px] font-bold tracking-[0.12em] text-[#eab34a] shadow-xl backdrop-blur-xl md:left-6 md:text-[11px]">
-                    {expert.experience}
-                  </div>
-                </div>
-
-                {/* ================================================= */}
-                {/* ==================== CONTENT ==================== */}
-                {/* ================================================= */}
-
-                <div className="relative px-5 pb-6 pt-3 md:px-7 md:pb-7">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#eab34a] md:text-xs md:tracking-[0.16em]">
-                    {expert.role}
-                  </p>
-
-                  <h3 className="mt-1 text-2xl font-black text-white md:text-3xl">
-                    {expert.name}
-                  </h3>
-
-                  <p className="mt-1 text-sm font-semibold text-white/75 md:text-base">
-                    {expert.title}
-                  </p>
-
-                  <p className="mt-3 text-xs leading-5 text-white/60 md:text-sm md:leading-6">
-                    {expert.description}
-                  </p>
-
-                  {/* ================================================= */}
-                  {/* =================== SESSIONS =================== */}
-                  {/* ================================================= */}
-
-                  <div className="mt-5 border-t border-white/10 pt-5">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 md:text-xs md:tracking-[0.16em]">
-                      Available Sessions
-                    </p>
-
-                    <div className="mt-3 space-y-2.5">
-                      {expert.services.map(
-                        ([service, price]) => (
-                          <div
-                            key={service}
-                            className="group/session flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2.5 transition hover:border-[#eab34a]/35 hover:bg-white/[0.08] md:px-4 md:py-3"
-                          >
-                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e8a83b]/15 text-xs text-[#eab34a] md:h-9 md:w-9 md:text-sm">
-                                ✦
-                              </div>
-
-                              <div className="min-w-0">
-                                <p className="truncate text-xs font-semibold text-white/80 md:text-sm">
-                                  {service}
-                                </p>
-
-                                <p className="mt-0.5 text-[10px] text-white/35 md:text-xs">
-                                  Personalised session
-                                </p>
-                              </div>
-                            </div>
-
-                            <span className="shrink-0 whitespace-nowrap text-xs font-black text-[#eab34a] md:text-sm">
-                              {price}
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    {/* SINGLE BOOK BUTTON */}
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        bookSession(
-                          expert.name,
-                          expert.services[0][0]
-                        )
-                      }
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-black text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] md:py-3.5"
-                    >
-                      <span>
-                        Book a Session
-                      </span>
-
-                      <span>
-                        →
-                      </span>
-                    </button>
-
-                    <p className="mt-3 text-[10px] leading-4 text-white/35 md:text-xs md:leading-5">
-                      {expert.note}
-                    </p>
-                  </div>
-                </div>
+                <span className="font-bold text-[#173d3a]">
+                  {price}
+                </span>
               </div>
-            </div>
-          );
-        })}
+            ))}
 
-        {/* ======================================================= */}
-        {/* ================= LEFT ARROW ========================== */}
-        {/* ======================================================= */}
+          </div>
 
-        <button
-          type="button"
-          onClick={() => changeExpert(-1)}
-          disabled={
-            activeIndex === 0 ||
-            isAnimating
-          }
-          aria-label="Previous expert"
-          className="absolute left-1 top-1/2 z-50 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/75 text-base font-black text-[#173d3a] shadow-xl backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-25 sm:left-2 md:left-3 md:h-11 md:w-11"
+          <p className="mt-4 text-xs text-gray-400">
+            {note}
+          </p>
+
+        </div>
+
+        <Link
+          to="/booking"
+          className="mt-7 block rounded-full bg-[#0d4743] px-6 py-4 text-center font-bold text-white hover:bg-[#12554f] transition"
         >
-          ←
-        </button>
+          {button}
+        </Link>
 
-        {/* ======================================================= */}
-        {/* ================= RIGHT ARROW ========================= */}
-        {/* ======================================================= */}
-
-        <button
-          type="button"
-          onClick={() => changeExpert(1)}
-          disabled={
-            activeIndex ===
-              experts.length - 1 ||
-            isAnimating
-          }
-          aria-label="Next expert"
-          className="absolute right-1 top-1/2 z-50 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/75 text-base font-black text-[#173d3a] shadow-xl backdrop-blur-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-25 sm:right-2 md:right-3 md:h-11 md:w-11"
-        >
-          →
-        </button>
       </div>
     </div>
   );
 }
 
-/* ========================================================= */
-/* ====================== SERVICE CARD ===================== */
-/* ========================================================= */
+/* ================= SERVICE CARD ================= */
 
 function ServiceCard({
   icon,
@@ -1602,6 +1228,7 @@ function ServiceCard({
 }) {
   return (
     <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+
       <div className="text-4xl">
         {icon}
       </div>
@@ -1620,6 +1247,7 @@ function ServiceCard({
       >
         {button}
       </Link>
+
     </div>
   );
 }
