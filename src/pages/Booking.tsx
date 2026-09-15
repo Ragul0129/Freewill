@@ -30,7 +30,20 @@ function Booking() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const serviceId = searchParams.get("service");
+  /*
+   * Home carousel can send either:
+   *
+   * /booking?service=UUID
+   *
+   * OR
+   *
+   * /booking?service=One%20Hour&expert=Simon%20Anandh%20Raj
+   *
+   * This Booking page supports BOTH.
+   */
+
+  const serviceParam = searchParams.get("service");
+  const expertParam = searchParams.get("expert");
 
   const [service, setService] = useState<Service | null>(null);
   const [expert, setExpert] = useState<Expert | null>(null);
@@ -45,76 +58,240 @@ function Booking() {
   const [success, setSuccess] = useState("");
 
   /*
-   * Restore booking details if the user was sent
-   * to Login and came back to this booking page.
+   * ============================================================
+   * RESTORE TEMPORARY BOOKING DATA
+   * ============================================================
    */
+
   useEffect(() => {
-    if (!serviceId) return;
+    if (!serviceParam) return;
 
-    const savedBooking = sessionStorage.getItem(
-      `freewill_booking_${serviceId}`
-    );
+    /*
+     * For old UUID-based links, restore using UUID.
+     *
+     * For new name-based links, also try using the complete
+     * service parameter as the storage key.
+     */
 
-    if (savedBooking) {
+    const possibleKeys = [
+      `freewill_booking_${serviceParam}`,
+    ];
+
+    for (const key of possibleKeys) {
+      const savedBooking = sessionStorage.getItem(key);
+
+      if (!savedBooking) continue;
+
       try {
         const saved = JSON.parse(savedBooking);
 
         setBookingDate(saved.bookingDate || "");
         setStartTime(saved.startTime || "");
         setNotes(saved.notes || "");
-      } catch (error) {
+
+        break;
+      } catch (err) {
         console.error(
           "Unable to restore booking details:",
-          error
+          err
         );
       }
     }
-  }, [serviceId]);
+  }, [serviceParam]);
+
+  /*
+   * ============================================================
+   * LOAD SERVICE
+   * ============================================================
+   */
 
   useEffect(() => {
-    if (serviceId) {
+    if (serviceParam) {
       loadService();
     } else {
       setLoading(false);
     }
-  }, [serviceId]);
+  }, [serviceParam, expertParam]);
 
   const loadService = async () => {
     try {
       setLoading(true);
       setError("");
+      setService(null);
+      setExpert(null);
 
-      if (!serviceId) return;
+      if (!serviceParam) {
+        setLoading(false);
+        return;
+      }
 
-      const { data: serviceData, error: serviceError } =
-        await supabase
-          .from("services")
-          .select(`
-            id,
-            title,
-            description,
-            duration_minutes,
-            price,
-            expert_id
-          `)
-          .eq("id", serviceId)
-          .eq("is_active", true)
-          .single();
+      let serviceData: Service | null = null;
 
-      if (serviceError || !serviceData) {
+      /*
+       * ----------------------------------------------------------
+       * FIRST:
+       * Try service parameter as actual Supabase UUID.
+       * ----------------------------------------------------------
+       */
+
+      const { data: uuidService } = await supabase
+        .from("services")
+        .select(`
+          id,
+          title,
+          description,
+          duration_minutes,
+          price,
+          expert_id
+        `)
+        .eq("id", serviceParam)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (uuidService) {
+        serviceData = uuidService as Service;
+      }
+
+      /*
+       * ----------------------------------------------------------
+       * SECOND:
+       * If UUID lookup failed, treat serviceParam as service TITLE.
+       *
+       * Example:
+       * service=One Hour
+       * expert=Simon Anandh Raj
+       * ----------------------------------------------------------
+       */
+
+      if (!serviceData) {
+        const { data: titleServices, error: titleError } =
+          await supabase
+            .from("services")
+            .select(`
+              id,
+              title,
+              description,
+              duration_minutes,
+              price,
+              expert_id
+            `)
+            .eq("title", serviceParam)
+            .eq("is_active", true);
+
+        if (titleError) {
+          console.error(
+            "Service title lookup error:",
+            titleError
+          );
+        }
+
+        if (titleServices && titleServices.length > 0) {
+
+          /*
+           * If expert name was provided, find the service
+           * belonging to that expert.
+           */
+
+          if (expertParam) {
+            const {
+              data: matchingExperts,
+              error: expertLookupError,
+            } = await supabase
+              .from("expert_profiles")
+              .select(`
+                id,
+                profiles (
+                  full_name
+                )
+              `);
+
+            if (expertLookupError) {
+              console.error(
+                "Expert lookup error:",
+                expertLookupError
+              );
+            }
+
+            const matchingExpert =
+              (matchingExperts || []).find(
+                (item: any) => {
+
+                  const profile = Array.isArray(
+                    item.profiles
+                  )
+                    ? item.profiles[0]
+                    : item.profiles;
+
+                  const fullName =
+                    profile?.full_name
+                      ?.trim()
+                      .toLowerCase();
+
+                  return (
+                    fullName ===
+                    expertParam
+                      .trim()
+                      .toLowerCase()
+                  );
+                }
+              );
+
+            if (matchingExpert) {
+              const matchingService =
+                titleServices.find(
+                  (item: any) =>
+                    item.expert_id ===
+                    matchingExpert.id
+                );
+
+              if (matchingService) {
+                serviceData =
+                  matchingService as Service;
+              }
+            }
+          }
+
+          /*
+           * If expert matching didn't find anything,
+           * use the first active service with that title.
+           */
+
+          if (!serviceData) {
+            serviceData =
+              titleServices[0] as Service;
+          }
+        }
+      }
+
+      /*
+       * ----------------------------------------------------------
+       * SERVICE NOT FOUND
+       * ----------------------------------------------------------
+       */
+
+      if (!serviceData) {
         console.error(
-          "Service error:",
-          serviceError
+          "Session not found:",
+          {
+            serviceParam,
+            expertParam,
+          }
         );
 
         setError(
-          "Unable to load this session."
+          "This session is currently unavailable."
         );
 
         return;
       }
 
       setService(serviceData);
+
+      /*
+       * ==========================================================
+       * LOAD EXPERT
+       * ==========================================================
+       */
 
       const {
         data: expertData,
@@ -131,7 +308,7 @@ function Booking() {
           )
         `)
         .eq("id", serviceData.expert_id)
-        .single();
+        .maybeSingle();
 
       if (expertError) {
         console.error(
@@ -146,11 +323,20 @@ function Booking() {
         return;
       }
 
+      if (!expertData) {
+        setError(
+          "Expert information is unavailable."
+        );
+
+        return;
+      }
+
       const formattedExpert: Expert = {
         id: expertData.id,
         specialization:
           expertData.specialization,
-        is_active: expertData.is_active,
+        is_active:
+          expertData.is_active,
         is_verified:
           expertData.is_verified,
         profile:
@@ -160,6 +346,7 @@ function Booking() {
       };
 
       setExpert(formattedExpert);
+
     } catch (err) {
       console.error(
         "Load service error:",
@@ -167,26 +354,43 @@ function Booking() {
       );
 
       setError(
-        "Something went wrong."
+        "Something went wrong while loading this session."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  /*
+   * ============================================================
+   * TODAY
+   * ============================================================
+   */
+
   const getToday = () => {
     const today = new Date();
 
-    const year = today.getFullYear();
-    const month = String(
-      today.getMonth() + 1
-    ).padStart(2, "0");
-    const day = String(
-      today.getDate()
-    ).padStart(2, "0");
+    const year =
+      today.getFullYear();
+
+    const month =
+      String(
+        today.getMonth() + 1
+      ).padStart(2, "0");
+
+    const day =
+      String(
+        today.getDate()
+      ).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
   };
+
+  /*
+   * ============================================================
+   * PAST TIME CHECK
+   * ============================================================
+   */
 
   const isPastTime = () => {
     if (!bookingDate || !startTime) {
@@ -204,7 +408,8 @@ function Booking() {
     const [hours, minutes] =
       startTime.split(":");
 
-    const selectedTime = new Date();
+    const selectedTime =
+      new Date();
 
     selectedTime.setHours(
       Number(hours),
@@ -216,12 +421,18 @@ function Booking() {
     return selectedTime <= now;
   };
 
+  /*
+   * ============================================================
+   * HANDLE BOOKING
+   * ============================================================
+   */
+
   const handleBooking = async () => {
     try {
       setError("");
       setSuccess("");
 
-      if (!serviceId || !service) {
+      if (!service) {
         setError(
           "Please select a valid session."
         );
@@ -261,20 +472,26 @@ function Booking() {
 
       setBooking(true);
 
+      /*
+       * ========================================================
+       * GET CURRENT USER
+       * ========================================================
+       */
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       /*
-       * USER IS NOT LOGGED IN
+       * ========================================================
+       * NOT LOGGED IN
        *
-       * Save the booking details first.
-       * Then send the user to Login.
-       *
-       * After successful login, Login.tsx will
-       * return the user to this exact Booking URL.
+       * Save booking details and send to Login.
+       * ========================================================
        */
+
       if (!user) {
+
         sessionStorage.setItem(
           `freewill_booking_${service.id}`,
           JSON.stringify({
@@ -283,6 +500,13 @@ function Booking() {
             notes,
           })
         );
+
+        /*
+         * IMPORTANT:
+         * Return using the REAL SERVICE UUID.
+         * This prevents the login redirect from losing
+         * the exact selected session.
+         */
 
         const currentBookingPath =
           `/booking?service=${encodeURIComponent(
@@ -302,23 +526,40 @@ function Booking() {
       }
 
       /*
-       * Check whether the same user already has
-       * a booking for the same service, date and time.
+       * ========================================================
+       * CHECK SAME USER'S EXISTING BOOKING
+       * ========================================================
        */
+
       const {
         data: existingBooking,
         error: existingError,
       } = await supabase
         .from("bookings")
         .select("id, status")
-        .eq("user_id", user.id)
-        .eq("service_id", service.id)
-        .eq("booking_date", bookingDate)
-        .eq("start_time", startTime)
-        .in("status", [
-          "pending",
-          "confirmed",
-        ])
+        .eq(
+          "user_id",
+          user.id
+        )
+        .eq(
+          "service_id",
+          service.id
+        )
+        .eq(
+          "booking_date",
+          bookingDate
+        )
+        .eq(
+          "start_time",
+          startTime
+        )
+        .in(
+          "status",
+          [
+            "pending",
+            "confirmed",
+          ]
+        )
         .maybeSingle();
 
       if (existingError) {
@@ -337,9 +578,11 @@ function Booking() {
       }
 
       /*
-       * Check whether another pending/confirmed
-       * booking already occupies this expert slot.
+       * ========================================================
+       * CHECK EXPERT SLOT
+       * ========================================================
        */
+
       const {
         data: serviceBookings,
         error: slotError,
@@ -353,12 +596,21 @@ function Booking() {
             expert_id
           )
         `)
-        .eq("booking_date", bookingDate)
-        .eq("start_time", startTime)
-        .in("status", [
-          "pending",
-          "confirmed",
-        ]);
+        .eq(
+          "booking_date",
+          bookingDate
+        )
+        .eq(
+          "start_time",
+          startTime
+        )
+        .in(
+          "status",
+          [
+            "pending",
+            "confirmed",
+          ]
+        );
 
       if (slotError) {
         console.error(
@@ -370,8 +622,11 @@ function Booking() {
       const sameExpertBooking =
         (serviceBookings || []).some(
           (item: any) => {
+
             const bookingService =
-              Array.isArray(item.services)
+              Array.isArray(
+                item.services
+              )
                 ? item.services[0]
                 : item.services;
 
@@ -391,8 +646,11 @@ function Booking() {
       }
 
       /*
-       * Create booking
+       * ========================================================
+       * CREATE BOOKING
+       * ========================================================
        */
+
       const {
         error: bookingError,
       } = await supabase
@@ -400,10 +658,13 @@ function Booking() {
         .insert({
           user_id: user.id,
           service_id: service.id,
-          booking_date: bookingDate,
-          start_time: startTime,
+          booking_date:
+            bookingDate,
+          start_time:
+            startTime,
           status: "pending",
-          notes: notes.trim() || null,
+          notes:
+            notes.trim() || null,
         });
 
       if (bookingError) {
@@ -420,9 +681,11 @@ function Booking() {
       }
 
       /*
-       * Booking completed successfully.
-       * Remove the temporary saved booking details.
+       * ========================================================
+       * SUCCESS
+       * ========================================================
        */
+
       sessionStorage.removeItem(
         `freewill_booking_${service.id}`
       );
@@ -440,7 +703,9 @@ function Booking() {
           "/my-appointments"
         );
       }, 1500);
+
     } catch (err) {
+
       console.error(
         "Booking failed:",
         err
@@ -449,14 +714,22 @@ function Booking() {
       setError(
         "Unable to create booking."
       );
+
     } finally {
       setBooking(false);
     }
   };
 
+  /*
+   * ============================================================
+   * LOADING
+   * ============================================================
+   */
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+
         <div className="text-center">
 
           <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4" />
@@ -466,25 +739,34 @@ function Booking() {
           </p>
 
         </div>
+
       </div>
     );
   }
 
-  if (!serviceId) {
+  /*
+   * ============================================================
+   * NO SERVICE PARAMETER
+   * ============================================================
+   */
+
+  if (!serviceParam) {
     return (
       <div className="min-h-screen bg-gray-50">
 
         <header className="bg-white border-b border-gray-200">
+
           <div className="max-w-5xl mx-auto px-4 py-4">
 
             <Link
-              to="/experts"
+              to="/home"
               className="text-sm text-gray-600 hover:text-gray-900"
             >
-              ← Back to Experts
+              ← Back to Home
             </Link>
 
           </div>
+
         </header>
 
         <main className="max-w-3xl mx-auto px-4 py-16 text-center">
@@ -505,7 +787,7 @@ function Booking() {
             </p>
 
             <Link
-              to="/experts"
+              to="/home#experts"
               className="inline-block mt-6 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold"
             >
               Find Experts
@@ -519,23 +801,39 @@ function Booking() {
     );
   }
 
+  /*
+   * ============================================================
+   * SESSION NOT FOUND
+   * ============================================================
+   */
+
   if (!service) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
 
-        <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
+        <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center max-w-md w-full">
+
+          <div className="text-5xl mb-5">
+            😕
+          </div>
 
           <h1 className="text-2xl font-bold text-gray-900">
             Session not found
           </h1>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 mt-3">
             This session may no longer be available.
           </p>
 
+          {error && (
+            <p className="mt-3 text-sm text-red-500">
+              {error}
+            </p>
+          )}
+
           <Link
-            to="/experts"
-            className="inline-block mt-5 px-5 py-3 rounded-xl bg-gray-900 text-white font-semibold"
+            to="/home#experts"
+            className="inline-block mt-6 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold"
           >
             Back to Experts
           </Link>
@@ -546,8 +844,16 @@ function Booking() {
     );
   }
 
+  /*
+   * ============================================================
+   * MAIN BOOKING PAGE
+   * ============================================================
+   */
+
   return (
     <div className="min-h-screen bg-gray-50">
+
+      {/* HEADER */}
 
       <header className="bg-white border-b border-gray-200">
 
@@ -566,7 +872,7 @@ function Booking() {
           </div>
 
           <Link
-            to="/experts"
+            to="/home#experts"
             className="text-sm font-medium text-gray-600 hover:text-gray-900"
           >
             ← Experts
@@ -576,11 +882,15 @@ function Booking() {
 
       </header>
 
+      {/* MAIN */}
+
       <main className="max-w-5xl mx-auto px-4 py-10">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* ================= SESSION DETAILS ================= */}
+          {/* ================================================= */}
+          {/* SESSION DETAILS */}
+          {/* ================================================= */}
 
           <div className="bg-white rounded-3xl border border-gray-200 p-7">
 
@@ -670,7 +980,9 @@ function Booking() {
 
           </div>
 
-          {/* ================= BOOKING FORM ================= */}
+          {/* ================================================= */}
+          {/* BOOKING FORM */}
+          {/* ================================================= */}
 
           <div className="bg-white rounded-3xl border border-gray-200 p-7">
 
@@ -682,11 +994,15 @@ function Booking() {
               Select your preferred date and time.
             </p>
 
+            {/* ERROR */}
+
             {error && (
               <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
                 {error}
               </div>
             )}
+
+            {/* SUCCESS */}
 
             {success && (
               <div className="mt-5 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 text-sm">
@@ -770,6 +1086,7 @@ function Booking() {
             {/* CONFIRM */}
 
             <button
+              type="button"
               onClick={handleBooking}
               disabled={
                 booking ||
