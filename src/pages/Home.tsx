@@ -11,7 +11,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-type UserRole = "user" | "expert" | "admin" | null;
+type UserRole = "user" | "expert" | "admin";
 
 type Expert = {
   image: string;
@@ -22,20 +22,22 @@ type Expert = {
   description: string;
   services: [string, string][];
   note: string;
+  button: string;
+  light: boolean;
 };
 
 function Home() {
   const navigate = useNavigate();
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [userRole, setUserRole] = useState<UserRole>("user");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
-    const loadUser = async () => {
+    const getUser = async () => {
       try {
         const {
           data: { user },
@@ -43,29 +45,30 @@ function Home() {
 
         if (!mounted) return;
 
-        if (!user) {
+        if (user) {
+          setUserEmail(user.email || "");
+
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          if (!mounted) return;
+
+          setUserRole(
+            (profile?.role as UserRole) || "user"
+          );
+        } else {
           setUserEmail("");
-          setUserRole(null);
-          return;
+          setUserRole("user");
         }
-
-        setUserEmail(user.email || "");
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (!mounted) return;
-
-        setUserRole((profile?.role as UserRole) || "user");
       } catch (error) {
         console.error("Home auth error:", error);
 
         if (mounted) {
           setUserEmail("");
-          setUserRole(null);
+          setUserRole("user");
         }
       } finally {
         if (mounted) {
@@ -74,33 +77,36 @@ function Home() {
       }
     };
 
-    loadUser();
+    getUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
+    } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!mounted) return;
 
-      if (!session?.user) {
-        setUserEmail("");
-        setUserRole(null);
+        if (session?.user) {
+          setUserEmail(session.user.email || "");
+
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          if (!mounted) return;
+
+          setUserRole(
+            (profile?.role as UserRole) || "user"
+          );
+        } else {
+          setUserEmail("");
+          setUserRole("user");
+        }
+
         setCheckingAuth(false);
-        return;
       }
-
-      setUserEmail(session.user.email || "");
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      if (!mounted) return;
-
-      setUserRole((profile?.role as UserRole) || "user");
-      setCheckingAuth(false);
-    });
+    );
 
     return () => {
       mounted = false;
@@ -109,8 +115,6 @@ function Home() {
   }, []);
 
   const handleLogout = async () => {
-    setMenuOpen(false);
-
     try {
       await supabase.auth.signOut();
     } catch (error) {
@@ -118,7 +122,8 @@ function Home() {
     }
 
     setUserEmail("");
-    setUserRole(null);
+    setUserRole("user");
+    setMenuOpen(false);
 
     navigate("/home", {
       replace: true,
@@ -129,86 +134,82 @@ function Home() {
     setMenuOpen(false);
   };
 
-  const roleLabel =
-    userRole === "expert"
-      ? "Expert Account"
-      : userRole === "admin"
-      ? "Administrator"
-      : "FREEWILL User";
-
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#173d3a]">
-      {/* ========================================================= */}
-      {/* ======================= NAVBAR ========================== */}
-      {/* ========================================================= */}
 
-      <header className="absolute left-0 right-0 top-0 z-50">
-        <div className="mx-auto max-w-7xl px-6 py-6">
+      {/* ================= NAVBAR ================= */}
+
+      <header className="absolute top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
+
             {/* LOGO */}
 
             <Link
               to="/home"
-              className="text-2xl font-black tracking-wide text-white md:text-3xl"
+              className="text-2xl md:text-3xl font-black tracking-wide text-white"
             >
               FREEWILL
             </Link>
 
-            {/* DESKTOP NAV */}
+            {/* DESKTOP NAVIGATION */}
 
-            <nav className="hidden items-center gap-8 text-sm font-medium text-white/90 lg:flex">
+            <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
+
               <Link
                 to="/home"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Home
               </Link>
 
               <a
                 href="#about"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 About
               </a>
 
               <a
                 href="#experts"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Experts
               </a>
 
               <a
                 href="#services"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Services
               </a>
 
               <a
                 href="#process"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 How It Works
               </a>
 
               <Link
                 to="/booking"
-                className="transition hover:text-[#e9ad3d]"
+                className="hover:text-[#e9ad3d] transition"
               >
                 Appointment
               </Link>
+
             </nav>
 
             {/* RIGHT SIDE */}
 
             <div className="flex items-center gap-3">
+
               {/* SIGN IN */}
 
               {!checkingAuth && !userEmail && (
                 <Link
                   to="/login"
-                  className="rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-bold text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] sm:px-6"
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
                 >
                   Sign In
                 </Link>
@@ -220,21 +221,22 @@ function Home() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-full bg-[#e8a83b] px-5 py-3 text-sm font-bold text-[#173d3a] shadow-lg transition hover:bg-[#f2bd58] sm:px-6"
+                  className="rounded-full bg-[#e8a83b] px-5 sm:px-6 py-3 text-sm font-bold text-[#173d3a] shadow-lg hover:bg-[#f2bd58] transition"
                 >
                   Logout
                 </button>
               )}
 
-              {/* MENU */}
+              {/* THREE LINE MENU */}
 
               <div className="relative">
+
                 <button
                   type="button"
-                  onClick={() => setMenuOpen((value) => !value)}
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition"
                   aria-label="Open menu"
                   aria-expanded={menuOpen}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
                 >
                   <div className="space-y-1.5">
                     <span className="block h-0.5 w-6 bg-white" />
@@ -245,30 +247,25 @@ function Home() {
 
                 {menuOpen && (
                   <div className="absolute right-0 top-14 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
-                    {/* MENU HEADER */}
+
+                    {/* USER INFORMATION */}
 
                     <div className="border-b border-gray-100 bg-[#f7f4ed] px-5 py-4">
-                      {userEmail ? (
-                        <>
-                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-                            {roleLabel}
-                          </p>
 
-                          <p className="mt-1 truncate text-sm font-semibold text-[#173d3a]">
-                            {userEmail}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
-                            FREEWILL
-                          </p>
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+                        {userEmail
+                          ? userRole === "expert"
+                            ? "Expert Account"
+                            : userRole === "admin"
+                            ? "Administrator"
+                            : "FREEWILL User"
+                          : "FREEWILL"}
+                      </p>
 
-                          <p className="mt-1 text-sm font-semibold text-[#173d3a]">
-                            Human Empowerment
-                          </p>
-                        </>
-                      )}
+                      <p className="mt-1 truncate text-sm font-bold text-[#173d3a]">
+                        {userEmail || "Human Empowerment"}
+                      </p>
+
                     </div>
 
                     {/* PUBLIC MENU */}
@@ -278,18 +275,18 @@ function Home() {
                         <Link
                           to="/dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">📊</span>
+                          <span className="text-xl">📊</span>
                           <span>Dashboard</span>
                         </Link>
 
                         <Link
                           to="/my-appointments"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">📅</span>
+                          <span className="text-xl">📅</span>
                           <span>My Appointments</span>
                         </Link>
                       </>
@@ -302,18 +299,18 @@ function Home() {
                         <Link
                           to="/dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">📊</span>
+                          <span className="text-xl">📊</span>
                           <span>Dashboard</span>
                         </Link>
 
                         <Link
                           to="/my-appointments"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">📅</span>
+                          <span className="text-xl">📅</span>
                           <span>My Appointments</span>
                         </Link>
                       </>
@@ -326,27 +323,27 @@ function Home() {
                         <Link
                           to="/expert-dashboard"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">📊</span>
+                          <span className="text-xl">📊</span>
                           <span>Expert Dashboard</span>
                         </Link>
 
                         <Link
                           to="/expert-profile"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">👤</span>
+                          <span className="text-xl">👤</span>
                           <span>My Profile</span>
                         </Link>
 
                         <Link
                           to="/expert-services"
                           onClick={closeMenu}
-                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                          className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                         >
-                          <span className="text-lg">🛠️</span>
+                          <span className="text-xl">💼</span>
                           <span>My Services</span>
                         </Link>
                       </>
@@ -358,9 +355,9 @@ function Home() {
                       <Link
                         to="/admin-dashboard"
                         onClick={closeMenu}
-                        className="flex items-center gap-4 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                        className="flex items-center gap-4 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                       >
-                        <span className="text-lg">🛡️</span>
+                        <span className="text-xl">🛡️</span>
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
@@ -372,9 +369,9 @@ function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={closeMenu}
-                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                     >
-                      <span className="text-lg">🟢</span>
+                      <span className="text-xl">🟢</span>
                       <span>WhatsApp</span>
                     </a>
 
@@ -385,9 +382,9 @@ function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={closeMenu}
-                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                      className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                     >
-                      <span className="text-lg">📸</span>
+                      <span className="text-xl">📸</span>
                       <span>Instagram</span>
                     </a>
 
@@ -397,9 +394,9 @@ function Home() {
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                        className="flex w-full items-center gap-4 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition"
                       >
-                        <span className="text-lg">🚪</span>
+                        <span className="text-xl">🚪</span>
                         <span>Logout</span>
                       </button>
                     )}
@@ -410,36 +407,42 @@ function Home() {
                       <Link
                         to="/login"
                         onClick={closeMenu}
-                        className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold transition hover:bg-[#f7f4ed]"
+                        className="flex items-center gap-4 border-t border-gray-100 px-5 py-4 text-sm font-semibold text-[#173d3a] hover:bg-[#f7f4ed] transition"
                       >
-                        <span className="text-lg">🔐</span>
+                        <span className="text-xl">🔐</span>
                         <span>Sign In</span>
                       </Link>
                     )}
+
                   </div>
                 )}
+
               </div>
+
             </div>
+
           </div>
         </div>
       </header>
 
-      {/* ========================================================= */}
-      {/* ========================= HERO ========================== */}
-      {/* ========================================================= */}
+      {/* ================= HERO ================= */}
 
       <section className="relative min-h-[720px] overflow-hidden bg-[#0d4743] text-white">
+
         <div className="absolute -right-32 top-20 h-[520px] w-[520px] rounded-full border border-white/10" />
 
         <div className="absolute -right-20 top-32 h-[400px] w-[400px] rounded-full bg-[#185c56]/60 blur-2xl" />
 
         <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#083b38]/70 blur-3xl" />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-32 pt-32 md:pt-40">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 md:pt-40">
+
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] items-center gap-10">
+
             <div className="max-w-2xl">
+
               <div className="mb-6 flex items-center gap-3">
-                <span className="text-lg tracking-widest text-[#eab34a]">
+                <span className="text-[#eab34a] text-lg tracking-widest">
                   ★★★★★
                 </span>
 
@@ -448,11 +451,11 @@ function Home() {
                 </span>
               </div>
 
-              <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a] md:text-base">
+              <p className="mb-5 text-sm md:text-base font-bold uppercase tracking-[0.2em] text-[#eab34a]">
                 FREEWILL – Human Empowerment
               </p>
 
-              <h1 className="text-4xl font-black leading-[1.04] sm:text-5xl md:text-6xl xl:text-7xl">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black leading-[1.04]">
                 Understand Your Mind.
                 <br />
                 <span className="text-[#eab34a]">
@@ -460,7 +463,7 @@ function Home() {
                 </span>
               </h1>
 
-              <p className="mt-7 max-w-xl text-base leading-8 text-white/75 md:text-lg">
+              <p className="mt-7 max-w-xl text-base md:text-lg leading-8 text-white/75">
                 World's First Psycho-Spiritual and Quantum Philosophical
                 Training Firm — empowering individuals to understand
                 themselves, discover their potential and create meaningful
@@ -468,22 +471,25 @@ function Home() {
               </p>
 
               <div className="mt-9 flex flex-wrap gap-4">
+
                 <Link
                   to="/assessment"
-                  className="rounded-full bg-[#e8a83b] px-7 py-4 font-bold text-[#173d3a] shadow-xl transition hover:bg-[#f2bd58]"
+                  className="rounded-full bg-[#e8a83b] px-7 py-4 font-bold text-[#173d3a] shadow-xl hover:bg-[#f2bd58] transition"
                 >
                   Take Assessment →
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="rounded-full border border-white/30 px-7 py-4 font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-full border border-white/30 px-7 py-4 font-semibold text-white hover:bg-white/10 transition"
                 >
                   Book Appointment
                 </Link>
+
               </div>
 
               <div className="mt-12 flex gap-8">
+
                 <div>
                   <p className="text-2xl font-black text-[#eab34a]">
                     100%
@@ -513,13 +519,18 @@ function Home() {
                     Online Access
                   </p>
                 </div>
+
               </div>
+
             </div>
 
-            <div className="relative flex justify-center lg:justify-end">
-              <div className="absolute h-[390px] w-[390px] rounded-full bg-[#185d57] opacity-80 md:h-[500px] md:w-[500px]" />
+            {/* BOSS IMAGE */}
 
-              <div className="absolute h-[300px] w-[300px] rounded-full border border-[#eab34a]/20 md:h-[400px] md:w-[400px]" />
+            <div className="relative flex justify-center lg:justify-end">
+
+              <div className="absolute h-[390px] w-[390px] md:h-[500px] md:w-[500px] rounded-full bg-[#185d57] opacity-80" />
+
+              <div className="absolute h-[300px] w-[300px] md:h-[400px] md:w-[400px] rounded-full border border-[#eab34a]/20" />
 
               <img
                 src={bossImage}
@@ -528,7 +539,8 @@ function Home() {
               />
 
               <div className="absolute bottom-6 left-0 z-20 max-w-[260px] rounded-2xl border border-white/10 bg-[#083b38]/95 p-5 shadow-2xl backdrop-blur">
-                <p className="font-serif text-3xl text-[#eab34a]">
+
+                <p className="text-3xl font-serif text-[#eab34a]">
                   “
                 </p>
 
@@ -539,12 +551,17 @@ function Home() {
                 <p className="mt-2 text-xs text-white/50">
                   FREEWILL Human Empowerment
                 </p>
+
               </div>
+
             </div>
+
           </div>
+
         </div>
 
         <div className="absolute bottom-[-1px] left-0 right-0">
+
           <svg
             viewBox="0 0 1440 130"
             className="h-[90px] w-full md:h-[120px]"
@@ -555,25 +572,28 @@ function Home() {
               d="M0 55 C180 115 300 100 450 75 C580 53 650 125 760 125 C900 125 930 53 1060 75 C1190 100 1280 115 1440 55 L1440 130 L0 130 Z"
             />
           </svg>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= ABOUT ========================= */}
-      {/* ========================================================= */}
+      {/* ================= INTRO ================= */}
 
       <section
         id="about"
         className="bg-[#f7f4ed] py-20 md:py-28"
       >
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid items-center gap-14 lg:grid-cols-2">
+
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
+
             <div>
+
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
                 About FREEWILL
               </p>
 
-              <h2 className="mt-4 text-3xl font-black leading-tight md:text-5xl">
+              <h2 className="mt-4 text-3xl md:text-5xl font-black leading-tight text-[#173d3a]">
                 A deeper approach to
                 <br />
                 <span className="text-[#c88d22]">
@@ -589,29 +609,37 @@ function Home() {
 
               <p className="mt-4 leading-8 text-gray-600">
                 Through self-assessment, professional counselling and
-                psycho-spiritual exploration, we create a space where people
-                can pause, understand and take their next step.
+                psycho-spiritual exploration, we create a space where
+                people can pause, understand and take their next step.
               </p>
 
               <Link
                 to="/assessment"
-                className="mt-7 inline-block rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white transition hover:bg-[#12554f]"
+                className="mt-7 inline-block rounded-full bg-[#0d4743] px-7 py-4 font-bold text-white hover:bg-[#12554f] transition"
               >
                 Discover Yourself →
               </Link>
+
             </div>
 
             <div className="relative">
+
               <div className="absolute -inset-5 rounded-[2rem] bg-[#e6d9bb]/50" />
 
               <div className="relative overflow-hidden rounded-[2rem] bg-[#0d4743] p-6 md:p-8">
-                <img
-                  src={bossImage}
-                  alt="FREEWILL Founder"
-                  className="max-h-[420px] w-full object-contain"
-                />
+
+                <div className="flex items-end justify-center">
+
+                  <img
+                    src={bossImage}
+                    alt="FREEWILL Founder"
+                    className="max-h-[420px] w-full object-contain"
+                  />
+
+                </div>
 
                 <div className="border-t border-white/10 pt-5 text-center">
+
                   <p className="text-xs uppercase tracking-[0.2em] text-[#eab34a]">
                     Founder / Human Empowerment
                   </p>
@@ -623,89 +651,113 @@ function Home() {
                   <p className="mt-2 text-sm text-white/60">
                     Empowering people to understand themselves better.
                   </p>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================== WHY ========================== */}
-      {/* ========================================================= */}
+      {/* ================= WHY FREEWILL ================= */}
 
       <section className="bg-white py-20 md:py-24">
+
         <div className="mx-auto max-w-7xl px-6">
+
           <div className="mx-auto max-w-2xl text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               Why FREEWILL
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black text-[#173d3a]">
               Designed Around You
             </h2>
 
             <p className="mt-4 text-gray-600">
               A simple, confidential and supportive experience.
             </p>
+
           </div>
 
-          <div className="mt-14 grid gap-7 md:grid-cols-3">
-            {[
-              [
-                "🧠",
-                "Understand Yourself",
-                "Explore your thoughts, emotions and wellbeing through simple self-assessment tools.",
-                "bg-[#f3f7f5]",
-              ],
-              [
-                "💬",
-                "Get Professional Support",
-                "Connect with counselling professionals when you need guidance and support.",
-                "bg-[#f8f1e1]",
-              ],
-              [
-                "🌱",
-                "Grow With Purpose",
-                "Turn awareness into meaningful action and create a more empowered direction for your life.",
-                "bg-[#edf4f2]",
-              ],
-            ].map(([icon, title, text, bg]) => (
-              <div
-                key={title}
-                className={`rounded-[2rem] ${bg} p-8 transition hover:-translate-y-1 hover:shadow-xl`}
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
-                  {icon}
-                </div>
+          <div className="mt-14 grid md:grid-cols-3 gap-7">
 
-                <h3 className="mt-7 text-xl font-bold">
-                  {title}
-                </h3>
+            <div className="rounded-[2rem] bg-[#f3f7f5] p-8 transition hover:-translate-y-1 hover:shadow-xl">
 
-                <p className="mt-4 leading-7 text-gray-600">
-                  {text}
-                </p>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
+                🧠
               </div>
-            ))}
+
+              <h3 className="mt-7 text-xl font-bold">
+                Understand Yourself
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                Explore your thoughts, emotions and wellbeing through
+                simple self-assessment tools.
+              </p>
+
+            </div>
+
+            <div className="rounded-[2rem] bg-[#f8f1e1] p-8 transition hover:-translate-y-1 hover:shadow-xl">
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e8a83b] text-2xl">
+                💬
+              </div>
+
+              <h3 className="mt-7 text-xl font-bold">
+                Get Professional Support
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                Connect with counselling professionals when you need
+                guidance and support.
+              </p>
+
+            </div>
+
+            <div className="rounded-[2rem] bg-[#edf4f2] p-8 transition hover:-translate-y-1 hover:shadow-xl">
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d4743] text-2xl">
+                🌱
+              </div>
+
+              <h3 className="mt-7 text-xl font-bold">
+                Grow With Purpose
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                Turn awareness into meaningful action and create a more
+                empowered direction for your life.
+              </p>
+
+            </div>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= QUOTE ========================= */}
-      {/* ========================================================= */}
+      {/* ================= QUOTE ================= */}
 
       <section className="bg-[#f7f4ed] py-20">
+
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="font-serif text-6xl text-[#d49a2c]">
+
+          <p className="text-6xl font-serif text-[#d49a2c]">
             “
           </p>
 
-          <h2 className="mt-2 text-3xl font-black leading-tight md:text-5xl">
+          <h2 className="mt-2 text-3xl md:text-5xl font-black leading-tight text-[#173d3a]">
             The first step towards
             <br />
-            transformation is{" "}
+            transformation is
             <span className="text-[#c88d22]">
               understanding.
             </span>
@@ -714,162 +766,214 @@ function Home() {
           <p className="mt-6 text-gray-500">
             FREEWILL — Human Empowerment
           </p>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= PROCESS ======================= */}
-      {/* ========================================================= */}
+      {/* ================= PROCESS ================= */}
 
       <section
         id="process"
-        className="bg-[#0d4743] py-20 text-white md:py-24"
+        className="bg-[#0d4743] py-20 md:py-24 text-white"
       >
+
         <div className="mx-auto max-w-6xl px-6">
+
           <div className="text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
               Your Journey
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black">
               Three Simple Steps
             </h2>
+
           </div>
 
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
-            {[
-              [
-                "01",
-                "Take Assessment",
-                "Complete our simple wellbeing questionnaire and reflect on your current state.",
-              ],
-              [
-                "02",
-                "Understand Your Result",
-                "Receive an easy-to-understand overview that helps you recognise areas that may need attention.",
-              ],
-              [
-                "03",
-                "Get Support",
-                "Book an appointment and connect with professional counselling support.",
-              ],
-            ].map(([num, title, text]) => (
-              <div
-                key={num}
-                className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
-              >
-                <span className="text-5xl font-black text-[#eab34a]">
-                  {num}
-                </span>
+          <div className="mt-14 grid md:grid-cols-3 gap-8">
 
-                <h3 className="mt-7 text-2xl font-bold">
-                  {title}
-                </h3>
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
 
-                <p className="mt-4 leading-7 text-white/65">
-                  {text}
-                </p>
-              </div>
-            ))}
+              <span className="text-5xl font-black text-[#eab34a]">
+                01
+              </span>
+
+              <h3 className="mt-7 text-2xl font-bold">
+                Take Assessment
+              </h3>
+
+              <p className="mt-4 leading-7 text-white/65">
+                Complete our simple wellbeing questionnaire and reflect
+                on your current state.
+              </p>
+
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+
+              <span className="text-5xl font-black text-[#eab34a]">
+                02
+              </span>
+
+              <h3 className="mt-7 text-2xl font-bold">
+                Understand Your Result
+              </h3>
+
+              <p className="mt-4 leading-7 text-white/65">
+                Receive an easy-to-understand overview that helps you
+                recognise areas that may need attention.
+              </p>
+
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+
+              <span className="text-5xl font-black text-[#eab34a]">
+                03
+              </span>
+
+              <h3 className="mt-7 text-2xl font-bold">
+                Get Support
+              </h3>
+
+              <p className="mt-4 leading-7 text-white/65">
+                Book an appointment and connect with professional
+                counselling support.
+              </p>
+
+            </div>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================== EXPERTS ====================== */}
-      {/* ========================================================= */}
+      {/* ================= EXPERTS ================= */}
 
-      <section
-        id="experts"
-        className="relative overflow-hidden bg-[#f7f4ed] py-24 md:py-32"
-      >
-        <div className="pointer-events-none absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#e8a83b]/10 blur-[120px]" />
+      <ExpertScrollCarousel />
 
-        <div className="pointer-events-none absolute -right-40 top-1/2 h-[400px] w-[400px] rounded-full bg-[#174f4a]/10 blur-[120px]" />
-
-        <div className="relative z-10 mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
-              Meet Our Experts
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black text-[#173d3a] md:text-5xl">
-              Guidance From Experienced Professionals
-            </h2>
-
-            <p className="mt-5 leading-7 text-gray-600">
-              Connect with experienced professionals who bring expertise,
-              compassion and practical guidance to your personal growth
-              journey.
-            </p>
-          </div>
-
-          <ExpertCarousel />
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* ========================= SERVICES ====================== */}
-      {/* ========================================================= */}
+      {/* ================= SERVICES ================= */}
 
       <section
         id="services"
         className="bg-white py-20 md:py-24"
       >
+
         <div className="mx-auto max-w-7xl px-6">
+
           <div className="text-center">
+
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
               What We Do
             </p>
 
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">
+            <h2 className="mt-3 text-3xl md:text-5xl font-black text-[#173d3a]">
               Our Services
             </h2>
+
           </div>
 
-          <div className="mt-14 grid gap-7 md:grid-cols-3">
-            <ServiceCard
-              icon="🧠"
-              title="Mental Wellness Assessment"
-              text="Take a simple assessment and receive an instant wellbeing result."
-              link="/assessment"
-              button="Start Assessment →"
-            />
+          <div className="mt-14 grid md:grid-cols-3 gap-7">
 
-            <ServiceCard
-              icon="💬"
-              title="Professional Counselling"
-              text="Connect with trained professionals for personalised support and guidance."
-              link="/booking"
-              button="Book Appointment →"
-            />
+            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
 
-            <ServiceCard
-              icon="📅"
-              title="Manage Appointments"
-              text="View and manage your counselling appointments easily from your account."
-              link="/dashboard"
-              button="My Appointments →"
-            />
+              <div className="text-4xl">
+                🧠
+              </div>
+
+              <h3 className="mt-6 text-xl font-bold">
+                Mental Wellness Assessment
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                Take a simple assessment and receive an instant
+                wellbeing result.
+              </p>
+
+              <Link
+                to="/assessment"
+                className="mt-7 inline-block font-bold text-[#c88d22]"
+              >
+                Start Assessment →
+              </Link>
+
+            </div>
+
+            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+
+              <div className="text-4xl">
+                💬
+              </div>
+
+              <h3 className="mt-6 text-xl font-bold">
+                Professional Counselling
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                Connect with trained professionals for personalised
+                support and guidance.
+              </p>
+
+              <Link
+                to="/booking"
+                className="mt-7 inline-block font-bold text-[#c88d22]"
+              >
+                Book Appointment →
+              </Link>
+
+            </div>
+
+            <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
+
+              <div className="text-4xl">
+                📅
+              </div>
+
+              <h3 className="mt-6 text-xl font-bold">
+                Manage Appointments
+              </h3>
+
+              <p className="mt-4 leading-7 text-gray-600">
+                View and manage your counselling appointments easily
+                from your account.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className="mt-7 inline-block font-bold text-[#c88d22]"
+              >
+                My Appointments →
+              </button>
+
+            </div>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* =========================== CTA ========================= */}
-      {/* ========================================================= */}
+      {/* ================= CTA ================= */}
 
       <section className="bg-[#f7f4ed] py-20">
+
         <div className="mx-auto max-w-6xl px-6">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 text-center md:px-16 md:py-16">
+
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-[#123f3b] px-7 py-14 md:px-16 md:py-16 text-center">
+
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#1a5b55] blur-2xl" />
 
             <div className="relative z-10">
+
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#eab34a]">
                 Begin Today
               </p>
 
-              <h2 className="mt-4 text-3xl font-black text-white md:text-5xl">
+              <h2 className="mt-4 text-3xl md:text-5xl font-black text-white">
                 Ready to understand yourself better?
               </h2>
 
@@ -879,33 +983,41 @@ function Home() {
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-4">
+
                 <Link
                   to="/assessment"
-                  className="rounded-full bg-[#e8a83b] px-8 py-4 font-bold text-[#173d3a] transition hover:bg-[#f2bd58]"
+                  className="rounded-full bg-[#e8a83b] px-8 py-4 font-bold text-[#173d3a] hover:bg-[#f2bd58] transition"
                 >
                   Take Assessment
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="rounded-full border border-white/30 px-8 py-4 font-bold text-white transition hover:bg-white/10"
+                  className="rounded-full border border-white/30 px-8 py-4 font-bold text-white hover:bg-white/10 transition"
                 >
                   Book Counselling
                 </Link>
+
               </div>
+
             </div>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* ========================================================= */}
-      {/* ========================= FOOTER ======================== */}
-      {/* ========================================================= */}
+      {/* ================= FOOTER ================= */}
 
       <footer className="bg-[#082f2d] text-white">
+
         <div className="mx-auto max-w-7xl px-6 py-12">
-          <div className="grid gap-10 md:grid-cols-3">
+
+          <div className="grid md:grid-cols-3 gap-10">
+
             <div>
+
               <h3 className="text-2xl font-black">
                 FREEWILL
               </h3>
@@ -918,44 +1030,71 @@ function Home() {
                 World's First Psycho-Spiritual and Quantum Philosophical
                 Training Firm.
               </p>
+
             </div>
 
             <div>
+
               <h4 className="font-bold">
                 Quick Links
               </h4>
 
               <div className="mt-4 flex flex-col gap-3 text-sm text-white/55">
-                <Link to="/home">
+
+                <Link
+                  to="/home"
+                  className="hover:text-[#eab34a]"
+                >
                   Home
                 </Link>
 
-                <a href="#about">
+                <a
+                  href="#about"
+                  className="hover:text-[#eab34a]"
+                >
                   About
                 </a>
 
-                <a href="#experts">
+                <a
+                  href="#experts"
+                  className="hover:text-[#eab34a]"
+                >
                   Experts
                 </a>
 
-                <a href="#services">
+                <a
+                  href="#services"
+                  className="hover:text-[#eab34a]"
+                >
                   Services
                 </a>
 
-                <a href="#process">
+                <a
+                  href="#process"
+                  className="hover:text-[#eab34a]"
+                >
                   How It Works
                 </a>
 
-                <Link to="/assessment">
+                <Link
+                  to="/assessment"
+                  className="hover:text-[#eab34a]"
+                >
                   Assessment
                 </Link>
 
-                <Link to="/booking">
+                <Link
+                  to="/booking"
+                  className="hover:text-[#eab34a]"
+                >
                   Appointment
                 </Link>
 
                 {!userEmail && (
-                  <Link to="/login">
+                  <Link
+                    to="/login"
+                    className="hover:text-[#eab34a]"
+                  >
                     Sign In
                   </Link>
                 )}
@@ -964,22 +1103,25 @@ function Home() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-left"
+                    className="text-left hover:text-[#eab34a]"
                   >
                     Logout
                   </button>
                 )}
+
               </div>
+
             </div>
 
             <div>
+
               <h4 className="font-bold">
                 Start Your Journey
               </h4>
 
               <p className="mt-4 leading-7 text-white/55">
-                Take a meaningful first step towards understanding yourself
-                better.
+                Take a meaningful first step towards understanding
+                yourself better.
               </p>
 
               <Link
@@ -988,10 +1130,13 @@ function Home() {
               >
                 Get Started →
               </Link>
+
             </div>
+
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/40">
+
             <p>
               © 2026 FREEWILL. All rights reserved.
             </p>
@@ -1005,32 +1150,38 @@ function Home() {
             >
               𝓡𝓪𝓰𝓾𝓵 𝓐𝓻𝓾𝓷𝓪𝓷
             </a>
+
           </div>
+
         </div>
+
       </footer>
+
     </div>
   );
 }
 
 /* ========================================================= */
-/* ============== 3D VERTICAL EXPERT CAROUSEL ============= */
+/* ================ 3D SCROLL EXPERT CAROUSEL ============== */
 /* ========================================================= */
 
-function ExpertCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+function ExpertScrollCarousel() {
 
-  const touchStart = useRef<number | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  const [carouselPosition, setCarouselPosition] =
+    useState(0);
 
   const experts: Expert[] = [
+
     {
       image: bossImage,
       experience: "26 YEARS EXPERIENCE",
       role: "Founder / CEO",
-      name: "Simon Anand Raj",
+      name: "Simon Anandh Raj",
       title: "Emotional Intelligence Coach",
       description:
-        "Simon Anand Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development.",
+        "Simon Anandh Raj is the Founder & CEO and an experienced Emotional Intelligence Coach with 26 years of professional experience in training, coaching, mentoring and human development. His work focuses on helping individuals and organisations develop emotional intelligence, improve self-awareness, strengthen relationships and unlock their potential.",
       services: [
         ["One Hour", "₹1,500"],
         ["Psychometric Analysis", "₹2,500"],
@@ -1040,6 +1191,8 @@ function ExpertCarousel() {
       ],
       note:
         "Extended sessions and specialised programs may range from ₹5,000 to ₹50,000.",
+      button: "Book a Session →",
+      light: false,
     },
 
     {
@@ -1049,7 +1202,7 @@ function ExpertCarousel() {
       name: "Jeevitha S",
       title: "Clinical Psychologist & Project Head",
       description:
-        "Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness.",
+        "Jeevitha S is a Clinical Psychologist and Project Head with 5 years of experience in counselling, coaching and professional training. She focuses on creating a supportive and structured environment where individuals can gain clarity, develop emotional awareness and work towards meaningful personal growth.",
       services: [
         ["One Hour", "₹1,500"],
         ["Psychometric Analysis", "₹2,500"],
@@ -1059,6 +1212,8 @@ function ExpertCarousel() {
       ],
       note:
         "Session pricing may range from ₹1,000 to ₹10,000 depending on the service.",
+      button: "Book a Session →",
+      light: true,
     },
 
     {
@@ -1068,704 +1223,504 @@ function ExpertCarousel() {
       name: "Rahul K.P",
       title: "Life Coach & Content Head",
       description:
-        "Rahul K.P is a Life Coach and Content Head with 7 years of experience in training and content management. His work combines personal development, structured learning and effective communication.",
+        "Rahul K.P is a Life Coach and Content Head with 7 years of experience in training and content management. His work combines personal development, structured learning and effective communication to help individuals build confidence, develop practical skills and move towards their goals.",
       services: [
-        ["Life Coaching", "Available"],
-        ["Personal Development", "Available"],
-        ["Content Management", "Available"],
+        ["Focus", "Life Coaching"],
+        ["Training", "Personal Development"],
+        ["Content", "Content Management"],
       ],
       note:
         "Service pricing will be available based on the selected program.",
+      button: "Explore & Book →",
+      light: false,
     },
+
   ];
 
-  const changeExpert = (direction: 1 | -1) => {
-    if (isAnimating) return;
-
-    const nextIndex = activeIndex + direction;
-
-    if (nextIndex < 0 || nextIndex >= experts.length) {
-      return;
-    }
-
-    setIsAnimating(true);
-    setActiveIndex(nextIndex);
-
-    window.setTimeout(() => {
-      setIsAnimating(false);
-    }, 850);
-  };
-
-  /*
-   * DESKTOP / LAPTOP WHEEL
-   *
-   * While the expert section is active:
-   *
-   * DOWN:
-   * Simon -> Jeevitha -> Rahul
-   *
-   * UP:
-   * Rahul -> Jeevitha -> Simon
-   *
-   * Once Rahul is active, normal page scrolling continues.
-   */
-
   useEffect(() => {
-    const handleWheel = (event: WheelEvent) => {
-      const section = document.getElementById("experts");
 
-      if (!section) return;
+    const section = sectionRef.current;
 
-      const rect = section.getBoundingClientRect();
+    if (!section) return;
 
-      const sectionCenter =
-        rect.top + rect.height / 2;
+    let frame = 0;
 
-      const viewportCenter =
-        window.innerHeight / 2;
+    const updateCarousel = () => {
 
-      const centerDistance = Math.abs(
-        sectionCenter - viewportCenter
-      );
+      cancelAnimationFrame(frame);
 
-      const isNearCenter =
-        centerDistance < window.innerHeight * 0.42;
+      frame = requestAnimationFrame(() => {
 
-      if (!isNearCenter) return;
+        const rect =
+          section.getBoundingClientRect();
 
-      if (Math.abs(event.deltaY) < 12) return;
+        const viewportHeight =
+          window.innerHeight;
 
-      /*
-       * DOWN
-       */
+        const scrollDistance =
+          section.offsetHeight -
+          viewportHeight;
 
-      if (event.deltaY > 0) {
-        if (activeIndex < experts.length - 1) {
-          event.preventDefault();
-          changeExpert(1);
+        if (scrollDistance <= 0) {
+          setCarouselPosition(0);
+          return;
         }
 
-        return;
-      }
+        const passed = Math.min(
+          Math.max(-rect.top, 0),
+          scrollDistance
+        );
 
-      /*
-       * UP
-       */
+        const progress =
+          passed / scrollDistance;
 
-      if (event.deltaY < 0) {
-        if (activeIndex > 0) {
-          event.preventDefault();
-          changeExpert(-1);
-        }
-      }
+        const maxPosition =
+          experts.length - 1;
+
+        const position =
+          progress * maxPosition;
+
+        setCarouselPosition(position);
+
+      });
+
     };
 
-    window.addEventListener("wheel", handleWheel, {
-      passive: false,
-    });
-
-    return () => {
-      window.removeEventListener(
-        "wheel",
-        handleWheel
-      );
-    };
-  }, [activeIndex, isAnimating]);
-
-  /*
-   * MOBILE TOUCH
-   */
-
-  useEffect(() => {
-    const handleTouchStart = (event: TouchEvent) => {
-      if (!event.touches.length) return;
-
-      touchStart.current =
-        event.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (event: TouchEvent) => {
-      if (touchStart.current === null) return;
-
-      if (!event.changedTouches.length) {
-        touchStart.current = null;
-        return;
-      }
-
-      const endY =
-        event.changedTouches[0].clientY;
-
-      const difference =
-        touchStart.current - endY;
-
-      touchStart.current = null;
-
-      if (Math.abs(difference) < 50) return;
-
-      if (isAnimating) return;
-
-      /*
-       * Swipe UP = next expert
-       */
-
-      if (difference > 0) {
-        if (activeIndex < experts.length - 1) {
-          changeExpert(1);
-        }
-
-        return;
-      }
-
-      /*
-       * Swipe DOWN = previous expert
-       */
-
-      if (difference < 0) {
-        if (activeIndex > 0) {
-          changeExpert(-1);
-        }
-      }
-    };
+    updateCarousel();
 
     window.addEventListener(
-      "touchstart",
-      handleTouchStart,
-      {
-        passive: true,
-      }
+      "scroll",
+      updateCarousel,
+      { passive: true }
     );
 
     window.addEventListener(
-      "touchend",
-      handleTouchEnd,
-      {
-        passive: true,
-      }
+      "resize",
+      updateCarousel
     );
 
     return () => {
+
+      cancelAnimationFrame(frame);
+
       window.removeEventListener(
-        "touchstart",
-        handleTouchStart
+        "scroll",
+        updateCarousel
       );
 
       window.removeEventListener(
-        "touchend",
-        handleTouchEnd
+        "resize",
+        updateCarousel
       );
+
     };
-  }, [activeIndex, isAnimating]);
 
-  /*
-   * SPECIFIC SESSION BOOKING
-   */
+  }, [experts.length]);
 
-  const bookSession = (
-    expertName: string,
-    serviceName: string
+  const bookService = (
+    expert: Expert,
+    service: string,
+    price: string
   ) => {
+
+    const params =
+      new URLSearchParams();
+
+    params.set(
+      "expert",
+      expert.name
+    );
+
+    params.set(
+      "service",
+      service
+    );
+
+    params.set(
+      "price",
+      price
+    );
+
     navigateToBooking(
-      expertName,
-      serviceName
+      `/booking?${params.toString()}`
     );
-  };
 
-  const navigateToBooking = (
-    expertName: string,
-    serviceName: string
-  ) => {
-    const url =
-      `/booking?expert=${encodeURIComponent(
-        expertName
-      )}&service=${encodeURIComponent(
-        serviceName
-      )}`;
-
-    window.location.href = url;
   };
 
   return (
-    <div className="mt-16">
-      {/* ======================================================= */}
-      {/* ==================== 3D STAGE ========================= */}
-      {/* ======================================================= */}
 
-      <div
-        className="relative mx-auto min-h-[900px] w-full max-w-5xl md:min-h-[920px]"
-        style={{
-          perspective: "1800px",
-        }}
-      >
-        {experts.map((expert, index) => {
-          const offset =
-            index - activeIndex;
+    <section
+      ref={sectionRef}
+      id="experts"
+      className="relative bg-[#f7f4ed]"
+      style={{
+        height:
+          "calc(100vh + 260vh)",
+      }}
+    >
 
-          if (Math.abs(offset) > 2) {
-            return null;
-          }
+      {/* STICKY EXPERT EXPERIENCE */}
 
-          let transform =
-            "translate3d(0,0,0)";
+      <div className="sticky top-0 h-screen overflow-hidden">
 
-          let opacity = 0;
-          let zIndex = 0;
-          let filter =
-            "blur(0px)";
+        {/* BACKGROUND GLOW */}
 
-          /*
-           * CURRENT
-           */
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
-          if (offset === 0) {
-            transform =
-              "translate3d(0,0,0) rotateY(0deg) scale(1)";
+          <div className="absolute left-1/2 top-1/2 h-[650px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e6d9bb]/30 blur-3xl" />
 
-            opacity = 1;
-            zIndex = 30;
-            filter = "blur(0px)";
-          }
+          <div className="absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-[#0d4743]/10 blur-3xl" />
 
-          /*
-           * NEXT
-           * Comes from RIGHT.
-           */
+          <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-[#e8a83b]/10 blur-3xl" />
 
-          if (offset === 1) {
-            transform =
-              "translate3d(48%,35px,-260px) rotateY(-32deg) scale(0.82)";
+        </div>
 
-            opacity = 0.48;
-            zIndex = 20;
-            filter = "blur(1px)";
-          }
+        {/* HEADING */}
 
-          /*
-           * PREVIOUS
-           */
+        <div className="absolute left-0 right-0 top-8 z-40 px-6 md:top-10">
 
-          if (offset === -1) {
-            transform =
-              "translate3d(-48%,35px,-260px) rotateY(32deg) scale(0.82)";
+          <div className="mx-auto max-w-3xl text-center">
 
-            opacity = 0.45;
-            zIndex = 20;
-            filter = "blur(1px)";
-          }
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#c88d22]">
+              Meet Our Experts
+            </p>
 
-          /*
-           * FAR NEXT
-           */
+            <h2 className="mt-2 text-2xl font-black text-[#173d3a] sm:text-3xl md:text-4xl">
+              Guidance From Experienced Professionals
+            </h2>
 
-          if (offset === 2) {
-            transform =
-              "translate3d(70%,70px,-520px) rotateY(-42deg) scale(0.68)";
+            <p className="mx-auto mt-2 hidden max-w-2xl text-sm leading-6 text-gray-600 md:block">
+              Connect with experienced professionals who bring expertise,
+              compassion and practical guidance to your personal growth journey.
+            </p>
 
-            opacity = 0.12;
-            zIndex = 10;
-            filter = "blur(3px)";
-          }
+          </div>
 
-          /*
-           * FAR PREVIOUS
-           */
+        </div>
 
-          if (offset === -2) {
-            transform =
-              "translate3d(-70%,70px,-520px) rotateY(42deg) scale(0.68)";
+        {/* CAROUSEL STAGE */}
 
-            opacity = 0.12;
-            zIndex = 10;
-            filter = "blur(3px)";
-          }
+        <div className="relative flex h-full items-center justify-center px-4 pt-20 md:px-8 md:pt-24">
 
-          return (
-            <div
-              key={expert.name}
-              className="absolute inset-0 flex justify-center"
-              style={{
-                transform,
-                opacity,
-                zIndex,
-                filter,
-                transformStyle: "preserve-3d",
-                transition:
-                  "transform 850ms cubic-bezier(0.22,1,0.36,1), opacity 650ms ease, filter 650ms ease",
-                pointerEvents:
-                  offset === 0
-                    ? "auto"
-                    : "none",
-              }}
-            >
-              {/* ================================================= */}
-              {/* ================= CHARACTER CARD ================= */}
-              {/* ================================================= */}
+          <div
+            className="relative h-[72vh] w-full max-w-[460px] md:h-[74vh] md:max-w-[500px]"
+            style={{
+              perspective: "1400px",
+            }}
+          >
 
-              <div
-                className="
-                  relative
-                  h-fit
-                  w-full
-                  max-w-[720px]
-                  overflow-hidden
-                  rounded-[2.7rem]
-                  border
-                  border-[#d4a443]/35
-                  bg-[#0d4743]/95
-                  shadow-[0_40px_100px_rgba(8,47,45,0.30)]
-                  backdrop-blur-2xl
-                "
-                style={{
-                  transformStyle:
-                    "preserve-3d",
-                }}
-              >
-                {/* GOLD GLOW */}
+            {experts.map(
+              (expert, index) => {
 
-                <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#e8a83b]/15 blur-[90px]" />
+                const offset =
+                  index - carouselPosition;
 
-                <div className="pointer-events-none absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#0b6a62]/30 blur-[100px]" />
+                const distance =
+                  Math.abs(offset);
 
-                {/* IMAGE */}
+                const translateX =
+                  offset * 112;
 
-                <div
-                  className="
-                    relative
-                    h-[290px]
-                    overflow-hidden
-                    bg-[#0d4743]
-                    md:h-[360px]
-                  "
-                >
-                  <img
-                    src={expert.image}
-                    alt={expert.name}
-                    className="
-                      h-full
-                      w-full
-                      object-contain
-                      transition-transform
-                      duration-1000
-                    "
-                    style={{
-                      transform:
-                        offset === 0
-                          ? "scale(1.04)"
-                          : "scale(0.98)",
-                    }}
-                  />
+                const rotateY =
+                  offset * -30;
 
-                  {/* IMAGE FADE */}
+                const translateZ =
+                  -Math.min(
+                    distance * 150,
+                    420
+                  );
 
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0d4743] via-[#0d4743]/60 to-transparent" />
+                const scale =
+                  Math.max(
+                    0.76,
+                    1 - distance * 0.12
+                  );
 
-                  {/* EXPERIENCE */}
+                const opacity =
+                  Math.max(
+                    0,
+                    1 - distance * 0.48
+                  );
+
+                const blur =
+                  Math.min(
+                    distance * 1.5,
+                    5
+                  );
+
+                const zIndex =
+                  100 -
+                  Math.round(
+                    distance * 10
+                  );
+
+                return (
 
                   <div
-                    className="
-                      absolute
-                      bottom-5
-                      left-5
-                      rounded-full
-                      border
-                      border-[#eab34a]/30
-                      bg-[#0d4743]/75
-                      px-4
-                      py-2
-                      text-[11px]
-                      font-bold
-                      tracking-[0.12em]
-                      text-[#eab34a]
-                      shadow-xl
-                      backdrop-blur-xl
-                    "
+                    key={expert.name}
+                    className="absolute inset-0"
+                    style={{
+                      transform: `
+                        translateX(${translateX}%)
+                        translateZ(${translateZ}px)
+                        rotateY(${rotateY}deg)
+                        scale(${scale})
+                      `,
+                      opacity,
+                      filter:
+                        distance > 0.15
+                          ? `blur(${blur}px)`
+                          : "blur(0px)",
+                      zIndex,
+                      transformStyle:
+                        "preserve-3d",
+                      transition:
+                        "transform 120ms linear, opacity 120ms linear, filter 120ms linear",
+                      pointerEvents:
+                        distance < 0.45
+                          ? "auto"
+                          : "none",
+                    }}
                   >
-                    {expert.experience}
+
+                    <ExpertCharacterCard
+                      expert={expert}
+                      onBookService={bookService}
+                    />
+
                   </div>
-                </div>
 
-                {/* CONTENT */}
+                );
 
-                <div className="relative px-6 pb-8 pt-3 md:px-9 md:pb-9">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#eab34a]">
-                    {expert.role}
-                  </p>
+              }
+            )}
 
-                  <h3 className="mt-2 text-3xl font-black text-white md:text-4xl">
-                    {expert.name}
-                  </h3>
+          </div>
 
-                  <p className="mt-2 font-semibold text-white/75">
-                    {expert.title}
-                  </p>
+        </div>
 
-                  <p className="mt-4 text-sm leading-6 text-white/60 md:leading-7">
-                    {expert.description}
-                  </p>
+        {/* SCROLL INDICATOR */}
 
-                  {/* SESSIONS */}
+        <div className="absolute bottom-5 left-1/2 z-50 -translate-x-1/2">
 
-                  <div className="mt-7 border-t border-white/10 pt-6">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/40">
-                      Available Sessions
-                    </p>
+          <div className="flex items-center gap-3 rounded-full border border-[#0d4743]/10 bg-white/70 px-5 py-2.5 shadow-lg backdrop-blur-md">
 
-                    <div className="mt-4 space-y-3">
-                      {expert.services.map(
-                        ([service, price]) => (
-                          <div
-                            key={service}
-                            className="
-                              group/session
-                              flex
-                              items-center
-                              gap-3
-                              rounded-2xl
-                              border
-                              border-white/10
-                              bg-white/[0.045]
-                              px-4
-                              py-3
-                              transition
-                              hover:border-[#eab34a]/35
-                              hover:bg-white/[0.08]
-                            "
-                          >
-                            <div className="flex min-w-0 flex-1 items-center gap-3">
-                              <div
-                                className="
-                                  flex
-                                  h-9
-                                  w-9
-                                  shrink-0
-                                  items-center
-                                  justify-center
-                                  rounded-full
-                                  bg-[#e8a83b]/15
-                                  text-sm
-                                  text-[#eab34a]
-                                "
-                              >
-                                ✦
-                              </div>
+            <span className="h-2 w-2 animate-pulse rounded-full bg-[#e8a83b]" />
 
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-white/80">
-                                  {service}
-                                </p>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#173d3a]">
+              Scroll to explore
+            </span>
 
-                                <p className="mt-0.5 text-xs text-white/35">
-                                  Personalised session
-                                </p>
-                              </div>
-                            </div>
+          </div>
 
-                            <div className="flex shrink-0 items-center gap-2">
-                              <span className="whitespace-nowrap text-sm font-black text-[#eab34a]">
-                                {price}
-                              </span>
+        </div>
 
-                              {/* DESKTOP BUTTON */}
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  bookSession(
-                                    expert.name,
-                                    service
-                                  )
-                                }
-                                className="
-                                  hidden
-                                  rounded-full
-                                  bg-[#e8a83b]
-                                  px-4
-                                  py-2
-                                  text-xs
-                                  font-black
-                                  text-[#173d3a]
-                                  shadow-lg
-                                  transition
-                                  hover:bg-[#f2bd58]
-                                  sm:block
-                                "
-                              >
-                                Book this session
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    {/* MOBILE BUTTONS */}
-
-                    <div className="mt-4 space-y-2 sm:hidden">
-                      {expert.services.map(
-                        ([service]) => (
-                          <button
-                            key={`mobile-${service}`}
-                            type="button"
-                            onClick={() =>
-                              bookSession(
-                                expert.name,
-                                service
-                              )
-                            }
-                            className="
-                              flex
-                              w-full
-                              items-center
-                              justify-between
-                              rounded-full
-                              border
-                              border-[#eab34a]/30
-                              bg-[#e8a83b]
-                              px-5
-                              py-3
-                              text-sm
-                              font-black
-                              text-[#173d3a]
-                              transition
-                              hover:bg-[#f2bd58]
-                            "
-                          >
-                            <span>
-                              Book this session
-                            </span>
-
-                            <span>
-                              →
-                            </span>
-                          </button>
-                        )
-                      )}
-                    </div>
-
-                    <p className="mt-4 text-xs leading-5 text-white/35">
-                      {expert.note}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
       </div>
 
-      {/* ======================================================= */}
-      {/* ==================== INDICATORS ======================= */}
-      {/* ======================================================= */}
+    </section>
 
-      <div className="relative z-40 mt-2 flex items-center justify-center gap-3">
-        {experts.map(
-          (expert, index) => (
-            <button
-              key={expert.name}
-              type="button"
-              onClick={() => {
-                if (isAnimating) return;
-
-                if (
-                  index === activeIndex
-                ) {
-                  return;
-                }
-
-                setIsAnimating(true);
-                setActiveIndex(index);
-
-                window.setTimeout(() => {
-                  setIsAnimating(false);
-                }, 850);
-              }}
-              aria-label={`Show ${expert.name}`}
-              className={`
-                h-2.5
-                rounded-full
-                transition-all
-                duration-500
-                ${
-                  index === activeIndex
-                    ? "w-10 bg-[#e8a83b]"
-                    : "w-2.5 bg-[#0d4743]/20"
-                }
-              `}
-            />
-          )
-        )}
-      </div>
-
-      {/* ======================================================= */}
-      {/* ===================== SCROLL TEXT ===================== */}
-      {/* ======================================================= */}
-
-      <div className="relative z-40 mt-6 text-center">
-        {activeIndex <
-        experts.length - 1 ? (
-          <>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#173d3a]/45">
-              Scroll to meet the next expert
-            </p>
-
-            <div className="mx-auto mt-3 flex justify-center text-xl text-[#c88d22] animate-bounce">
-              ↓
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#173d3a]/45">
-              Our experts are here for you
-            </p>
-
-            <div className="mx-auto mt-3 text-xl text-[#c88d22]">
-              ✦
-            </div>
-          </>
-        )}
-      </div>
-    </div>
   );
+
 }
 
 /* ========================================================= */
-/* ====================== SERVICE CARD ===================== */
+/* ================= EXPERT CHARACTER CARD ================= */
 /* ========================================================= */
 
-function ServiceCard({
-  icon,
-  title,
-  text,
-  link,
-  button,
+function ExpertCharacterCard({
+  expert,
+  onBookService,
 }: {
-  icon: string;
-  title: string;
-  text: string;
-  link: string;
-  button: string;
+  expert: Expert;
+  onBookService: (
+    expert: Expert,
+    service: string,
+    price: string
+  ) => void;
 }) {
+
   return (
-    <div className="group rounded-[2rem] border border-[#e3e8e5] bg-white p-8 shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
-      <div className="text-4xl">
-        {icon}
+
+    <div
+      className="
+        group
+        flex
+        h-full
+        flex-col
+        overflow-hidden
+        rounded-[2rem]
+        border
+        border-[#ded8ca]
+        bg-white
+        shadow-[0_30px_80px_rgba(23,61,58,0.18)]
+      "
+      style={{
+        transformStyle:
+          "preserve-3d",
+      }}
+    >
+
+      {/* CHARACTER IMAGE */}
+
+      <div
+        className={`
+          relative
+          h-[30%]
+          min-h-[180px]
+          shrink-0
+          overflow-hidden
+          ${
+            expert.light
+              ? "bg-[#f0e7d4]"
+              : "bg-[#0d4743]"
+          }
+        `}
+      >
+
+        {/* GOLD RING */}
+
+        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-[#eab34a]/20" />
+
+        <div className="absolute -left-20 bottom-0 h-44 w-44 rounded-full bg-[#e8a83b]/10 blur-3xl" />
+
+        <img
+          src={expert.image}
+          alt={expert.name}
+          className={`
+            relative
+            z-10
+            h-full
+            w-full
+            ${
+              expert.name === "Simon Anandh Raj"
+                ? "object-contain"
+                : "object-cover"
+            }
+          `}
+        />
+
+        <div className="absolute bottom-4 left-4 z-20 rounded-full bg-[#e8a83b] px-4 py-2 text-[10px] font-black tracking-wide text-[#173d3a] shadow-lg">
+          {expert.experience}
+        </div>
+
       </div>
 
-      <h3 className="mt-6 text-xl font-bold">
-        {title}
-      </h3>
+      {/* CONTENT */}
 
-      <p className="mt-4 leading-7 text-gray-600">
-        {text}
-      </p>
+      <div className="flex min-h-0 flex-1 flex-col p-5 md:p-6">
 
-      <Link
-        to={link}
-        className="mt-7 inline-block font-bold text-[#c88d22]"
-      >
-        {button}
-      </Link>
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#c88d22]">
+            {expert.role}
+          </p>
+
+          <h3 className="mt-1 text-2xl font-black text-[#173d3a]">
+            {expert.name}
+          </h3>
+
+          <p className="mt-1 text-sm font-semibold text-gray-700">
+            {expert.title}
+          </p>
+
+          <p className="mt-3 text-xs leading-5 text-gray-600">
+            {expert.description}
+          </p>
+
+          <div className="mt-4 border-t border-gray-100 pt-4">
+
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Services
+            </p>
+
+            <div className="mt-3 space-y-2">
+
+              {expert.services.map(
+                ([service, price]) => (
+
+                  <div
+                    key={`${expert.name}-${service}`}
+                    className="rounded-xl border border-[#e7e3d9] bg-[#faf9f5] p-2.5"
+                  >
+
+                    <div className="flex items-center justify-between gap-3">
+
+                      <span className="text-xs font-semibold text-[#173d3a]">
+                        {service}
+                      </span>
+
+                      <span className="shrink-0 text-xs font-black text-[#c88d22]">
+                        {price}
+                      </span>
+
+                    </div>
+
+                    {/* INDIVIDUAL BOOK BUTTON */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onBookService(
+                          expert,
+                          service,
+                          price
+                        )
+                      }
+                      className="mt-2 w-full rounded-lg bg-[#0d4743] px-3 py-2 text-[10px] font-bold text-white transition hover:bg-[#12554f]"
+                    >
+                      Book this session →
+                    </button>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+            <p className="mt-3 text-[10px] leading-4 text-gray-400">
+              {expert.note}
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* MAIN EXPERT BUTTON */}
+
+        <button
+          type="button"
+          onClick={() => {
+
+            const firstService =
+              expert.services[0];
+
+            onBookService(
+              expert,
+              firstService[0],
+              firstService[1]
+            );
+
+          }}
+          className="mt-4 w-full shrink-0 rounded-full bg-[#0d4743] px-5 py-3.5 text-sm font-bold text-white shadow-lg transition hover:bg-[#12554f]"
+        >
+          {expert.button}
+        </button>
+
+      </div>
+
     </div>
+
   );
+
+}
+
+/* ========================================================= */
+/* ================= BOOKING NAVIGATION ==================== */
+/* ========================================================= */
+
+function navigateToBooking(path: string) {
+  window.location.href = path;
 }
 
 export default Home;
